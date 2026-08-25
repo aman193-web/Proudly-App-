@@ -1,4 +1,15 @@
-import { ChevronDown, Plus, SlidersHorizontal, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  BarChart3,
+  CalendarDays,
+  Check,
+  ChevronDown,
+  ListIcon,
+  Plus,
+  SlidersHorizontal,
+  Sparkles,
+} from "lucide-react";
 import { ChildAvatar } from "./ui";
 import { Sheet } from "./Sheet";
 import {
@@ -11,8 +22,10 @@ import {
   CATEGORY_COLOR,
   childById,
   CHILDREN,
+  dec,
   durationText,
   fmtMonth,
+  TODAY,
 } from "../data";
 import type { Range } from "./Gantt";
 
@@ -257,40 +270,179 @@ export function CategorySheet({
   );
 }
 
-/* ---------- Range selector ---------- */
-export function RangeSelector({
+/* ---------- Range window helpers ----------
+   The Gantt treats `range` as a zoom level, so it keeps showing the full
+   domain. The list and calendar views have no zoom, so there the same
+   control reads as what it says on the tin: a time filter. */
+const RANGE_YEARS: Record<Exclude<Range, "all">, number> = { "1y": 1, "3y": 3, "5y": 5 };
+
+/** Lower bound of the selected window as a decimal year; null means "all time". */
+export function rangeStart(range: Range): number | null {
+  return range === "all" ? null : dec(TODAY) - RANGE_YEARS[range];
+}
+
+/** Length of the selected window in years; null means "all time". */
+export function rangeYears(range: Range): number | null {
+  return range === "all" ? null : RANGE_YEARS[range];
+}
+
+/** True when an activity is still running inside the selected window. */
+export function withinRange(a: Activity, range: Range): boolean {
+  const from = rangeStart(range);
+  if (from === null) return true;
+  return (a.end === "present" ? dec(TODAY) : dec(a.end)) >= from;
+}
+
+/* ---------- Range dropdown (replaces the old 1Y/3Y/5Y/All tab strip) ---------- */
+const RANGE_OPTIONS: { id: Range; label: string; hint: string }[] = [
+  { id: "1y", label: "1 year", hint: "Last 12 months" },
+  { id: "3y", label: "3 years", hint: "Last 3 years" },
+  { id: "5y", label: "5 years", hint: "Last 5 years" },
+  { id: "all", label: "All time", hint: "Every year tracked" },
+];
+
+export const rangeLabel = (r: Range) =>
+  RANGE_OPTIONS.find((o) => o.id === r)?.label ?? "All time";
+
+export function RangeMenu({
   value,
   onChange,
-  onJumpToday,
 }: {
   value: Range;
   onChange: (r: Range) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative shrink-0">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className={`flex items-center gap-1 h-8 pl-3 pr-2 rounded-full border text-[12.5px] font-[600] transition-colors ${
+          open ? "bg-surface border-teal text-teal" : "bg-canvas border-hairline text-ink"
+        }`}
+      >
+        <span className="whitespace-nowrap">{rangeLabel(value)}</span>
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }}>
+          <ChevronDown size={14} className="text-ink-soft" />
+        </motion.span>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <>
+            {/* Click-catcher so the menu closes like a native dropdown. */}
+            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+            <motion.div
+              role="menu"
+              initial={{ opacity: 0, y: -6, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.97 }}
+              transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute right-0 top-full mt-1.5 z-50 w-[178px] origin-top-right rounded-2xl bg-surface border border-hairline p-1.5 shadow-[0_18px_40px_-12px_rgba(23,35,33,0.32)]"
+            >
+              {RANGE_OPTIONS.map((o) => {
+                const active = o.id === value;
+                return (
+                  <button
+                    key={o.id}
+                    role="menuitemradio"
+                    aria-checked={active}
+                    onClick={() => {
+                      onChange(o.id);
+                      setOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-left transition-colors ${
+                      active ? "bg-mint" : "active:bg-canvas"
+                    }`}
+                  >
+                    <span className="flex-1">
+                      <span
+                        className={`block text-[14px] font-[600] ${
+                          active ? "text-teal-dark" : "text-ink"
+                        }`}
+                      >
+                        {o.label}
+                      </span>
+                      <span className="block text-[11.5px] text-ink-soft">{o.hint}</span>
+                    </span>
+                    {active && <Check size={15} className="text-teal shrink-0" strokeWidth={3} />}
+                  </button>
+                );
+              })}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ---------- View toggle (Gantt / List / Calendar) ----------
+   Only the active tab carries its label so all three fit beside the range
+   dropdown on a 375pt screen. */
+export type ActivityView = "gantt" | "list" | "calendar";
+
+const VIEW_OPTIONS: { id: ActivityView; label: string; Icon: typeof BarChart3 }[] = [
+  { id: "gantt", label: "Gantt", Icon: BarChart3 },
+  { id: "list", label: "List", Icon: ListIcon },
+  { id: "calendar", label: "Calendar", Icon: CalendarDays },
+];
+
+export function ViewTabs({
+  value,
+  onChange,
+}: {
+  value: ActivityView;
+  onChange: (v: ActivityView) => void;
+}) {
+  return (
+    <div className="flex-1 flex items-center gap-0.5 bg-canvas rounded-full p-1 border border-hairline">
+      {VIEW_OPTIONS.map(({ id, label, Icon }) => {
+        const active = id === value;
+        return (
+          <button
+            key={id}
+            onClick={() => onChange(id)}
+            aria-label={`${label} view`}
+            aria-pressed={active}
+            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-full text-[12.5px] font-[600] transition-colors ${
+              active ? "flex-1 bg-surface text-teal shadow-sm" : "px-2.5 text-ink-soft"
+            }`}
+          >
+            <Icon size={14} />
+            {active && <span className="whitespace-nowrap">{label}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------- Control row: view tabs + range dropdown + Today ----------
+   `view` is optional so the expanded Gantt can reuse the row without tabs. */
+export function ActivityControls({
+  view,
+  onViewChange,
+  range,
+  onRangeChange,
+  onJumpToday,
+}: {
+  view?: ActivityView;
+  onViewChange?: (v: ActivityView) => void;
+  range: Range;
+  onRangeChange: (r: Range) => void;
   onJumpToday: () => void;
 }) {
-  const ranges: { id: Range; label: string }[] = [
-    { id: "1y", label: "1Y" },
-    { id: "3y", label: "3Y" },
-    { id: "5y", label: "5Y" },
-    { id: "all", label: "All" },
-  ];
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 flex items-center bg-canvas rounded-full p-1 border border-hairline">
-        {ranges.map((r) => {
-          const active = r.id === value;
-          return (
-            <button
-              key={r.id}
-              onClick={() => onChange(r.id)}
-              className={`flex-1 py-1.5 rounded-full text-[12.5px] font-[600] transition-colors ${
-                active ? "bg-surface text-teal shadow-sm" : "text-ink-soft"
-              }`}
-            >
-              {r.label}
-            </button>
-          );
-        })}
-      </div>
+      {view && onViewChange ? (
+        <ViewTabs value={view} onChange={onViewChange} />
+      ) : (
+        <span className="flex-1" />
+      )}
+      <RangeMenu value={range} onChange={onRangeChange} />
       <button
         onClick={onJumpToday}
         className="shrink-0 px-3 h-8 rounded-full bg-mint text-teal-dark text-[12.5px] font-[600] active:scale-95 transition-transform"

@@ -30,7 +30,9 @@ import BottomBar from "../imports/BottomBar";
 import {
   AchievementPreview,
   AchievementRow,
+  ActivityControls,
   ActivityPreview,
+  type ActivityView,
   CategorySheet,
   type ChildId,
   ChildChip,
@@ -39,8 +41,8 @@ import {
   EmptyGantt,
   FilterButton,
   MilestoneStar,
-  RangeSelector,
 } from "../components/proudly";
+import { ActivityCalendarView, ActivityListView } from "../components/ActivityViews";
 import { Notifications, type NotifTarget } from "./Notifications";
 import { PhotoImport } from "./PhotoImport";
 import { Portfolio, BragSheet } from "./Portfolio";
@@ -54,7 +56,7 @@ import {
   ProfileTab,
   type SettingsTarget,
 } from "./Settings";
-import { EmptyState, GanttSkeleton, ToastHost } from "../components/states";
+import { EmptyState, GanttSkeleton, showToast, ToastHost } from "../components/states";
 import {
   type Achievement,
   type Activity,
@@ -70,6 +72,8 @@ import {
   durationText,
   fmtMonth,
   PHOTO_CANDIDATES,
+  TODAY,
+  type YM,
 } from "../data";
 
 type Tab = "home" | "activities" | "achievements" | "portfolio" | "profile";
@@ -84,6 +88,7 @@ const NAV: { id: Tab; label: string; icon: typeof HomeIcon }[] = [
 
 type Overlay =
   | { kind: "activityDetail"; id: string }
+  | { kind: "addActivity"; start?: YM }
   | { kind: "editActivity"; id: string }
   | { kind: "achievementDetail"; id: string }
   | { kind: "addAchievement"; activityId?: string }
@@ -187,7 +192,7 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
                 onTapActivity={setPreviewActivity}
                 onTapAchievement={setPreviewAchievement}
                 onExpand={() => push({ kind: "expand" })}
-                onAddActivity={() => setTab("activities")}
+                onAddActivity={(start) => push({ kind: "addActivity", start })}
               />
             )}
             {tab === "achievements" && (
@@ -231,10 +236,13 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
         onView={openAchievement}
       />
 
-      {/* Add-achievement FAB (Achievements tab only) */}
-      {tab === "achievements" && stack.length === 0 && (
+      {/* Add FAB — activities and achievements each get their own form */}
+      {(tab === "activities" || tab === "achievements") && stack.length === 0 && (
         <button
-          onClick={() => push({ kind: "addAchievement" })}
+          onClick={() =>
+            push(tab === "activities" ? { kind: "addActivity" } : { kind: "addAchievement" })
+          }
+          aria-label={tab === "activities" ? "Add activity" : "Add achievement"}
           className="absolute bottom-24 right-5 z-20 w-14 h-14 rounded-full bg-teal text-white grid place-items-center shadow-[0_12px_28px_-8px_rgba(33,124,114,0.7)] active:scale-95 transition-transform"
         >
           <Plus size={26} />
@@ -260,6 +268,13 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
                 onOpenAchievement={openAchievement}
                 onAddAchievement={(activityId) => push({ kind: "addAchievement", activityId })}
                 onAddPhotos={() => push({ kind: "photoImport" })}
+              />
+            )}
+            {top.kind === "addActivity" && (
+              <AddActivity
+                childId={childId === "all" ? "reet" : childId}
+                start={top.start}
+                onBack={pop}
               />
             )}
             {top.kind === "editActivity" && <EditActivity id={top.id} onBack={pop} />}
@@ -567,6 +582,7 @@ function Activities({
   onTapActivity,
   onTapAchievement,
   onExpand,
+  onAddActivity,
 }: {
   childId: ChildId;
   onSelectChild: (id: ChildId) => void;
@@ -579,10 +595,11 @@ function Activities({
   onTapActivity: (a: Activity) => void;
   onTapAchievement: (a: Achievement) => void;
   onExpand: () => void;
-  onAddActivity: () => void;
+  onAddActivity: (start?: YM) => void;
 }) {
   const [childSheet, setChildSheet] = useState(false);
   const [catSheet, setCatSheet] = useState(false);
+  const [view, setView] = useState<ActivityView>("gantt");
 
   // Deliberate loading treatment when switching whose journey we're viewing.
   const [loading, setLoading] = useState(true);
@@ -638,12 +655,18 @@ function Activities({
         </div>
       )}
 
-      {/* Range controls */}
+      {/* View toggle + range dropdown + Today */}
       <div className="px-4 mt-3.5">
-        <RangeSelector value={range} onChange={setRange} onJumpToday={onJumpToday} />
+        <ActivityControls
+          view={view}
+          onViewChange={setView}
+          range={range}
+          onRangeChange={setRange}
+          onJumpToday={onJumpToday}
+        />
       </div>
 
-      {/* Chart */}
+      {/* Chart / list / calendar */}
       <div className="px-4 mt-3.5">
         {loading ? (
           <GanttSkeleton height={430} />
@@ -658,7 +681,7 @@ function Activities({
           />
         ) : allActs.length === 0 ? (
           // No activity history at all for this child
-          <EmptyGantt name={name} onSync={() => setError(true)} onAdd={() => {}} />
+          <EmptyGantt name={name} onSync={() => setError(true)} onAdd={onAddActivity} />
         ) : acts.length === 0 ? (
           // History exists, but the current filter has no results
           <div className="rounded-[22px] bg-surface border border-hairline">
@@ -670,6 +693,18 @@ function Activities({
               onAction={() => setCategory("all")}
             />
           </div>
+        ) : view === "list" ? (
+          <ActivityListView activities={acts} range={range} onTapActivity={onTapActivity} />
+        ) : view === "calendar" ? (
+          <ActivityCalendarView
+            activities={acts}
+            achievements={achs}
+            range={range}
+            jumpToken={jump.token}
+            onTapActivity={onTapActivity}
+            onTapAchievement={onTapAchievement}
+            onAddActivity={onAddActivity}
+          />
         ) : (
           <>
             <GanttChart
@@ -697,9 +732,21 @@ function Activities({
 
       {!loading && !error && acts.length > 0 && (
         <p className="px-4 mt-5 text-[12px] text-ink-soft leading-relaxed">
-          Tap any bar to see details, or a{" "}
-          <span className="text-gold font-[600]">gold marker</span> to revisit an achievement.
-          Swipe the chart to travel through the years.
+          {view === "gantt" ? (
+            <>
+              Tap any bar to see details, or a{" "}
+              <span className="text-gold font-[600]">gold marker</span> to revisit an achievement.
+              Swipe the chart to travel through the years.
+            </>
+          ) : view === "list" ? (
+            <>Tap any activity to see its details, photos and achievements.</>
+          ) : (
+            <>
+              Each activity keeps to its regular weekday. Tap any date to see what
+              was on, or an{" "}
+              <span className="text-gold font-[600]">achievement</span> to revisit it.
+            </>
+          )}
         </p>
       )}
 
@@ -792,7 +839,7 @@ function ExpandedGantt({
         </div>
       </div>
       <div className="px-4 pb-2">
-        <RangeSelector value={range} onChange={setRange} onJumpToday={onJumpToday} />
+        <ActivityControls range={range} onRangeChange={setRange} onJumpToday={onJumpToday} />
       </div>
       <div className="flex-1 px-3 pb-3">
         <GanttChart
@@ -994,6 +1041,149 @@ function ActivityDetail({
 }
 
 /* ============================================================= EDIT ACTIVITY */
+/* ============================================================= ADD ACTIVITY */
+function AddActivity({
+  childId,
+  start,
+  onBack,
+}: {
+  childId: string;
+  start?: YM;
+  onBack: () => void;
+}) {
+  const startMonth = start ?? TODAY;
+  const [name, setName] = useState("");
+  const [selectedChild, setSelectedChild] = useState(childId);
+  const [category, setCategory] = useState<Category | null>(null);
+  const [ongoing, setOngoing] = useState(true);
+  const [note, setNote] = useState("");
+  const [childSheet, setChildSheet] = useState(false);
+  const [catSheet, setCatSheet] = useState(false);
+
+  const save = () => {
+    showToast("Activity added");
+    onBack();
+  };
+
+  return (
+    <div className="size-full flex flex-col bg-canvas">
+      <AppHeader title="Add activity" onBack={onBack} />
+      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+        <div className="flex justify-center mt-2 mb-6">
+          <span className="grid place-items-center w-16 h-16 rounded-3xl bg-mint text-teal-dark">
+            <BarChart3 size={30} />
+          </span>
+        </div>
+
+        <Field label="Activity name">
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+            placeholder="e.g. Swimming"
+            className="h-[52px] w-full rounded-2xl bg-surface px-4 text-[16px] text-ink border border-hairline outline-none focus:border-teal focus:ring-4 focus:ring-teal/10 transition placeholder:text-ink-soft/60"
+          />
+        </Field>
+
+        <Field label="Child">
+          <PickerRow
+            value={childById(selectedChild)?.name ?? ""}
+            avatar={childById(selectedChild)?.photo}
+            onClick={() => setChildSheet(true)}
+          />
+        </Field>
+
+        <Field label="Category">
+          <PickerRow
+            value={category ?? "Choose category"}
+            dot={category ? CATEGORY_COLOR[category] : undefined}
+            onClick={() => setCatSheet(true)}
+          />
+        </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Start date">
+            <div className="h-[52px] rounded-2xl bg-surface px-4 border border-hairline flex items-center gap-2 text-[15px] text-ink">
+              <Calendar size={16} className="text-ink-soft" />
+              {fmtMonth(startMonth)}
+            </div>
+          </Field>
+          <Field label="End date">
+            <div
+              className={`h-[52px] rounded-2xl px-4 border flex items-center gap-2 text-[15px] ${
+                ongoing
+                  ? "bg-canvas border-hairline text-ink-soft/60"
+                  : "bg-surface border-hairline text-ink"
+              }`}
+            >
+              <Calendar size={16} className="text-ink-soft" />
+              {ongoing ? "—" : fmtMonth(startMonth)}
+            </div>
+          </Field>
+        </div>
+
+        {/* Ongoing toggle */}
+        <button
+          onClick={() => setOngoing((o) => !o)}
+          className="w-full mt-1 flex items-center justify-between rounded-2xl bg-surface border border-hairline p-4"
+        >
+          <div className="text-left">
+            <p className="text-[15px] font-[600] text-ink">Ongoing</p>
+            <p className="text-[12.5px] text-ink-soft">Still an active activity</p>
+          </div>
+          <span
+            className={`w-12 h-7 rounded-full p-0.5 transition-colors ${
+              ongoing ? "bg-teal" : "bg-hairline"
+            }`}
+          >
+            <motion.span
+              layout
+              className="block w-6 h-6 rounded-full bg-white shadow"
+              style={{ marginLeft: ongoing ? 20 : 0 }}
+            />
+          </span>
+        </button>
+
+        <Field label="Notes (optional)" className="mt-4">
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={3}
+            placeholder="Add a memory or context…"
+            className="w-full rounded-2xl bg-surface px-4 py-3 text-[15px] text-ink border border-hairline outline-none focus:border-teal focus:ring-4 focus:ring-teal/10 transition resize-none placeholder:text-ink-soft/60"
+          />
+        </Field>
+
+        <button className="w-full rounded-2xl border border-dashed border-hairline bg-surface p-5 flex flex-col items-center gap-1.5 text-ink-soft active:scale-[0.99] transition-transform">
+          <Images size={22} />
+          <span className="text-[13.5px] font-[600]">Add photos</span>
+          <span className="text-[11.5px]">Optional</span>
+        </button>
+      </div>
+
+      <div className="shrink-0 px-4 pt-3 pb-8 border-t border-hairline bg-canvas">
+        <PrimaryButton onClick={save} disabled={!name || !category}>
+          Add activity
+        </PrimaryButton>
+      </div>
+
+      <ChildSheet
+        open={childSheet}
+        onClose={() => setChildSheet(false)}
+        childId={selectedChild}
+        onSelect={(id) => setSelectedChild(id as string)}
+        allowAll={false}
+      />
+      <CategorySheet
+        open={catSheet}
+        onClose={() => setCatSheet(false)}
+        value={category ?? "all"}
+        onSelect={(c) => c !== "all" && setCategory(c)}
+      />
+    </div>
+  );
+}
+
 function EditActivity({ id, onBack }: { id: string; onBack: () => void }) {
   const activity = activityById(id)!;
   const [name, setName] = useState(activity.name);
