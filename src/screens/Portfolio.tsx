@@ -1,5 +1,16 @@
 import { useMemo, useState } from "react";
-import { ChevronRight, Download, FileText, FolderOpen, Share2 } from "lucide-react";
+import {
+  Bookmark,
+  ChevronRight,
+  Download,
+  FileText,
+  FolderOpen,
+  Heart,
+  LayoutGrid,
+  MoreHorizontal,
+  Rows3,
+  Share2,
+} from "lucide-react";
 import { AppHeader, ChildAvatar, PrimaryButton } from "../components/ui";
 import { ChildChip, ChildSheet, MilestoneStar, type ChildId } from "../components/proudly";
 import { EmptyState, showToast } from "../components/states";
@@ -9,9 +20,11 @@ import {
   achievementsFor,
   activitiesFor,
   activityById,
+  type Category,
   CATEGORY_COLOR,
   childById,
   dec,
+  durationText,
   fmtMonth,
   memoriesFor,
 } from "../data";
@@ -26,8 +39,18 @@ function spanYears(acts: Activity[]) {
 
 type FeedTab = "all" | "photos" | "achievements" | "activities";
 
+/** Collage grid (the original) or a full-width scrolling feed. */
+type PortfolioView = "grid" | "feed";
+
 type FeedItem =
-  | { kind: "photo"; url: string; activityName: string; date: { y: number; m: number } }
+  | {
+      kind: "photo";
+      url: string;
+      activityName: string;
+      childId: string;
+      category: Category;
+      date: { y: number; m: number };
+    }
   | { kind: "achievement"; ach: Achievement }
   | { kind: "activity"; act: Activity };
 
@@ -45,6 +68,7 @@ export function Portfolio({
 }) {
   const [childSheet, setChildSheet] = useState(false);
   const [feedTab, setFeedTab] = useState<FeedTab>("all");
+  const [view, setView] = useState<PortfolioView>("grid");
   const acts = activitiesFor(childId);
   const child = childId === "all" ? null : childById(childId);
   const name = child ? child.name : "Your family";
@@ -55,6 +79,8 @@ export function Portfolio({
       kind: "photo",
       url: m.url,
       activityName: m.activityName,
+      childId: m.childId,
+      category: m.category,
       date: m.date,
     }));
     const achievements: FeedItem[] = achievementsFor(childId).map((a) => ({
@@ -128,8 +154,35 @@ export function Portfolio({
         <ChildChip childId={childId} onOpen={() => setChildSheet(true)} />
       </div>
 
-      {/* Filter tabs */}
-      <div className="mt-4 flex gap-2 overflow-x-auto scroll-area px-4">
+      {/* View toggle — collage grid or full-width feed */}
+      <div className="px-4 mt-4">
+        <div className="flex items-center bg-canvas rounded-full p-1 border border-hairline">
+          {(
+            [
+              { id: "grid", label: "Collage", Icon: LayoutGrid },
+              { id: "feed", label: "Feed", Icon: Rows3 },
+            ] as { id: PortfolioView; label: string; Icon: typeof LayoutGrid }[]
+          ).map(({ id, label, Icon }) => {
+            const active = view === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setView(id)}
+                aria-pressed={active}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-full text-[12.5px] font-[600] transition-colors ${
+                  active ? "bg-surface text-teal shadow-sm" : "text-ink-soft"
+                }`}
+              >
+                <Icon size={14} />
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Filter tabs — apply to both views */}
+      <div className="mt-3 flex gap-2 overflow-x-auto scroll-area px-4">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -145,13 +198,21 @@ export function Portfolio({
         ))}
       </div>
 
-      {/* Instagram-style grid */}
+      {/* Collage grid (unchanged) or the feed */}
       {feedItems.length > 0 ? (
-        <div className="mt-4 grid grid-cols-3 gap-[1.5px] bg-hairline">
-          {feedItems.map((item, i) => (
-            <FeedCell key={i} item={item} />
-          ))}
-        </div>
+        view === "grid" ? (
+          <div className="mt-4 grid grid-cols-3 gap-[1.5px] bg-hairline">
+            {feedItems.map((item, i) => (
+              <FeedCell key={i} item={item} />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4">
+            {feedItems.map((item, i) => (
+              <FeedPost key={i} item={item} />
+            ))}
+          </div>
+        )
       ) : (
         <p className="text-[13.5px] text-ink-soft text-center mt-12 px-4">Nothing here yet.</p>
       )}
@@ -182,6 +243,150 @@ export function Portfolio({
         onSelect={onSelectChild}
       />
     </div>
+  );
+}
+
+/* ============================================================= FEED POST
+   Full-width post, Instagram-home-feed shape: identity header, edge-to-edge
+   media, action row, caption. Reactions are local to the session — nothing
+   here invents follower or like counts. */
+function FeedPost({ item }: { item: FeedItem }) {
+  const [proud, setProud] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  // Normalise the three item kinds into one post shape.
+  let childId: string;
+  let sub: string;
+  let dot: string;
+  let date: { y: number; m: number };
+  let image: string | null;
+  let caption: React.ReactNode;
+  let note: string | null = null;
+  let isAchievement = false;
+
+  if (item.kind === "photo") {
+    childId = item.childId;
+    sub = item.activityName;
+    dot = CATEGORY_COLOR[item.category];
+    date = item.date;
+    image = item.url;
+    caption = item.activityName;
+  } else if (item.kind === "achievement") {
+    const act = activityById(item.ach.activityId);
+    childId = item.ach.childId;
+    sub = act?.name ?? "Achievement";
+    dot = act ? CATEGORY_COLOR[act.category] : "#b8893b";
+    date = item.ach.date;
+    image = item.ach.image ?? null;
+    caption = item.ach.title;
+    note = item.ach.description ?? null;
+    isAchievement = true;
+  } else {
+    childId = item.act.childId;
+    sub = item.act.category;
+    dot = CATEGORY_COLOR[item.act.category];
+    date = item.act.start;
+    // Every memory already appears as its own photo post, so an activity post
+    // reusing one would show the same picture twice. It gets a milestone panel.
+    image = null;
+    caption = `Started ${item.act.name} · ${durationText(item.act.start, item.act.end)}`;
+    note = item.act.note ?? null;
+  }
+
+  const child = childById(childId);
+  const childName = child?.name ?? "Family";
+
+  return (
+    <article className="border-b border-hairline pb-3 mb-3 last:border-b-0">
+      {/* Identity header */}
+      <div className="flex items-center gap-2.5 px-4 py-2.5">
+        <ChildAvatar src={child?.photo} name={childName} size={34} ring={dot} />
+        <div className="flex-1 min-w-0">
+          <p className="text-[13.5px] font-[700] text-ink leading-tight truncate">{childName}</p>
+          <p className="text-[11.5px] text-ink-soft leading-tight truncate flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: dot }} />
+            {sub}
+          </p>
+        </div>
+        {isAchievement && (
+          <span className="shrink-0 flex items-center gap-1 text-[10.5px] font-[700] text-gold bg-gold-soft px-2 py-1 rounded-full">
+            <MilestoneStar size={10} /> Achievement
+          </span>
+        )}
+        <MoreHorizontal size={18} className="text-ink-soft shrink-0" />
+      </div>
+
+      {/* Media — edge to edge */}
+      {image ? (
+        <img src={image} alt={typeof caption === "string" ? caption : ""} className="w-full aspect-square object-cover bg-mint" />
+      ) : isAchievement ? (
+        <div className="w-full aspect-square flex flex-col items-center justify-center bg-gradient-to-br from-[#fdf3e3] to-[#f5e0b5] px-10 text-center">
+          <span className="text-gold mb-3">
+            <MilestoneStar size={44} />
+          </span>
+          <p className="font-display text-[19px] font-[700] text-[#7a5a20] leading-snug">
+            {item.kind === "achievement" ? item.ach.title : ""}
+          </p>
+        </div>
+      ) : (
+        <div
+          className="w-full aspect-square flex flex-col items-center justify-center px-10 text-center"
+          style={{ background: `${dot}1f` }}
+        >
+          <span className="w-4 h-4 rounded-full mb-3" style={{ background: dot }} />
+          <p className="font-display text-[19px] font-[700] text-ink leading-snug">
+            {item.kind === "activity" ? item.act.name : sub}
+          </p>
+          <p className="text-[12.5px] text-ink-soft mt-1 tabular-nums">
+            {item.kind === "activity"
+              ? `${item.act.start.y} – ${item.act.end === "present" ? "Present" : item.act.end.y}`
+              : ""}
+          </p>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex items-center gap-4 px-4 pt-3">
+        <button
+          onClick={() => setProud((p) => !p)}
+          aria-label={proud ? "Remove proud" : "Mark as proud"}
+          aria-pressed={proud}
+          className="active:scale-90 transition-transform"
+        >
+          <Heart size={22} className={proud ? "text-[#c0504a] fill-current" : "text-ink"} />
+        </button>
+        <button
+          onClick={() => showToast("Shared")}
+          aria-label="Share"
+          className="active:scale-90 transition-transform"
+        >
+          <Share2 size={20} className="text-ink" />
+        </button>
+        <button
+          onClick={() => setSaved((v) => !v)}
+          aria-label={saved ? "Remove from Brag Sheet" : "Save to Brag Sheet"}
+          aria-pressed={saved}
+          className="ml-auto active:scale-90 transition-transform"
+        >
+          <Bookmark size={21} className={saved ? "text-teal fill-current" : "text-ink"} />
+        </button>
+      </div>
+
+      {proud && (
+        <p className="px-4 mt-2 text-[12.5px] font-[600] text-ink">You're proud of this</p>
+      )}
+
+      {/* Caption */}
+      <div className="px-4 mt-2">
+        <p className="text-[13.5px] leading-[1.5] text-ink">
+          <span className="font-[700]">{childName}</span> {caption}
+        </p>
+        {note && <p className="text-[12.5px] text-ink-soft leading-[1.5] mt-1">{note}</p>}
+        <p className="text-[11px] text-ink-soft/70 mt-1.5 uppercase tracking-[0.04em]">
+          {fmtMonth(date)}
+        </p>
+      </div>
+    </article>
   );
 }
 
@@ -226,23 +431,8 @@ function FeedCell({ item }: { item: FeedItem }) {
     );
   }
 
-  // activity
-  const firstMemory = item.act.memories[0];
-  if (firstMemory) {
-    return (
-      <div className="aspect-square relative overflow-hidden bg-mint">
-        <img src={firstMemory} alt={item.act.name} className="size-full object-cover" />
-        <div
-          className="absolute top-1.5 left-1.5 w-2 h-2 rounded-full shadow-sm"
-          style={{ background: CATEGORY_COLOR[item.act.category] }}
-        />
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-1.5 pb-1.5 pt-5">
-          <p className="text-[8.5px] font-[600] text-white truncate">{item.act.name}</p>
-        </div>
-      </div>
-    );
-  }
-
+  // Activity — rendered as its own tile. Its memories are already in the grid
+  // as photo cells, so reusing one here would repeat the same image.
   return (
     <div
       className="aspect-square flex flex-col items-center justify-center px-2 text-center"
