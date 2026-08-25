@@ -15,18 +15,18 @@ const ITEMS: ReviewItem[] = [
   {
     question: "Is this Soccer?",
     guess: "Saturday mornings · 2021–2024",
-    image: "https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?w=600&h=520&fit=crop&auto=format",
+    image: "https://images.unsplash.com/photo-1622659097509-4d56de14539e?w=600&h=520&fit=crop&auto=format",
   },
   {
     question: "This may be an achievement",
     guess: "Grade 3 Piano — Distinction",
-    image: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=600&h=520&fit=crop&auto=format",
+    image: "https://images.unsplash.com/photo-1590581296894-3c897baa0e54?w=600&h=520&fit=crop&auto=format",
     achievement: true,
   },
   {
     question: "Is this Reet?",
     guess: "Found across 24 photos",
-    image: "https://images.unsplash.com/photo-1500048993953-d23a436266cf?w=600&h=520&fit=crop&auto=format",
+    image: "https://images.unsplash.com/photo-1762444760659-54caed7cbb1a?w=600&h=520&fit=crop&auto=format",
   },
 ];
 

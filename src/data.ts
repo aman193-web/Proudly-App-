@@ -12,7 +12,7 @@ export const CHILDREN: Child[] = [
     name: "Reet",
     grade: "Grade 6",
     photo:
-      "https://images.unsplash.com/photo-1500048993953-d23a436266cf?w=200&h=200&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1762444760659-54caed7cbb1a?w=200&h=200&fit=crop&auto=format",
     color: "#217c72",
   },
   {
@@ -20,7 +20,7 @@ export const CHILDREN: Child[] = [
     name: "Aanya",
     grade: "Grade 3",
     photo:
-      "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=200&h=200&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1698768645748-c62b3e5202ca?w=200&h=200&fit=crop&auto=format",
     color: "#b8893b",
   },
 ];
@@ -122,9 +122,9 @@ export const ACTIVITIES: Activity[] = [
     end: "present",
     note: "Practices most mornings before school. Loves ragtime lately.",
     memories: [
-      "https://images.unsplash.com/photo-1552422535-c45813c61732?w=400&h=400&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=400&h=400&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1571974599782-87624638275e?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1577877777751-3f1ec20a0715?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1590581296894-3c897baa0e54?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1590581296900-2e7f7e86a1cd?w=400&h=400&fit=crop&auto=format",
     ],
     history: [
       { date: { y: 2019, m: 9 }, label: "Started weekly lessons" },
@@ -141,8 +141,8 @@ export const ACTIVITIES: Activity[] = [
     start: { y: 2021, m: 3 },
     end: { y: 2024, m: 6 },
     memories: [
-      "https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?w=400&h=400&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1622659097509-4d56de14539e?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1622659097972-68f1d8c1829f?w=400&h=400&fit=crop&auto=format",
     ],
     history: [
       { date: { y: 2021, m: 3 }, label: "Joined the junior league" },
@@ -159,7 +159,7 @@ export const ACTIVITIES: Activity[] = [
     end: { y: 2022, m: 7 },
     approxStart: true,
     memories: [
-      "https://images.unsplash.com/photo-1600965962361-9035dbfd1c50?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1651614158095-b98b6c1da74b?w=400&h=400&fit=crop&auto=format",
     ],
     history: [
       { date: { y: 2020, m: 1 }, label: "Learn-to-swim programme" },
@@ -174,7 +174,7 @@ export const ACTIVITIES: Activity[] = [
     start: { y: 2022, m: 9 },
     end: "present",
     memories: [
-      "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1632433796103-83acf2ae78b6?w=400&h=400&fit=crop&auto=format",
     ],
     history: [{ date: { y: 2022, m: 9 }, label: "Joined the school choir" }],
   },
@@ -186,8 +186,8 @@ export const ACTIVITIES: Activity[] = [
     start: { y: 2023, m: 1 },
     end: "present",
     memories: [
-      "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=400&h=400&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1681312206210-5f52c564d30d?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1558905566-ddbeb2fc2c2f?w=400&h=400&fit=crop&auto=format",
     ],
     history: [
       { date: { y: 2023, m: 1 }, label: "Started ballet" },
@@ -202,7 +202,7 @@ export const ACTIVITIES: Activity[] = [
     start: { y: 2021, m: 9 },
     end: { y: 2023, m: 6 },
     memories: [
-      "https://images.unsplash.com/photo-1499892477393-f675706cbfac?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1512253080918-79cf0c2e0650?w=400&h=400&fit=crop&auto=format",
     ],
     history: [{ date: { y: 2021, m: 9 }, label: "Joined after-school art club" }],
   },
@@ -214,7 +214,7 @@ export const ACTIVITIES: Activity[] = [
     start: { y: 2023, m: 9 },
     end: "present",
     memories: [
-      "https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1714646793130-0dc0c5a04f64?w=400&h=400&fit=crop&auto=format",
     ],
     history: [
       { date: { y: 2023, m: 9 }, label: "Joined chess club" },
@@ -229,7 +229,7 @@ export const ACTIVITIES: Activity[] = [
     start: { y: 2024, m: 9 },
     end: "present",
     memories: [
-      "https://images.unsplash.com/photo-1561144257-e32e8efc6c4f?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1742047654060-fcd0b0d06b7a?w=400&h=400&fit=crop&auto=format",
     ],
     history: [
       { date: { y: 2024, m: 9 }, label: "Joined the robotics team" },
@@ -245,7 +245,7 @@ export const ACTIVITIES: Activity[] = [
     start: { y: 2022, m: 9 },
     end: "present",
     memories: [
-      "https://images.unsplash.com/photo-1571974599782-87624638275e?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1636464808108-644053e72420?w=400&h=400&fit=crop&auto=format",
     ],
     history: [{ date: { y: 2022, m: 9 }, label: "Started lessons" }],
   },
@@ -257,7 +257,7 @@ export const ACTIVITIES: Activity[] = [
     start: { y: 2023, m: 3 },
     end: "present",
     memories: [
-      "https://images.unsplash.com/photo-1547153760-18fc86324498?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1655842556539-db2d2099ded1?w=400&h=400&fit=crop&auto=format",
     ],
     history: [{ date: { y: 2023, m: 3 }, label: "Started gymnastics" }],
   },
@@ -270,7 +270,7 @@ export const ACTIVITIES: Activity[] = [
     end: "present",
     approxStart: true,
     memories: [
-      "https://images.unsplash.com/photo-1607453998774-d533f65dac99?w=400&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1536221993589-9edbbca2c7fc?w=400&h=400&fit=crop&auto=format",
     ],
     history: [{ date: { y: 2021, m: 6 }, label: "First painting classes" }],
   },
@@ -297,7 +297,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description:
       "Passed the Royal Conservatory Grade 3 examination with distinction, scoring 92 out of 100.",
     image:
-      "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=800&h=600&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1619159846911-3687cc9e9820?w=800&h=600&fit=crop&auto=format",
   },
   {
     id: "ach-piano-recital",
@@ -307,7 +307,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     date: { y: 2022, m: 5 },
     description: "First solo performance in front of an audience at the community hall.",
     image:
-      "https://images.unsplash.com/photo-1552422535-c45813c61732?w=800&h=600&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1744829779302-40d24fdf83cc?w=800&h=600&fit=crop&auto=format",
   },
   {
     id: "ach-soccer-regional",
@@ -317,7 +317,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     date: { y: 2023, m: 3 },
     description: "Team reached the regional final and finished second overall.",
     image:
-      "https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?w=800&h=600&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1637635753233-b45f6539136d?w=800&h=600&fit=crop&auto=format",
   },
   {
     id: "ach-swim-meet",
@@ -343,7 +343,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     date: { y: 2025, m: 11 },
     description: "Recognised for the best engineering design at the state robotics finals.",
     image:
-      "https://images.unsplash.com/photo-1561144257-e32e8efc6c4f?w=800&h=600&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1742767069929-0c663150b164?w=800&h=600&fit=crop&auto=format",
   },
   {
     id: "ach-a-gym",
@@ -357,10 +357,10 @@ export const ACHIEVEMENTS: Achievement[] = [
 
 /* ---------- Parent / account ---------- */
 export const PARENT = {
-  name: "Sarah Sharma",
+  name: "Sarah",
   email: "parent@gmail.com",
   photo:
-    "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&auto=format",
+    "https://images.unsplash.com/photo-1573497019707-1c04de26e58c?w=200&h=200&fit=crop&auto=format",
 };
 
 /* ---------- Connected sources ---------- */
@@ -449,7 +449,7 @@ export type PhotoCandidate = {
 export const PHOTO_CANDIDATES: PhotoCandidate[] = [
   {
     id: "p1",
-    url: "https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?w=600&h=600&fit=crop&auto=format",
+    url: "https://images.unsplash.com/photo-1629977007371-0ba395424741?w=600&h=600&fit=crop&auto=format",
     childId: "reet",
     activityId: "soccer",
     date: { y: 2023, m: 3 },
@@ -458,7 +458,7 @@ export const PHOTO_CANDIDATES: PhotoCandidate[] = [
   },
   {
     id: "p2",
-    url: "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?w=600&h=600&fit=crop&auto=format",
+    url: "https://images.unsplash.com/photo-1680024436315-fb06267264b2?w=600&h=600&fit=crop&auto=format",
     childId: "reet",
     activityId: "soccer",
     date: { y: 2023, m: 3 },
@@ -466,7 +466,7 @@ export const PHOTO_CANDIDATES: PhotoCandidate[] = [
   },
   {
     id: "p3",
-    url: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=600&h=600&fit=crop&auto=format",
+    url: "https://images.unsplash.com/photo-1475275166152-f1e8005f9854?w=600&h=600&fit=crop&auto=format",
     childId: "reet",
     activityId: "piano",
     date: { y: 2024, m: 5 },
@@ -474,7 +474,7 @@ export const PHOTO_CANDIDATES: PhotoCandidate[] = [
   },
   {
     id: "p4",
-    url: "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=600&h=600&fit=crop&auto=format",
+    url: "https://images.unsplash.com/photo-1685339009948-d807094b1457?w=600&h=600&fit=crop&auto=format",
     childId: "reet",
     activityId: "ballet",
     date: { y: 2025, m: 6 },
