@@ -1,11 +1,22 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Camera, Check, ChevronDown, Sparkles, ZoomIn, ZoomOut } from "lucide-react";
+import {
+  Camera,
+  Check,
+  ChevronDown,
+  ImageUp,
+  Loader2,
+  Sparkles,
+  Trash2,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
 import { Screen, AppHeader, PrimaryButton, TextField, TextLink } from "../components/ui";
 import { StepDots } from "../components/StepDots";
 
 const GRADES = ["Pre-K", "Kindergarten", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7", "Grade 8"];
 const CIRCLE = 240;
+const MAX_BYTES = 12 * 1024 * 1024;
 
 export function AddChild({
   onBack,
@@ -19,27 +30,67 @@ export function AddChild({
   const [croppedUrl, setCroppedUrl] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [rawSrc, setRawSrc] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [reading, setReading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const imgNatRef = useRef<{ w: number; h: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const openFilePicker = () => fileRef.current?.click();
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  /* Single path for every way a photo can arrive: picker, drop or paste. */
+  const ingest = useCallback((file: File | null | undefined) => {
     if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("That file isn't an image. Try a JPG or PNG.");
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      setError("That image is over 12 MB. Try a smaller one.");
+      return;
+    }
+    setError(null);
+    setReading(true);
+
     const reader = new FileReader();
+    reader.onerror = () => {
+      setReading(false);
+      setError("We couldn't read that file. Try another one.");
+    };
     reader.onload = (ev) => {
       const src = ev.target?.result as string;
       const img = new Image();
+      img.onerror = () => {
+        setReading(false);
+        setError("That image looks damaged. Try another one.");
+      };
       img.onload = () => {
         imgNatRef.current = { w: img.naturalWidth, h: img.naturalHeight };
+        setReading(false);
         setRawSrc(src);
       };
       img.src = src;
     };
     reader.readAsDataURL(file);
+  }, []);
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    ingest(e.target.files?.[0]);
     e.target.value = "";
   };
+
+  /* Paste an image straight onto the step. */
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const file = Array.from(e.clipboardData?.files ?? [])[0];
+      if (file) {
+        e.preventDefault();
+        ingest(file);
+      }
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, [ingest]);
 
   const handleConfirmCrop = useCallback(
     (scale: number, offset: { x: number; y: number }) => {
@@ -88,24 +139,133 @@ export function AddChild({
           You can add more children anytime later.
         </p>
 
-        {/* Photo control */}
-        <div className="flex flex-col items-center mt-7">
-          <button onClick={openFilePicker} className="relative active:scale-95 transition-transform">
-            <div className="w-[104px] h-[104px] rounded-full overflow-hidden bg-mint grid place-items-center border border-hairline">
-              {croppedUrl ? (
-                <img src={croppedUrl} alt="Child" className="size-full object-cover" />
+        {/* Photo control — tap, drop or paste */}
+        <div
+          className="flex flex-col items-center mt-7"
+          onDragEnter={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragOver={(e) => e.preventDefault()}
+          onDragLeave={(e) => {
+            // Ignore bubbling from children so the ring doesn't flicker.
+            if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+            setDragging(false);
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragging(false);
+            ingest(e.dataTransfer.files?.[0]);
+          }}
+        >
+          <motion.button
+            onClick={openFilePicker}
+            disabled={reading}
+            aria-label={croppedUrl ? "Change your child's photo" : "Add a photo of your child"}
+            animate={{ scale: dragging ? 1.06 : 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 26 }}
+            className="relative rounded-full active:scale-95 transition-transform outline-none focus-visible:ring-4 focus-visible:ring-teal/25"
+          >
+            <div
+              className={`w-[112px] h-[112px] rounded-full overflow-hidden grid place-items-center transition-colors ${
+                croppedUrl
+                  ? "bg-mint border-2 border-teal/40"
+                  : dragging
+                    ? "bg-mint border-2 border-teal"
+                    : "bg-mint border-2 border-dashed border-teal/35"
+              }`}
+            >
+              {reading ? (
+                <Loader2 size={26} className="text-teal-dark/70 animate-spin" />
+              ) : croppedUrl ? (
+                <motion.img
+                  key={croppedUrl}
+                  src={croppedUrl}
+                  alt="Your child"
+                  initial={{ opacity: 0, scale: 1.08 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                  className="size-full object-cover"
+                />
+              ) : dragging ? (
+                <ImageUp size={30} className="text-teal" strokeWidth={1.8} />
               ) : (
                 <Camera size={30} className="text-teal-dark/70" strokeWidth={1.8} />
               )}
             </div>
-            <span className="absolute -bottom-0.5 -right-0.5 grid place-items-center w-9 h-9 rounded-full bg-teal text-white border-[3px] border-canvas">
-              {croppedUrl ? <Check size={16} strokeWidth={3} /> : <Camera size={16} />}
-            </span>
-          </button>
-          <p className="text-[13px] text-ink-soft text-center mt-3.5 max-w-[260px] leading-snug flex items-center gap-1.5 justify-center">
-            <Sparkles size={13} className="text-gold shrink-0" />
-            A photo helps PROUDLY find your child in your memories.
-          </p>
+
+            {!reading && (
+              <span className="absolute -bottom-0.5 -right-0.5 grid place-items-center w-9 h-9 rounded-full bg-teal text-white border-[3px] border-canvas">
+                {croppedUrl ? <Check size={16} strokeWidth={3} /> : <Camera size={16} />}
+              </span>
+            )}
+          </motion.button>
+
+          {/* Helper line / error / post-upload actions */}
+          <div className="mt-4 min-h-[62px] flex flex-col items-center justify-start">
+            <AnimatePresence mode="wait">
+              {error ? (
+                <motion.p
+                  key="err"
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="text-[12.5px] font-[500] text-[#c0504a] bg-[#fbeceb] border border-[#e2b6b0] rounded-full px-3 py-1.5 text-center max-w-[280px]"
+                >
+                  {error}
+                </motion.p>
+              ) : croppedUrl ? (
+                <motion.div
+                  key="actions"
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex items-center gap-2"
+                >
+                  <button
+                    onClick={openFilePicker}
+                    className="flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-surface border border-hairline text-[13px] font-[600] text-ink active:scale-95 transition-transform"
+                  >
+                    <Camera size={14} /> Change
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCroppedUrl(null);
+                      setError(null);
+                    }}
+                    className="flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-surface border border-hairline text-[13px] font-[600] text-[#c0504a] active:scale-95 transition-transform"
+                  >
+                    <Trash2 size={14} /> Remove
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="hint"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center"
+                >
+                  {/* Icon sits inline so it rides the first line instead of
+                      floating beside the wrapped block. */}
+                  <p className="text-[13.5px] leading-[1.4] text-ink-soft text-center text-balance max-w-[254px]">
+                    <Sparkles
+                      size={13}
+                      className="inline align-middle mr-1 -mt-px text-gold"
+                    />
+                    A photo helps PROUDLY find your child in your memories.
+                  </p>
+                  <p
+                    className={`text-[11.5px] font-[500] tracking-[0.01em] mt-1.5 transition-colors ${
+                      dragging ? "text-teal" : "text-ink-soft/60"
+                    }`}
+                  >
+                    {dragging ? "Drop to upload" : "Tap, drop or paste an image"}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         <div className="mt-7 space-y-4">
