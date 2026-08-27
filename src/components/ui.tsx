@@ -1,24 +1,14 @@
 import { motion } from "framer-motion";
 import { ArrowLeft, Check, Eye, EyeOff } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { PhoneFrame } from "./PhoneFrame";
 
-/* ---------- Phone shell ---------- */
+/* ---------- Phone shell ----------
+   The app is a phone design, so it renders inside a hardware frame with the
+   iOS status bar, Dynamic Island and home indicator. The frame scales to fit
+   whatever window it is viewed in. */
 export function PhoneShell({ children }: { children: ReactNode }) {
-  return <div className="size-full bg-canvas">{children}</div>;
-}
-
-function SignalDots() {
-  return (
-    <svg width="52" height="13" viewBox="0 0 52 13" fill="none">
-      <rect x="0" y="4" width="3" height="7" rx="1" fill="#172321" />
-      <rect x="5" y="2.5" width="3" height="8.5" rx="1" fill="#172321" />
-      <rect x="10" y="1" width="3" height="10" rx="1" fill="#172321" />
-      <rect x="15" y="0" width="3" height="11" rx="1" fill="#172321" opacity="0.35" />
-      <rect x="24" y="0" width="17" height="11" rx="3" stroke="#172321" strokeOpacity="0.5" />
-      <rect x="25.5" y="1.5" width="12" height="8" rx="1.5" fill="#172321" />
-      <rect x="42" y="3.5" width="1.6" height="4" rx="0.8" fill="#172321" opacity="0.5" />
-    </svg>
-  );
+  return <PhoneFrame>{children}</PhoneFrame>;
 }
 
 /* ---------- Screen scaffold ---------- */
