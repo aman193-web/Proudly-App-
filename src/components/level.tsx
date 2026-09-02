@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import type { Activity, ActivityLevel } from "../data";
-import { ACTIVITY_LEVELS, LEVEL_RANK } from "../data";
+import { ACTIVITY_LEVELS } from "../data";
 import {
   useActivityLevel,
   setParentLevel,
@@ -37,7 +37,7 @@ const LEVEL_SELECTED: Record<ActivityLevel, string> = {
   Champion: "bg-gold text-white border-2 border-gold",
 };
 
-/** Arc colour for the compact rank dial. */
+/** Text colour for the compact level name. */
 const LEVEL_INK: Record<ActivityLevel, string> = {
   Learning: "#66716e",
   Beginner: "#217c72",
@@ -65,56 +65,22 @@ export function LevelBadge({
   );
 }
 
-/* Rank gauge geometry. One continuous arc over a full-circle track — the arc
-   sweeps (rank + 1) quarters, so Learning is a quarter turn and Champion a
-   full ring. */
-const GAUGE_R = 5.25;
-const GAUGE_C = 2 * Math.PI * GAUGE_R;
+/** Level name for tight spots, like the Gantt label column — plain coloured
+    text, no glyph.
 
-/** Level indicator for tight spots, like the Gantt label column.
-
-    A filled arc gauge next to the level's name. Three things it deliberately
-    is not: stepped ascending bars read as signal strength; equal-height
-    horizontal segments would echo the Gantt's own timeline bars right beside
-    it; and a *segmented* ring reads as a loading spinner. A single continuous
-    arc over a light track reads as progress, and the name beside it means the
-    reader never has to decode the glyph at all. */
-export function LevelPip({
-  activity,
-  showText = true,
-  size = 11,
-}: {
-  activity: Activity;
-  showText?: boolean;
-  size?: number;
-}) {
+    Every compact mark tried here was read as something else: ascending bars as
+    signal strength, horizontal segments as a duplicate of the Gantt's own
+    timeline bars, and a ring gauge as a loading spinner. The word is shorter
+    to read than any of them and cannot be misread. */
+export function LevelPip({ activity }: { activity: Activity }) {
   const { current } = useActivityLevel(activity);
-  const rank = LEVEL_RANK[current];
-  const ink = LEVEL_INK[current];
-  const filled = ((rank + 1) / ACTIVITY_LEVELS.length) * GAUGE_C;
   return (
-    <span className="flex items-center gap-[3px] min-w-0">
-      <svg width={size} height={size} viewBox="0 0 14 14" className="shrink-0" aria-hidden>
-        <circle cx={7} cy={7} r={GAUGE_R} fill="none" stroke="#dce3e0" strokeWidth={2.5} />
-        <circle
-          cx={7}
-          cy={7}
-          r={GAUGE_R}
-          fill="none"
-          stroke={ink}
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          strokeDasharray={`${filled} ${GAUGE_C}`}
-          /* start the sweep at twelve o'clock */
-          transform="rotate(-90 7 7)"
-        />
-      </svg>
-      {showText && (
-        <span className="text-[9.5px] font-[600] leading-none truncate" style={{ color: ink }}>
-          {current}
-        </span>
-      )}
-      <span className="sr-only">{current} level</span>
+    <span
+      className="block text-[9.5px] font-[600] leading-none truncate"
+      style={{ color: LEVEL_INK[current] }}
+    >
+      {current}
+      <span className="sr-only"> level</span>
     </span>
   );
 }
