@@ -37,7 +37,7 @@ const LEVEL_SELECTED: Record<ActivityLevel, string> = {
   Champion: "bg-gold text-white border-2 border-gold",
 };
 
-/** Bar colour for the compact rank meter. */
+/** Arc colour for the compact rank dial. */
 const LEVEL_INK: Record<ActivityLevel, string> = {
   Learning: "#66716e",
   Beginner: "#217c72",
@@ -65,25 +65,50 @@ export function LevelBadge({
   );
 }
 
-/** Four-bar rank meter for very tight spots, like the Gantt label column. */
-export function LevelPip({ activity, showText = true }: { activity: Activity; showText?: boolean }) {
+/* Rank gauge geometry. One continuous arc over a full-circle track — the arc
+   sweeps (rank + 1) quarters, so Learning is a quarter turn and Champion a
+   full ring. */
+const GAUGE_R = 5.25;
+const GAUGE_C = 2 * Math.PI * GAUGE_R;
+
+/** Level indicator for tight spots, like the Gantt label column.
+
+    A filled arc gauge next to the level's name. Three things it deliberately
+    is not: stepped ascending bars read as signal strength; equal-height
+    horizontal segments would echo the Gantt's own timeline bars right beside
+    it; and a *segmented* ring reads as a loading spinner. A single continuous
+    arc over a light track reads as progress, and the name beside it means the
+    reader never has to decode the glyph at all. */
+export function LevelPip({
+  activity,
+  showText = true,
+  size = 11,
+}: {
+  activity: Activity;
+  showText?: boolean;
+  size?: number;
+}) {
   const { current } = useActivityLevel(activity);
   const rank = LEVEL_RANK[current];
   const ink = LEVEL_INK[current];
+  const filled = ((rank + 1) / ACTIVITY_LEVELS.length) * GAUGE_C;
   return (
-    <span className="flex items-center gap-1 min-w-0">
-      <span className="flex items-end gap-[1.5px] shrink-0" aria-hidden>
-        {[0, 1, 2, 3].map((i) => (
-          <span
-            key={i}
-            className="w-[2.5px] rounded-[1px]"
-            style={{
-              height: 4 + i * 2,
-              background: i <= rank ? ink : "#dce3e0",
-            }}
-          />
-        ))}
-      </span>
+    <span className="flex items-center gap-[3px] min-w-0">
+      <svg width={size} height={size} viewBox="0 0 14 14" className="shrink-0" aria-hidden>
+        <circle cx={7} cy={7} r={GAUGE_R} fill="none" stroke="#dce3e0" strokeWidth={2.5} />
+        <circle
+          cx={7}
+          cy={7}
+          r={GAUGE_R}
+          fill="none"
+          stroke={ink}
+          strokeWidth={2.5}
+          strokeLinecap="round"
+          strokeDasharray={`${filled} ${GAUGE_C}`}
+          /* start the sweep at twelve o'clock */
+          transform="rotate(-90 7 7)"
+        />
+      </svg>
       {showText && (
         <span className="text-[9.5px] font-[600] leading-none truncate" style={{ color: ink }}>
           {current}

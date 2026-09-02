@@ -10,7 +10,7 @@ import {
 } from "../data";
 
 /* Layout constants — tuned so labels stay narrow and the timeline gets the room. */
-const LABEL_W = 88;
+const LABEL_W = 106;
 const ROW_H = 54;
 const AXIS_H = 34;
 const BAR_H = 22;
@@ -194,7 +194,7 @@ export function GanttChart({
                   </span>
                 </div>
                 <div className="mt-1 pl-[9px]">
-                  <LevelPip activity={a} showText={false} />
+                  <LevelPip activity={a} />
                 </div>
               </div>
 

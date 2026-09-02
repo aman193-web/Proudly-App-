@@ -15,6 +15,7 @@ import { AppHeader, ChildAvatar, PrimaryButton } from "../components/ui";
 import { ChildChip, ChildSheet, MilestoneStar, type ChildId } from "../components/proudly";
 import { EmptyState, showToast } from "../components/states";
 import { CategoryIcon } from "../components/CategoryIcon";
+import { LevelBadge } from "../components/level";
 import {
   type Achievement,
   type Activity,
@@ -521,7 +522,12 @@ export function BragSheet({
               {acts.map((a) => (
                 <div key={a.id} className="flex items-baseline justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-[13px] font-[600] text-ink leading-tight">{a.name}</p>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <p className="text-[13px] font-[600] text-ink leading-tight truncate">
+                        {a.name}
+                      </p>
+                      <LevelBadge activity={a} />
+                    </div>
                     <p className="text-[10.5px] text-ink-soft">{a.category}</p>
                   </div>
                   <p className="text-[11px] text-ink-soft tabular-nums whitespace-nowrap">

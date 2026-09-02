@@ -831,7 +831,7 @@ function Activities({
         <p className="px-4 mt-5 text-[12px] text-ink-soft leading-relaxed">
           {view === "gantt" ? (
             <>
-              The bars beside each name show its level. Tap any bar for details, or a{" "}
+              The label under each name is its level. Tap any bar for details, or a{" "}
               <span className="text-gold font-[600]">gold marker</span> to revisit an achievement.
             </>
           ) : view === "list" ? (
