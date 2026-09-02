@@ -48,8 +48,10 @@ import {
   LevelBadge,
   LevelChooserRow,
   LevelPickerSheet,
+  NewActivityLevelField,
   NextLevelCard,
 } from "../components/level";
+import { suggestLevel } from "../lib/levelSuggestion";
 import { CoachFinder } from "./CoachFinder";
 import { AskProudlySheet } from "./AskProudly";
 import { FabStack } from "../components/FabStack";
@@ -80,6 +82,7 @@ import {
   type Achievement,
   type Activity,
   type ActivityLevel,
+  ageFromDob,
   type Category,
   achievementById,
   achievementsFor,
@@ -1193,6 +1196,24 @@ function AddActivity({
   const [note, setNote] = useState("");
   const [childSheet, setChildSheet] = useState(false);
   const [catSheet, setCatSheet] = useState(false);
+  /** null until the parent picks, so the suggestion keeps tracking the form. */
+  const [pickedLevel, setPickedLevel] = useState<ActivityLevel | null>(null);
+
+  /* What the engine would suggest for this activity the moment it is created:
+     no tenure and no achievements yet, so only the child's age ceiling and the
+     ongoing flag move it. Recomputed rather than hardcoded, so it cannot drift
+     from the rules documented in Settings > Help. */
+  const suggestedLevel = useMemo(
+    () =>
+      suggestLevel({
+        ageYears: ageFromDob(childById(selectedChild)?.dob),
+        yearsInvolved: 0,
+        achievementCount: 0,
+        ongoing,
+      }).level,
+    [selectedChild, ongoing],
+  );
+  const level = pickedLevel ?? suggestedLevel;
 
   const save = () => {
     showToast("Activity added");
@@ -1277,6 +1298,15 @@ function AddActivity({
             />
           </span>
         </button>
+
+        <div className="mt-4">
+          <NewActivityLevelField
+            value={level}
+            suggested={suggestedLevel}
+            onChange={setPickedLevel}
+            onReset={() => setPickedLevel(null)}
+          />
+        </div>
 
         <Field label="Notes (optional)" className="mt-4">
           <textarea

@@ -293,29 +293,108 @@ export function LevelChooserRow({
         )}
       </div>
 
-      <div className="grid grid-cols-4 gap-1.5">
-        {ACTIVITY_LEVELS.map((lvl) => {
-          const active = lvl === current;
-          return (
-            <button
-              key={lvl}
-              onClick={() => setParentLevel(activity, lvl)}
-              aria-pressed={active}
-              className={`relative h-[52px] rounded-xl text-[11px] font-[700] leading-tight px-1 transition-colors ${
-                active
-                  ? LEVEL_SELECTED[lvl]
-                  : "bg-surface border border-hairline text-ink-soft active:bg-canvas"
-              }`}
-            >
-              {lvl}
-              {/* Mark the suggestion when the parent has moved away from it */}
-              {overridden && lvl === suggested && (
-                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-teal" />
-              )}
-            </button>
-          );
-        })}
+      <LevelChips
+        value={current}
+        onChange={(lvl) => setParentLevel(activity, lvl)}
+        markSuggested={overridden ? suggested : null}
+      />
+    </div>
+  );
+}
+
+/** The four level chips, controlled. Shared by the chooser that edits a saved
+    activity and the one that sets a level on an activity being created, so the
+    selected-state styling lives in exactly one place. */
+export function LevelChips({
+  value,
+  onChange,
+  markSuggested,
+}: {
+  value: ActivityLevel;
+  onChange: (level: ActivityLevel) => void;
+  /** Flag this level with a dot — the suggestion that has been moved away from. */
+  markSuggested?: ActivityLevel | null;
+}) {
+  return (
+    <div className="grid grid-cols-4 gap-1.5">
+      {ACTIVITY_LEVELS.map((lvl) => {
+        const active = lvl === value;
+        return (
+          <button
+            key={lvl}
+            type="button"
+            onClick={() => onChange(lvl)}
+            aria-pressed={active}
+            className={`relative h-[52px] rounded-xl text-[11px] font-[700] leading-tight px-1 transition-colors ${
+              active
+                ? LEVEL_SELECTED[lvl]
+                : "bg-surface border border-hairline text-ink-soft active:bg-canvas"
+            }`}
+          >
+            {lvl}
+            {markSuggested === lvl && (
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-teal" />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------- Level chooser for an activity that does not exist yet ----------
+   The override store keys on a saved activity, so the create form cannot use
+   LevelChooserRow. This is the same interaction against plain state: the
+   engine's suggestion for a brand-new activity is preselected, and picking
+   anything else marks it as the parent's choice with a way back. */
+export function NewActivityLevelField({
+  value,
+  suggested,
+  onChange,
+  onReset,
+  label = "Learning level",
+}: {
+  /** The level in effect — the parent's pick, or the suggestion. */
+  value: ActivityLevel;
+  /** What the engine suggests for a brand-new activity. */
+  suggested: ActivityLevel;
+  onChange: (level: ActivityLevel) => void;
+  /** Hand the level back to PROUDLY. */
+  onReset: () => void;
+  label?: string;
+}) {
+  const overridden = value !== suggested;
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-2 mb-2">
+        <span className="text-[12px] font-[600] text-ink-soft uppercase tracking-[0.04em]">
+          {label}
+        </span>
+        {overridden ? (
+          <button
+            type="button"
+            onClick={onReset}
+            className="text-[11px] font-[600] text-teal active:opacity-60"
+          >
+            Reset to {suggested}
+          </button>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-[11px] font-[600] text-teal">
+            <Sparkles size={11} /> Suggested by PROUDLY
+          </span>
+        )}
       </div>
+
+      <LevelChips
+        value={value}
+        onChange={onChange}
+        markSuggested={overridden ? suggested : null}
+      />
+
+      <p className="mt-2 text-[11.5px] text-ink-soft leading-snug">
+        New activities start low by design. PROUDLY raises the suggestion as
+        time and achievements build up — you can change it whenever you like.
+      </p>
     </div>
   );
 }
