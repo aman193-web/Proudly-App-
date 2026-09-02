@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   BarChart3,
@@ -129,10 +129,16 @@ type Overlay =
   | { kind: "notifPrefs" }
   | { kind: "dataPrivacy" };
 
+/** An overlay on the stack, plus the identity its animation is keyed on. */
+type StackEntry = Overlay & { _id: number };
+
 export function MainApp({ onSignOut }: { onSignOut: () => void }) {
   const [tab, setTab] = useState<Tab>("home");
   const [childId, setChildId] = useState<ChildId>("reet");
-  const [stack, setStack] = useState<Overlay[]>([]);
+  const [stack, setStack] = useState<StackEntry[]>([]);
+  /* Stable per-entry key. Keying by position or kind meant a pop changed the
+     key of the entry below it, which remounted that whole screen. */
+  const overlaySeq = useRef(0);
   const [discoverOpen, setDiscoverOpen] = useState(false);
 
   // Gantt shared state (used by Activities tab + expanded view)
@@ -146,7 +152,8 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
   const [previewActivity, setPreviewActivity] = useState<Activity | null>(null);
   const [previewAchievement, setPreviewAchievement] = useState<Achievement | null>(null);
 
-  const push = (o: Overlay) => setStack((s) => [...s, o]);
+  const push = (o: Overlay) =>
+    setStack((s) => [...s, { ...o, _id: ++overlaySeq.current } as StackEntry]);
   const pop = () => setStack((s) => s.slice(0, -1));
   const closeAll = () => setStack([]);
 
@@ -191,7 +198,94 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
     setAskCtx(activity ? buildActivityContext(activity) : buildGeneralContext(childId));
   };
 
-  const top = stack[stack.length - 1];
+  const renderOverlay = (o: StackEntry) => (
+    <>
+      {o.kind === "activityDetail" && (
+        <ActivityDetail
+          id={o.id}
+          onBack={pop}
+          onEdit={(id) => push({ kind: "editActivity", id })}
+          onOpenAchievement={openAchievement}
+          onAddAchievement={(activityId) => push({ kind: "addAchievement", activityId })}
+          onAddPhotos={() => push({ kind: "photoImport" })}
+          onConnectCoach={(activityId) => push({ kind: "coachFinder", activityId })}
+          onAskProudly={(activityId: string) => openAsk(activityId)}
+        />
+      )}
+      {o.kind === "coachFinder" && (
+        <CoachFinder activity={activityById(o.activityId)!} onBack={pop} />
+      )}
+      {o.kind === "addActivity" && (
+        <AddActivity
+          childId={childId === "all" ? "reet" : childId}
+          start={o.start}
+          onBack={pop}
+        />
+      )}
+      {o.kind === "editActivity" && <EditActivity id={o.id} onBack={pop} />}
+      {o.kind === "achievementDetail" && (
+        <AchievementDetail
+          id={o.id}
+          onBack={pop}
+          onViewTimeline={viewOnTimeline}
+        />
+      )}
+      {o.kind === "addAchievement" && (
+        <AddAchievement
+          activityId={o.activityId}
+          childId={childId === "all" ? "reet" : childId}
+          onBack={pop}
+        />
+      )}
+      {o.kind === "expand" && (
+        <ExpandedGantt
+          childId={childId}
+          onSelectChild={setChildId}
+          range={range}
+          setRange={setRange}
+          category={category}
+          setCategory={setCategory}
+          jump={jump}
+          onJumpToday={jumpToday}
+          onTapActivity={setPreviewActivity}
+          onTapAchievement={setPreviewAchievement}
+          onClose={pop}
+        />
+      )}
+      {o.kind === "notifications" && (
+        <Notifications onBack={pop} onDeepLink={handleDeepLink} />
+      )}
+      {o.kind === "photoImport" && <PhotoImport onClose={pop} />}
+      {o.kind === "bragSheet" && <BragSheet childId={childId} onBack={pop} />}
+      {o.kind === "connectedSources" && <ConnectedSources onBack={pop} />}
+      {o.kind === "savedCoaches" && <SavedCoaches onBack={pop} />}
+      {o.kind === "levelsHelp" && <LevelsHelp onBack={pop} />}
+      {o.kind === "childManagement" && (
+        <ChildManagement
+          onBack={pop}
+          onEditChild={(id) => push({ kind: "editChild", id })}
+          onAddChild={() => push({ kind: "editChild" })}
+        />
+      )}
+      {o.kind === "editChild" && <EditChild id={o.id} onBack={pop} />}
+      {o.kind === "account" && (
+        <AccountSettings
+          onBack={pop}
+          onSignOut={() => {
+            closeAll();
+            onSignOut();
+          }}
+        />
+      )}
+      {o.kind === "notifPrefs" && <NotificationPrefs onBack={pop} />}
+      {o.kind === "dataPrivacy" && (
+        <DataPrivacy
+          onBack={pop}
+          onManageChildren={() => push({ kind: "childManagement" })}
+        />
+      )}
+    </>
+  );
 
   return (
     <div className="size-full flex flex-col bg-canvas relative overflow-hidden">
@@ -199,10 +293,13 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
         <AnimatePresence mode="wait">
           <motion.div
             key={tab}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22 }}
+            /* Short, asymmetric: mode="wait" plays this out in full before the
+               incoming tab starts, so a symmetric 0.22s each way meant 0.44s
+               and a blank beat between tabs. */
+            exit={{ opacity: 0, y: -6, transition: { duration: 0.09, ease: "easeIn" } }}
+            transition={{ duration: 0.16, ease: "easeOut" }}
           >
             {tab === "home" && (
               <Home
@@ -302,102 +399,26 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
       )}
 
       {/* Overlay screens */}
+      {/* Overlay screens. The whole stack stays mounted, with only the top one
+          interactive — so going back reveals the screen underneath instead of
+          rebuilding it and sliding it in from the right as if it were new. */}
       <AnimatePresence>
-        {top && (
-          <motion.div
-            key={stack.length + top.kind}
-            className="absolute inset-0 z-30 bg-canvas"
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", stiffness: 380, damping: 40 }}
-          >
-            {top.kind === "activityDetail" && (
-              <ActivityDetail
-                id={top.id}
-                onBack={pop}
-                onEdit={(id) => push({ kind: "editActivity", id })}
-                onOpenAchievement={openAchievement}
-                onAddAchievement={(activityId) => push({ kind: "addAchievement", activityId })}
-                onAddPhotos={() => push({ kind: "photoImport" })}
-                onConnectCoach={(activityId) => push({ kind: "coachFinder", activityId })}
-                onAskProudly={(activityId: string) => openAsk(activityId)}
-              />
-            )}
-            {top.kind === "coachFinder" && (
-              <CoachFinder activity={activityById(top.activityId)!} onBack={pop} />
-            )}
-            {top.kind === "addActivity" && (
-              <AddActivity
-                childId={childId === "all" ? "reet" : childId}
-                start={top.start}
-                onBack={pop}
-              />
-            )}
-            {top.kind === "editActivity" && <EditActivity id={top.id} onBack={pop} />}
-            {top.kind === "achievementDetail" && (
-              <AchievementDetail
-                id={top.id}
-                onBack={pop}
-                onViewTimeline={viewOnTimeline}
-              />
-            )}
-            {top.kind === "addAchievement" && (
-              <AddAchievement
-                activityId={top.activityId}
-                childId={childId === "all" ? "reet" : childId}
-                onBack={pop}
-              />
-            )}
-            {top.kind === "expand" && (
-              <ExpandedGantt
-                childId={childId}
-                onSelectChild={setChildId}
-                range={range}
-                setRange={setRange}
-                category={category}
-                setCategory={setCategory}
-                jump={jump}
-                onJumpToday={jumpToday}
-                onTapActivity={setPreviewActivity}
-                onTapAchievement={setPreviewAchievement}
-                onClose={pop}
-              />
-            )}
-            {top.kind === "notifications" && (
-              <Notifications onBack={pop} onDeepLink={handleDeepLink} />
-            )}
-            {top.kind === "photoImport" && <PhotoImport onClose={pop} />}
-            {top.kind === "bragSheet" && <BragSheet childId={childId} onBack={pop} />}
-            {top.kind === "connectedSources" && <ConnectedSources onBack={pop} />}
-            {top.kind === "savedCoaches" && <SavedCoaches onBack={pop} />}
-            {top.kind === "levelsHelp" && <LevelsHelp onBack={pop} />}
-            {top.kind === "childManagement" && (
-              <ChildManagement
-                onBack={pop}
-                onEditChild={(id) => push({ kind: "editChild", id })}
-                onAddChild={() => push({ kind: "editChild" })}
-              />
-            )}
-            {top.kind === "editChild" && <EditChild id={top.id} onBack={pop} />}
-            {top.kind === "account" && (
-              <AccountSettings
-                onBack={pop}
-                onSignOut={() => {
-                  closeAll();
-                  onSignOut();
-                }}
-              />
-            )}
-            {top.kind === "notifPrefs" && <NotificationPrefs onBack={pop} />}
-            {top.kind === "dataPrivacy" && (
-              <DataPrivacy
-                onBack={pop}
-                onManageChildren={() => push({ kind: "childManagement" })}
-              />
-            )}
-          </motion.div>
-        )}
+        {stack.map((o, i) => {
+          const isTop = i === stack.length - 1;
+          return (
+            <motion.div
+              key={o._id}
+              className={`absolute inset-0 z-30 bg-canvas ${isTop ? "" : "pointer-events-none"}`}
+              aria-hidden={!isTop}
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 380, damping: 40 }}
+            >
+              {renderOverlay(o)}
+            </motion.div>
+          );
+        })}
       </AnimatePresence>
 
       {/* Discovery review (lifted so notifications can deep-link to it) */}

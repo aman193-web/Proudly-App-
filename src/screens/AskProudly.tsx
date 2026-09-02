@@ -130,7 +130,11 @@ function Panel({
       exit={{ y: "100%", transition: { duration: 0.22, ease: [0.4, 0, 1, 1] } }}
       transition={{
         y: { type: "spring", stiffness: 340, damping: 32, mass: 0.9 },
-        height: { type: "spring", stiffness: 300, damping: 30 },
+        /* y is a transform and free to spring. height is a layout property —
+           every frame of it relayouts the sheet's whole subtree, and a spring's
+           settling tail is a long time to pay that. A short tween lands in the
+           same place in far fewer expensive frames. */
+        height: { duration: 0.26, ease: [0.32, 0.72, 0, 1] },
       }}
       drag="y"
       dragConstraints={{ top: 0, bottom: 0 }}
