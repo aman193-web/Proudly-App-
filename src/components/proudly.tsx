@@ -11,11 +11,14 @@ import {
   Sparkles,
 } from "lucide-react";
 import { ChildAvatar } from "./ui";
-import { LevelBadge } from "./level";
+import { LevelBadge, LevelChooserRow } from "./level";
+import { CategoryIcon } from "./CategoryIcon";
 import { Sheet } from "./Sheet";
 import {
   type Achievement,
   type Activity,
+  type ActivityLevel,
+  ACTIVITY_LEVELS,
   type Category,
   achievementsForActivity,
   activityById,
@@ -223,18 +226,27 @@ export function FilterButton({
   );
 }
 
+/* Filter sheet — category, then learning level. Selections stay live so both
+   can be set in one visit; the footer button closes and reports the result. */
 export function CategorySheet({
   open,
   onClose,
   value,
   onSelect,
+  level = "all",
+  onSelectLevel,
+  resultCount,
 }: {
   open: boolean;
   onClose: () => void;
   value: Category | "all";
   onSelect: (c: Category | "all") => void;
+  level?: ActivityLevel | "all";
+  onSelectLevel?: (l: ActivityLevel | "all") => void;
+  resultCount?: number;
 }) {
   const opts: (Category | "all")[] = ["all", ...CATEGORIES];
+  const levelOpts: (ActivityLevel | "all")[] = ["all", ...ACTIVITY_LEVELS];
   return (
     <Sheet open={open} onClose={onClose}>
       <h3 className="font-display text-[18px] font-[700] text-ink px-1 mb-3">
@@ -246,10 +258,7 @@ export function CategorySheet({
           return (
             <button
               key={c}
-              onClick={() => {
-                onSelect(c);
-                onClose();
-              }}
+              onClick={() => onSelect(c)}
               className={`flex items-center gap-2 pl-3 pr-3.5 py-2 rounded-full border text-[13.5px] font-[600] transition-colors ${
                 active
                   ? "bg-teal text-white border-teal"
@@ -267,6 +276,41 @@ export function CategorySheet({
           );
         })}
       </div>
+
+      {onSelectLevel && (
+        <>
+          <h3 className="font-display text-[18px] font-[700] text-ink px-1 mt-6 mb-3">
+            Learning level
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {levelOpts.map((l) => {
+              const active = l === level;
+              return (
+                <button
+                  key={l}
+                  onClick={() => onSelectLevel(l)}
+                  className={`px-3.5 py-2 rounded-full border text-[13.5px] font-[600] transition-colors ${
+                    active
+                      ? "bg-teal text-white border-teal"
+                      : "bg-surface text-ink border-hairline"
+                  }`}
+                >
+                  {l === "all" ? "All levels" : l}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      <button
+        onClick={onClose}
+        className="w-full h-[52px] rounded-2xl bg-teal text-white font-[600] text-[15px] mt-6 active:scale-[0.99] transition-transform"
+      >
+        {resultCount === undefined
+          ? "Done"
+          : `Show ${resultCount} ${resultCount === 1 ? "activity" : "activities"}`}
+      </button>
     </Sheet>
   );
 }
@@ -477,6 +521,15 @@ export function AchievementRow({
           alt={achievement.title}
           className="w-12 h-12 rounded-xl object-cover shrink-0 bg-mint"
         />
+      ) : activity ? (
+        // The row already reads as an achievement, so the tile is more useful
+        // saying which activity it belongs to.
+        <span
+          className="grid place-items-center w-12 h-12 rounded-xl shrink-0"
+          style={{ background: `${CATEGORY_COLOR[activity.category]}1f` }}
+        >
+          <CategoryIcon category={activity.category} size={22} />
+        </span>
       ) : (
         <span className="grid place-items-center w-12 h-12 rounded-xl bg-gold-soft text-gold shrink-0">
           <MilestoneStar />
@@ -588,6 +641,11 @@ export function ActivityPreview({
           <div className="flex gap-2.5 px-1 mt-4">
             <MiniStat value={String(acts.length)} label="achievements" accent />
             <MiniStat value={String(memoryCount)} label="memories" />
+          </div>
+
+          {/* Change the level right here — one tap from anywhere the sheet opens */}
+          <div className="mt-5">
+            <LevelChooserRow activity={activity} />
           </div>
 
           <div className="flex gap-2.5 mt-5">

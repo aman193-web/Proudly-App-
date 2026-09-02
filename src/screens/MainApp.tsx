@@ -43,8 +43,21 @@ import {
   MilestoneStar,
 } from "../components/proudly";
 import { ActivityCalendarView, ActivityListView } from "../components/ActivityViews";
-import { LevelBadge, LevelPickerSheet, NextLevelCard } from "../components/level";
+import { levelStateOf } from "../lib/activityLevels";
+import {
+  LevelBadge,
+  LevelChooserRow,
+  LevelPickerSheet,
+  NextLevelCard,
+} from "../components/level";
 import { CoachFinder } from "./CoachFinder";
+import { AskProudlySheet } from "./AskProudly";
+import { FabStack } from "../components/FabStack";
+import {
+  type AskContext,
+  buildActivityContext,
+  buildGeneralContext,
+} from "../lib/askProudly";
 import { Notifications, type NotifTarget } from "./Notifications";
 import { PhotoImport } from "./PhotoImport";
 import { Portfolio, BragSheet } from "./Portfolio";
@@ -55,13 +68,18 @@ import {
   DataPrivacy,
   EditChild,
   NotificationPrefs,
+  LevelsHelp,
   ProfileTab,
+  SavedCoaches,
   type SettingsTarget,
 } from "./Settings";
+import { SavedCoachRow } from "../components/SavedCoachList";
+import { useSavedCoachesFor } from "../lib/savedCoaches";
 import { EmptyState, GanttSkeleton, showToast, ToastHost } from "../components/states";
 import {
   type Achievement,
   type Activity,
+  type ActivityLevel,
   type Category,
   achievementById,
   achievementsFor,
@@ -101,6 +119,8 @@ type Overlay =
   | { kind: "bragSheet" }
   | { kind: "connectedSources" }
   | { kind: "childManagement" }
+  | { kind: "savedCoaches" }
+  | { kind: "levelsHelp" }
   | { kind: "editChild"; id?: string }
   | { kind: "account" }
   | { kind: "notifPrefs" }
@@ -115,9 +135,11 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
   // Gantt shared state (used by Activities tab + expanded view)
   const [range, setRange] = useState<Range>("all");
   const [category, setCategory] = useState<Category | "all">("all");
+  const [levelFilter, setLevelFilter] = useState<ActivityLevel | "all">("all");
   const [jump, setJump] = useState<{ token: number; target?: number }>({ token: 0 });
 
   // Preview sheets
+  const [askCtx, setAskCtx] = useState<AskContext | null>(null);
   const [previewActivity, setPreviewActivity] = useState<Activity | null>(null);
   const [previewAchievement, setPreviewAchievement] = useState<Achievement | null>(null);
 
@@ -152,9 +174,18 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
   const openSetting = (s: SettingsTarget) => {
     if (s === "sources") push({ kind: "connectedSources" });
     else if (s === "children") push({ kind: "childManagement" });
+    else if (s === "savedCoaches") push({ kind: "savedCoaches" });
+    else if (s === "levelsHelp") push({ kind: "levelsHelp" });
     else if (s === "account") push({ kind: "account" });
     else if (s === "notifPrefs") push({ kind: "notifPrefs" });
     else if (s === "data") push({ kind: "dataPrivacy" });
+  };
+
+  /* Activity context when opened from an activity, the child's wider picture
+     otherwise. Built here so the chat screen stays presentational. */
+  const openAsk = (activityId?: string) => {
+    const activity = activityId ? activityById(activityId) : undefined;
+    setAskCtx(activity ? buildActivityContext(activity) : buildGeneralContext(childId));
   };
 
   const top = stack[stack.length - 1];
@@ -190,6 +221,8 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
                 setRange={setRange}
                 category={category}
                 setCategory={setCategory}
+                levelFilter={levelFilter}
+                setLevelFilter={setLevelFilter}
                 jump={jump}
                 onJumpToday={jumpToday}
                 onTapActivity={setPreviewActivity}
@@ -239,17 +272,30 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
         onView={openAchievement}
       />
 
-      {/* Add FAB — activities and achievements each get their own form */}
-      {(tab === "activities" || tab === "achievements") && stack.length === 0 && (
-        <button
-          onClick={() =>
-            push(tab === "activities" ? { kind: "addActivity" } : { kind: "addAchievement" })
+      {/* Ask PROUDLY — bottom sheet, draggable to full height */}
+      <AskProudlySheet
+        context={askCtx}
+        onClose={() => setAskCtx(null)}
+        onFindCoach={(activityId) => {
+          setAskCtx(null);
+          push({ kind: "coachFinder", activityId });
+        }}
+      />
+
+      {/* Floating actions — Ask PROUDLY everywhere, Add stacked above it on
+          the tabs that have an add action. */}
+      {stack.length === 0 && (
+        <FabStack
+          onAskProudly={() => openAsk()}
+          onAdd={
+            tab === "activities"
+              ? () => push({ kind: "addActivity" })
+              : tab === "achievements"
+                ? () => push({ kind: "addAchievement" })
+                : undefined
           }
-          aria-label={tab === "activities" ? "Add activity" : "Add achievement"}
-          className="absolute bottom-24 right-5 z-20 w-14 h-14 rounded-full bg-teal text-white grid place-items-center shadow-[0_12px_28px_-8px_rgba(33,124,114,0.7)] active:scale-95 transition-transform"
-        >
-          <Plus size={26} />
-        </button>
+          addLabel={tab === "activities" ? "Add activity" : "Add achievement"}
+        />
       )}
 
       {/* Overlay screens */}
@@ -272,6 +318,7 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
                 onAddAchievement={(activityId) => push({ kind: "addAchievement", activityId })}
                 onAddPhotos={() => push({ kind: "photoImport" })}
                 onConnectCoach={(activityId) => push({ kind: "coachFinder", activityId })}
+                onAskProudly={(activityId: string) => openAsk(activityId)}
               />
             )}
             {top.kind === "coachFinder" && (
@@ -320,6 +367,8 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
             {top.kind === "photoImport" && <PhotoImport onClose={pop} />}
             {top.kind === "bragSheet" && <BragSheet childId={childId} onBack={pop} />}
             {top.kind === "connectedSources" && <ConnectedSources onBack={pop} />}
+            {top.kind === "savedCoaches" && <SavedCoaches onBack={pop} />}
+            {top.kind === "levelsHelp" && <LevelsHelp onBack={pop} />}
             {top.kind === "childManagement" && (
               <ChildManagement
                 onBack={pop}
@@ -392,16 +441,20 @@ function Home({
     return new Date().getFullYear() - min + 1;
   }, [acts]);
 
-  // journey preview: show up to 6 activities
+  // Journey preview: four rows, still-running first then longest-running.
+  // Six was too many to scan, and start-year order buried the active ones.
   const preview = [...acts]
-    .sort((a, b) => a.start.y - b.start.y)
-    .slice(0, 6);
+    .sort((x, y) => {
+      const ongoing = Number(y.end === "present") - Number(x.end === "present");
+      return ongoing !== 0 ? ongoing : x.start.y - y.start.y;
+    })
+    .slice(0, 4);
   const recent = [...achs]
     .sort((a, b) => dec(b.date) - dec(a.date))
     .slice(0, 2);
 
   return (
-    <div className="pt-14 pb-6">
+    <div className="pt-14 pb-28">
       {/* Header */}
       <div className="px-4 pt-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -473,13 +526,18 @@ function Home({
       <div className="px-4">
         <button
           onClick={() => onGoTab("activities")}
-          className="w-full rounded-2xl bg-surface border border-hairline p-4 space-y-3.5 active:scale-[0.99] transition-transform"
+          className="w-full rounded-[22px] bg-surface border border-hairline px-4 pt-1 pb-3 active:scale-[0.99] transition-transform"
         >
-          {preview.map((a) => (
-            <JourneyPreviewRow key={a.id} activity={a} all={acts} />
-          ))}
-          <div className="flex items-center justify-center gap-1.5 pt-1 text-[13px] font-[600] text-teal">
-            View full activity journey <ChevronRight size={16} />
+          <div className="divide-y divide-hairline/70">
+            {preview.map((a) => (
+              <JourneyPreviewRow key={a.id} activity={a} all={acts} />
+            ))}
+          </div>
+          <div className="flex items-center justify-center gap-1.5 pt-3.5 text-[13px] font-[600] text-teal">
+            {acts.length > preview.length
+              ? `View all ${acts.length} activities`
+              : "View full activity journey"}{" "}
+            <ChevronRight size={16} />
           </div>
         </button>
       </div>
@@ -534,23 +592,30 @@ function JourneyPreviewRow({ activity, all }: { activity: Activity; all: Activit
   const width = Math.max(((endY - startY) / span) * 100, 6);
   const ongoing = activity.end === "present";
   return (
-    <div>
-      <div className="flex items-center justify-between gap-2 mb-1">
-        <span className="flex items-center gap-1.5 min-w-0">
-          <span className="text-[13.5px] font-[600] text-ink truncate">{activity.name}</span>
-          <LevelBadge activity={activity} />
-        </span>
-        <span className="text-[11px] text-ink-soft tabular-nums shrink-0">
+    <div className="py-3.5 text-left">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-[15px] font-[600] text-ink truncate">{activity.name}</span>
+        <LevelBadge activity={activity} />
+      </div>
+
+      <div className="flex items-center gap-1.5 mt-1 text-[11.5px] text-ink-soft">
+        <span className="tabular-nums">
           {startY} – {ongoing ? "Present" : endY}
         </span>
+        <span aria-hidden>·</span>
+        <span>{durationText(activity.start, activity.end)}</span>
+        {ongoing && (
+          <span className="ml-0.5 w-1.5 h-1.5 rounded-full bg-teal shrink-0" aria-label="Ongoing" />
+        )}
       </div>
-      <div className="relative h-2.5 rounded-full bg-canvas">
+
+      <div className="relative h-1.5 rounded-full bg-canvas mt-2.5">
         <div
           className="absolute h-full rounded-full"
           style={{
             left: `${left}%`,
             width: `${width}%`,
-            background: ongoing ? "linear-gradient(90deg,#217c72,#2f9c8f)" : "#c3d0cb",
+            background: ongoing ? "linear-gradient(90deg,#217c72,#2f9c8f)" : "#cfd9d4",
           }}
         />
       </div>
@@ -587,6 +652,8 @@ function Activities({
   setRange,
   category,
   setCategory,
+  levelFilter,
+  setLevelFilter,
   jump,
   onJumpToday,
   onTapActivity,
@@ -600,6 +667,8 @@ function Activities({
   setRange: (r: Range) => void;
   category: Category | "all";
   setCategory: (c: Category | "all") => void;
+  levelFilter: ActivityLevel | "all";
+  setLevelFilter: (l: ActivityLevel | "all") => void;
   jump: { token: number; target?: number };
   onJumpToday: () => void;
   onTapActivity: (a: Activity) => void;
@@ -622,8 +691,12 @@ function Activities({
   }, [childId]);
 
   const allActs = activitiesFor(childId);
-  const acts =
-    category === "all" ? allActs : allActs.filter((a) => a.category === category);
+  const acts = allActs.filter(
+    (a) =>
+      (category === "all" || a.category === category) &&
+      (levelFilter === "all" || levelStateOf(a).current === levelFilter),
+  );
+  const filtered = category !== "all" || levelFilter !== "all";
   const achs = achievementsFor(childId);
   const name = childId === "all" ? "Everyone" : childById(childId)!.name;
   const yearsSpan = acts.length
@@ -631,7 +704,7 @@ function Activities({
     : 0;
 
   return (
-    <div className="pt-14 pb-6">
+    <div className="pt-14 pb-28">
       {/* Header */}
       <div className="px-4 flex items-start justify-between">
         <div>
@@ -643,25 +716,36 @@ function Activities({
           </p>
         </div>
         <div className="flex items-center gap-2 pt-0.5">
-          <FilterButton active={category !== "all"} onClick={() => setCatSheet(true)} />
+          <FilterButton active={filtered} onClick={() => setCatSheet(true)} />
           <ChildChip childId={childId} onOpen={() => setChildSheet(true)} />
         </div>
       </div>
 
-      {/* Active filter chip */}
-      {category !== "all" && (
-        <div className="px-4 mt-3">
-          <button
-            onClick={() => setCategory("all")}
-            className="inline-flex items-center gap-1.5 pl-2.5 pr-2 py-1 rounded-full bg-mint text-teal-dark text-[12.5px] font-[600]"
-          >
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ background: CATEGORY_COLOR[category as Category] }}
-            />
-            {category}
-            <X size={13} className="ml-0.5" />
-          </button>
+      {/* Active filter chips */}
+      {filtered && (
+        <div className="px-4 mt-3 flex flex-wrap gap-2">
+          {category !== "all" && (
+            <button
+              onClick={() => setCategory("all")}
+              className="inline-flex items-center gap-1.5 pl-2.5 pr-2 py-1 rounded-full bg-mint text-teal-dark text-[12.5px] font-[600]"
+            >
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ background: CATEGORY_COLOR[category as Category] }}
+              />
+              {category}
+              <X size={13} className="ml-0.5" />
+            </button>
+          )}
+          {levelFilter !== "all" && (
+            <button
+              onClick={() => setLevelFilter("all")}
+              className="inline-flex items-center gap-1.5 pl-2.5 pr-2 py-1 rounded-full bg-mint text-teal-dark text-[12.5px] font-[600]"
+            >
+              {levelFilter}
+              <X size={13} className="ml-0.5" />
+            </button>
+          )}
         </div>
       )}
 
@@ -697,10 +781,13 @@ function Activities({
           <div className="rounded-[22px] bg-surface border border-hairline">
             <EmptyState
               icon={<SlidersHorizontal size={24} />}
-              title={`No ${category} activities in this range`}
-              body={`${name} has other activities tracked. Clear the filter to see the full journey.`}
+              title="No activities match these filters"
+              body={`${name} has other activities tracked. Clear the filters to see the full journey.`}
               actionLabel="Clear filters"
-              onAction={() => setCategory("all")}
+              onAction={() => {
+                setCategory("all");
+                setLevelFilter("all");
+              }}
             />
           </div>
         ) : view === "list" ? (
@@ -770,6 +857,9 @@ function Activities({
         onClose={() => setCatSheet(false)}
         value={category}
         onSelect={setCategory}
+        level={levelFilter}
+        onSelectLevel={setLevelFilter}
+        resultCount={acts.length}
       />
     </div>
   );
@@ -890,6 +980,7 @@ function ActivityDetail({
   onAddAchievement,
   onAddPhotos,
   onConnectCoach,
+  onAskProudly,
 }: {
   id: string;
   onBack: () => void;
@@ -898,11 +989,13 @@ function ActivityDetail({
   onAddAchievement: (activityId: string) => void;
   onAddPhotos: () => void;
   onConnectCoach: (activityId: string) => void;
+  onAskProudly: (activityId: string) => void;
 }) {
   const activity = activityById(id)!;
   const acts = achievementsForActivity(id);
   const ongoing = activity.end === "present";
   const [levelSheet, setLevelSheet] = useState(false);
+  const savedCoaches = useSavedCoachesFor(id);
   const history = [...activity.history].sort((a, b) => dec(a.date) - dec(b.date));
 
   return (
@@ -958,10 +1051,22 @@ function ActivityDetail({
           <NextLevelCard
             activity={activity}
             onChangeLevel={() => setLevelSheet(true)}
-            onAskProudly={() => showToast("Ask PROUDLY is coming soon")}
+            onAskProudly={() => onAskProudly(id)}
             onConnectCoach={() => onConnectCoach(id)}
           />
         </div>
+
+        {/* Coaches the parent kept for this activity */}
+        {savedCoaches.length > 0 && (
+          <div className="px-4 mt-7">
+            <h3 className="font-display text-[17px] font-[700] text-ink mb-3">Saved coaches</h3>
+            <div className="space-y-2.5">
+              {savedCoaches.map((sv) => (
+                <SavedCoachRow key={sv.coach.id} saved={sv} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* History */}
         <h3 className="px-4 mt-7 mb-3 font-display text-[17px] font-[700] text-ink">Journey</h3>
@@ -1252,6 +1357,10 @@ function EditActivity({ id, onBack }: { id: string; onBack: () => void }) {
           />
         </Field>
 
+        <div className="mb-4">
+          <LevelChooserRow activity={activity} />
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <Field label="Start date">
             <div className="h-[52px] rounded-2xl bg-surface px-4 border border-hairline flex items-center gap-2 text-[15px] text-ink">
@@ -1455,7 +1564,7 @@ function Achievements({
   ];
 
   return (
-    <div className="pt-14 pb-6">
+    <div className="pt-14 pb-28">
       <div className="px-4 flex items-start justify-between">
         <div>
           <h1 className="font-display text-[24px] font-[700] text-ink leading-tight">

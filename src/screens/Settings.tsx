@@ -4,7 +4,9 @@ import {
   Bell,
   ChevronRight,
   Database,
+  GraduationCap,
   Images,
+  Info,
   LogOut,
   Pencil,
   Plus,
@@ -15,20 +17,338 @@ import {
 } from "lucide-react";
 import { AppHeader, ChildAvatar, PrimaryButton } from "../components/ui";
 import { SourceCard } from "../components/SourceCard";
-import { showToast } from "../components/states";
+import { EmptyState, showToast } from "../components/states";
+import type { ActivityLevel } from "../data";
+import {
+  type LevelSignals,
+  LEVEL_RULES,
+  pointsForAchievements,
+  pointsForSessions,
+  suggestLevel,
+  tenureLadder,
+} from "../lib/levelSuggestion";
+import { SavedCoachRow } from "../components/SavedCoachList";
+import { useSavedCoaches, useSavedCount } from "../lib/savedCoaches";
 import { ageFromDob, CHILDREN, PARENT, SOURCES, childById } from "../data";
 
 export type SettingsTarget =
   | "sources"
   | "children"
+  | "savedCoaches"
+  | "levelsHelp"
   | "account"
   | "notifPrefs"
   | "data";
 
+function SavedCoachesRow({ onClick }: { onClick: () => void }) {
+  const count = useSavedCount();
+  return (
+    <Row
+      icon={<GraduationCap size={18} />}
+      label="Saved coaches"
+      value={count ? String(count) : "None yet"}
+      onClick={onClick}
+    />
+  );
+}
+
+/** Level pill colours, mirroring components/level.tsx. */
+const LEVEL_PILL: Record<ActivityLevel, string> = {
+  Learning: "bg-canvas text-ink-soft border border-hairline",
+  Beginner: "bg-mint text-teal-dark",
+  Intermediate: "bg-teal text-white",
+  Champion: "bg-gold text-white",
+};
+
+/* ============================================================= LEVELS HELP */
+
+/** Two-column reference row, the app's list idiom rather than a real table. */
+function RuleRow({
+  left,
+  right,
+  muted,
+}: {
+  left: ReactNode;
+  right: ReactNode;
+  muted?: boolean;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 py-2.5">
+      <span className={`text-[13.5px] ${muted ? "text-ink-soft" : "text-ink font-[500]"}`}>
+        {left}
+      </span>
+      <span className="text-[13px] text-ink-soft tabular-nums text-right shrink-0">{right}</span>
+    </div>
+  );
+}
+
+function RuleTable({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
+  return (
+    <div className="mt-4">
+      <p className="text-[12px] font-[600] text-ink-soft uppercase tracking-[0.04em] mb-1.5">
+        {title}
+      </p>
+      <div className="rounded-2xl bg-surface border border-hairline px-3.5 divide-y divide-hairline/70">
+        {children}
+      </div>
+      {note && <p className="text-[11.5px] text-ink-soft/80 mt-1.5 leading-relaxed">{note}</p>}
+    </div>
+  );
+}
+
+const yrs = (n: number) => `${n % 1 === 0 ? n : n.toFixed(1)} yr${n === 1 ? "" : "s"}`;
+
+/** Illustrative records. Scores are computed, never written down. */
+const WORKED_EXAMPLES: { label: string; signals: LevelSignals }[] = [
+  {
+    label: "7 yrs · 2 achievements · 2x a week · active",
+    signals: { yearsInvolved: 7, achievementCount: 2, sessionsPerWeek: 2, ongoing: true },
+  },
+  {
+    label: "3 yrs · 1 achievement · 2x a week · active",
+    signals: { yearsInvolved: 3, achievementCount: 1, sessionsPerWeek: 2, ongoing: true },
+  },
+  {
+    label: "4 yrs · none · 1x a week · active",
+    signals: { yearsInvolved: 4, achievementCount: 0, sessionsPerWeek: 1, ongoing: true },
+  },
+  {
+    label: "2 yrs · none · 1x a week · finished",
+    signals: { yearsInvolved: 2, achievementCount: 0, sessionsPerWeek: 1, ongoing: false },
+  },
+  {
+    label: "6 months · none · 1x a week · active",
+    signals: { yearsInvolved: 0.5, achievementCount: 0, sessionsPerWeek: 1, ongoing: true },
+  },
+];
+
+export function LevelsHelp({ onBack }: { onBack: () => void }) {
+  const { weights, bands, ageCaps } = LEVEL_RULES;
+  const ladder = tenureLadder();
+
+  return (
+    <div className="size-full flex flex-col bg-canvas">
+      <AppHeader title="Learning levels" onBack={onBack} />
+      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-10">
+        <p className="text-[14.5px] text-ink leading-relaxed mt-1">
+          Every activity sits at one of four levels. PROUDLY suggests one from what's recorded,
+          and you can change it whenever you disagree.
+        </p>
+
+        {/* The ladder */}
+        <div className="mt-5 space-y-2">
+          {(
+            [
+              ["Learning", "Just started, or not much recorded yet."],
+              ["Beginner", "Settled into it and turning up regularly."],
+              ["Intermediate", "Years of steady involvement, often with milestones."],
+              ["Champion", "Long commitment plus real achievements to show for it."],
+            ] as [ActivityLevel, string][]
+          ).map(([lvl, blurb]) => (
+            <div
+              key={lvl}
+              className="flex items-start gap-3 rounded-2xl bg-surface border border-hairline px-3.5 py-3"
+            >
+              <span
+                className={`shrink-0 text-[10.5px] font-[700] rounded-full px-1.5 py-0.5 ${LEVEL_PILL[lvl]}`}
+              >
+                {lvl}
+              </span>
+              <p className="text-[13px] text-ink-soft leading-snug">{blurb}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* ---------- How the score works ---------- */}
+        <h3 className="font-display text-[17px] font-[700] text-ink mt-8">How it adds up</h3>
+        <p className="text-[13px] text-ink-soft leading-relaxed mt-1">
+          Levels are based on <strong className="text-ink font-[600]">activity, not age</strong>.
+          Each signal earns points up to its own limit, and the total decides the level.
+        </p>
+
+        <RuleTable title="Points available">
+          <RuleRow left="Time in the activity" right={`${weights.tenurePerYear}/yr · max ${weights.tenureMax}`} />
+          <RuleRow left="Achievements" right={`${weights.perAchievement} each · max ${weights.achievementMax}`} />
+          <RuleRow
+            left="Sessions past the first each week"
+            right={`${weights.perExtraSessionPerWeek} each · max ${weights.frequencyMax}`}
+          />
+          <RuleRow left="Still going" right={`+${weights.ongoingBonus}`} />
+        </RuleTable>
+
+        <RuleTable title="Total needed">
+          {[...bands].reverse().map((b) => (
+            <RuleRow
+              key={b.level}
+              left={
+                <span className={`text-[10.5px] font-[700] rounded-full px-1.5 py-0.5 ${LEVEL_PILL[b.level]}`}>
+                  {b.level}
+                </span>
+              }
+              right={`${b.min} points and up`}
+            />
+          ))}
+        </RuleTable>
+
+        {/* ---------- Time ---------- */}
+        <h3 className="font-display text-[17px] font-[700] text-ink mt-8">By time alone</h3>
+        <RuleTable
+          title="Once a week, still going, nothing recorded"
+          note="Time is capped, which is why it stops at Intermediate. Champion needs achievements or a heavier week."
+        >
+          {ladder.map((r) => (
+            <RuleRow
+              key={r.level}
+              left={
+                <span className={`text-[10.5px] font-[700] rounded-full px-1.5 py-0.5 ${LEVEL_PILL[r.level]}`}>
+                  {r.level}
+                </span>
+              }
+              right={
+                !r.reachable
+                  ? "not from time alone"
+                  : r.to === null
+                    ? `${yrs(r.from)}+`
+                    : r.from === 0
+                      ? `under ${yrs(r.to)}`
+                      : `${yrs(r.from)} – ${yrs(r.to)}`
+              }
+            />
+          ))}
+        </RuleTable>
+
+        {/* ---------- Achievements ---------- */}
+        <h3 className="font-display text-[17px] font-[700] text-ink mt-8">By achievements</h3>
+        <RuleTable
+          title="What each milestone adds"
+          note="Gradings, competitions, awards — anything you record against the activity."
+        >
+          {[0, 1, 2, 3, 4].map((n) => (
+            <RuleRow
+              key={n}
+              left={`${n} achievement${n === 1 ? "" : "s"}`}
+              right={`${pointsForAchievements(n)} points${
+                pointsForAchievements(n) === weights.achievementMax && n > 0 ? " (max)" : ""
+              }`}
+              muted={n === 0}
+            />
+          ))}
+        </RuleTable>
+
+        {/* ---------- Frequency ---------- */}
+        <h3 className="font-display text-[17px] font-[700] text-ink mt-8">By how often</h3>
+        <RuleTable title="Sessions a week" note="Only counted where we know the schedule.">
+          {[1, 2, 3, 4].map((n) => (
+            <RuleRow
+              key={n}
+              left={`${n}x a week`}
+              right={`${pointsForSessions(n)} points${
+                pointsForSessions(n) === weights.frequencyMax ? " (max)" : ""
+              }`}
+              muted={n === 1}
+            />
+          ))}
+        </RuleTable>
+
+        {/* ---------- Age ---------- */}
+        <h3 className="font-display text-[17px] font-[700] text-ink mt-8">By age</h3>
+        <p className="text-[13px] text-ink-soft leading-relaxed mt-1">
+          Age never adds points. It only sets a ceiling, so a long run at a very young age
+          doesn't read as Champion. Age comes from the child's date of birth, which is why we ask
+          for that instead of asking you for an age.
+        </p>
+        <RuleTable title="Highest level by age">
+          {ageCaps.map((c, i) => {
+            const from = i === 0 ? 0 : ageCaps[i - 1].throughAge + 1;
+            return (
+              <RuleRow
+                key={c.cap}
+                left={from === 0 ? `Under ${c.throughAge + 1}` : `${from} to ${c.throughAge}`}
+                right={`up to ${c.cap}`}
+              />
+            );
+          })}
+          <RuleRow
+            left={`${ageCaps[ageCaps.length - 1].throughAge + 1} and older`}
+            right="no ceiling"
+          />
+        </RuleTable>
+
+        {/* ---------- Worked examples ---------- */}
+        <h3 className="font-display text-[17px] font-[700] text-ink mt-8">Worked examples</h3>
+        <RuleTable title="How real records land">
+          {WORKED_EXAMPLES.map((ex) => {
+            // Scored by the engine, not written by hand, so the numbers can't drift.
+            const r = suggestLevel({ ...ex.signals, ageYears: 11 });
+            return (
+              <RuleRow
+                key={ex.label}
+                left={ex.label}
+                right={
+                  <>
+                    {r.score} →{" "}
+                    <span className="text-ink font-[600]">{r.level}</span>
+                  </>
+                }
+              />
+            );
+          })}
+        </RuleTable>
+
+        <div className="mt-6 rounded-2xl bg-mint/50 px-3.5 py-3">
+          <p className="text-[13px] text-ink leading-relaxed">
+            <strong className="font-[700]">You always have the final say.</strong> Changing a
+            level never erases PROUDLY's suggestion — both are kept, so you can go back to it.
+            Tap the <Info size={12} className="inline align-[-1px]" /> beside any level to see
+            what counted for that activity.
+          </p>
+        </div>
+
+        <p className="text-[11.5px] text-ink-soft/70 mt-5 leading-relaxed">
+          These thresholds are a first pass and will be tuned as we see real activity data.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================= SAVED COACHES */
+export function SavedCoaches({ onBack }: { onBack: () => void }) {
+  const saved = useSavedCoaches();
+
+  return (
+    <div className="size-full flex flex-col bg-canvas">
+      <AppHeader title="Saved coaches" onBack={onBack} />
+      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+        {saved.length === 0 ? (
+          <div className="rounded-[22px] bg-surface border border-hairline mt-2">
+            <EmptyState
+              icon={<GraduationCap size={24} />}
+              title="No saved coaches yet"
+              body="When you find a coach worth remembering, tap the bookmark to keep it here."
+            />
+          </div>
+        ) : (
+          <>
+            <p className="text-[13px] text-ink-soft mt-1 mb-3">
+              {saved.length} saved from Google. Ratings shown as of when you searched.
+            </p>
+            <div className="space-y-2.5">
+              {saved.map((sv) => (
+                <SavedCoachRow key={sv.coach.id} saved={sv} showActivity />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ============================================================= PROFILE TAB */
 export function ProfileTab({ onOpen }: { onOpen: (t: SettingsTarget) => void }) {
   return (
-    <div className="pt-14 pb-6">
+    <div className="pt-14 pb-28">
       <div className="px-4 flex items-center gap-4">
         <ChildAvatar src={PARENT.photo} name={PARENT.name} size={60} ring="#217c72" />
         <div className="min-w-0">
@@ -54,6 +374,7 @@ export function ProfileTab({ onOpen }: { onOpen: (t: SettingsTarget) => void }) 
           value="Calendar · Photos"
           onClick={() => onOpen("sources")}
         />
+        <SavedCoachesRow onClick={() => onOpen("savedCoaches")} />
       </Group>
 
       <Group title="Preferences">
@@ -71,6 +392,14 @@ export function ProfileTab({ onOpen }: { onOpen: (t: SettingsTarget) => void }) 
           icon={<Database size={18} />}
           label="Data & privacy"
           onClick={() => onOpen("data")}
+        />
+      </Group>
+
+      <Group title="Help">
+        <Row
+          icon={<Info size={18} />}
+          label="How learning levels work"
+          onClick={() => onOpen("levelsHelp")}
         />
       </Group>
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
+  Bookmark,
   ExternalLink,
   Loader2,
   LocateFixed,
@@ -20,6 +21,8 @@ import {
   getCoachProvider,
   requestCurrentLocation,
 } from "../lib/coachSearch";
+import { toggleSaved, useIsSaved, useSavedCoachesFor } from "../lib/savedCoaches";
+import { showToast } from "../components/states";
 
 type Phase =
   | { kind: "location" }
@@ -36,6 +39,7 @@ export function CoachFinder({ activity, onBack }: { activity: Activity; onBack: 
   const [manual, setManual] = useState("");
   const [locating, setLocating] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const savedForActivity = useSavedCoachesFor(activity.id);
 
   // Drop any in-flight search when the screen closes.
   useEffect(() => () => abortRef.current?.abort(), []);
@@ -105,6 +109,20 @@ export function CoachFinder({ activity, onBack }: { activity: Activity; onBack: 
         <p className="text-[13px] text-ink-soft mt-1">
           Ranked by Google rating and review count.
         </p>
+
+        {/* Already saved for this activity */}
+        {savedForActivity.length > 0 && (
+          <div className="mt-4">
+            <p className="text-[12px] font-[600] text-ink-soft uppercase tracking-[0.04em] mb-2">
+              Saved for {activity.name}
+            </p>
+            <div className="space-y-2.5">
+              {savedForActivity.map((s) => (
+                <CoachCard key={s.coach.id} coach={s.coach} activityId={activity.id} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Where we're searching, once we know */}
         {location && phase.kind !== "location" && (
@@ -195,7 +213,7 @@ export function CoachFinder({ activity, onBack }: { activity: Activity; onBack: 
             className="mt-4 space-y-2.5"
           >
             {phase.coaches.map((c) => (
-              <CoachCard key={c.id} coach={c} />
+              <CoachCard key={c.id} coach={c} activityId={activity.id} />
             ))}
             <p className="text-[11.5px] text-ink-soft/80 text-center pt-2 leading-relaxed">
               Ratings and reviews from Google. PROUDLY doesn't endorse or vet coaches.
@@ -240,7 +258,8 @@ export function CoachFinder({ activity, onBack }: { activity: Activity; onBack: 
   );
 }
 
-function CoachCard({ coach }: { coach: Coach }) {
+function CoachCard({ coach, activityId }: { coach: Coach; activityId: string }) {
+  const saved = useIsSaved(coach.id);
   return (
     <div className="rounded-2xl bg-surface border border-hairline p-3.5">
       <div className="flex items-start gap-3">
@@ -255,6 +274,20 @@ function CoachCard({ coach }: { coach: Coach }) {
           <Star size={12} className="fill-current" />
           <span className="text-[12px] font-[700] tabular-nums">{coach.rating.toFixed(1)}</span>
         </span>
+        <button
+          onClick={() => {
+            toggleSaved(coach, activityId);
+            showToast(saved ? "Removed from saved" : "Coach saved");
+          }}
+          aria-label={saved ? `Remove ${coach.name} from saved` : `Save ${coach.name}`}
+          aria-pressed={saved}
+          className="shrink-0 grid place-items-center w-8 h-8 rounded-full active:scale-90 transition-transform"
+        >
+          <Bookmark
+            size={18}
+            className={saved ? "text-teal fill-current" : "text-ink-soft"}
+          />
+        </button>
       </div>
 
       <p className="text-[12px] text-ink-soft mt-1.5 tabular-nums">

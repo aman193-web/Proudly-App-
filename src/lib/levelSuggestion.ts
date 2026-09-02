@@ -40,6 +40,16 @@ export type LevelSignals = {
   ongoing?: boolean;
 };
 
+/** One signal's contribution to the score. */
+export type LevelContribution = {
+  key: "tenure" | "achievements" | "frequency" | "ongoing";
+  label: string;
+  /** What the record says, in words. */
+  detail: string;
+  points: number;
+  max: number;
+};
+
 export type LevelSuggestion = {
   level: ActivityLevel;
   /** 0-100ish. Exposed for debugging and future tuning, not for display. */
@@ -48,6 +58,10 @@ export type LevelSuggestion = {
   confidence: "low" | "medium" | "high";
   /** Plain-language notes on what drove the result. */
   reasons: string[];
+  /** Per-signal breakdown, for the "why this level?" explainer. */
+  contributions: LevelContribution[];
+  /** Set when age held the level below what the score alone would give. */
+  cappedByAge: ActivityLevel | null;
 };
 
 /* ---------- Tunable rules ----------
@@ -67,7 +81,8 @@ const WEIGHTS = {
 /** Highest band first; the first threshold met wins. */
 const THRESHOLDS: { min: number; level: ActivityLevel }[] = [
   { min: 70, level: "Champion" },
-  { min: 40, level: "Intermediate" },
+  // 35 puts Intermediate at a round 3 years on time alone (30 + the ongoing 5).
+  { min: 35, level: "Intermediate" },
   { min: 15, level: "Beginner" },
   { min: 0, level: "Learning" },
 ];
@@ -86,6 +101,7 @@ const isNum = (n: unknown): n is number => typeof n === "number" && Number.isFin
 /** Suggest a level from raw signals. Safe to call with an empty object. */
 export function suggestLevel(signals: LevelSignals): LevelSuggestion {
   const reasons: string[] = [];
+  const contributions: LevelContribution[] = [];
   let score = 0;
   let known = 0;
 
@@ -93,9 +109,15 @@ export function suggestLevel(signals: LevelSignals): LevelSuggestion {
     known++;
     const pts = clamp(signals.yearsInvolved * WEIGHTS.tenurePerYear, WEIGHTS.tenureMax);
     score += pts;
-    reasons.push(
-      `${signals.yearsInvolved.toFixed(1)} year${signals.yearsInvolved >= 2 ? "s" : ""} involved`,
-    );
+    const detail = `${signals.yearsInvolved.toFixed(1)} year${signals.yearsInvolved >= 2 ? "s" : ""} involved`;
+    reasons.push(detail);
+    contributions.push({
+      key: "tenure",
+      label: "Time in the activity",
+      detail,
+      points: Math.round(pts * 10) / 10,
+      max: WEIGHTS.tenureMax,
+    });
   }
 
   if (isNum(signals.achievementCount) && signals.achievementCount > 0) {
@@ -105,9 +127,15 @@ export function suggestLevel(signals: LevelSignals): LevelSuggestion {
       WEIGHTS.achievementMax,
     );
     score += pts;
-    reasons.push(
-      `${signals.achievementCount} achievement${signals.achievementCount > 1 ? "s" : ""} recorded`,
-    );
+    const detail = `${signals.achievementCount} achievement${signals.achievementCount > 1 ? "s" : ""} recorded`;
+    reasons.push(detail);
+    contributions.push({
+      key: "achievements",
+      label: "Achievements",
+      detail,
+      points: Math.round(pts * 10) / 10,
+      max: WEIGHTS.achievementMax,
+    });
   }
 
   if (isNum(signals.sessionsPerWeek) && signals.sessionsPerWeek > 1) {
@@ -117,28 +145,154 @@ export function suggestLevel(signals: LevelSignals): LevelSuggestion {
       WEIGHTS.frequencyMax,
     );
     score += pts;
-    reasons.push(`${signals.sessionsPerWeek}x a week`);
+    const detail = `${signals.sessionsPerWeek}x a week`;
+    reasons.push(detail);
+    contributions.push({
+      key: "frequency",
+      label: "How often",
+      detail,
+      points: Math.round(pts * 10) / 10,
+      max: WEIGHTS.frequencyMax,
+    });
   }
 
   if (signals.ongoing) {
     score += WEIGHTS.ongoingBonus;
     reasons.push("still going");
+    contributions.push({
+      key: "ongoing",
+      label: "Still going",
+      detail: "Currently active",
+      points: WEIGHTS.ongoingBonus,
+      max: WEIGHTS.ongoingBonus,
+    });
   }
 
-  let level = THRESHOLDS.find((t) => score >= t.min)?.level ?? "Learning";
+  const byScore = THRESHOLDS.find((t) => score >= t.min)?.level ?? "Learning";
+  let level = byScore;
+  let cappedByAge: ActivityLevel | null = null;
 
   // Age cap, applied after scoring.
   if (isNum(signals.ageYears)) {
     const cap = AGE_CAPS.find((c) => (signals.ageYears as number) <= c.throughAge);
     if (cap && LEVEL_RANK[level] > LEVEL_RANK[cap.cap]) {
       level = cap.cap;
+      cappedByAge = cap.cap;
       reasons.push(`held at ${cap.cap} for age ${signals.ageYears}`);
     }
   }
 
   const confidence = known >= 3 ? "high" : known === 2 ? "medium" : "low";
 
-  return { level, score: Math.round(score * 10) / 10, confidence, reasons };
+  return {
+    level,
+    score: Math.round(score * 10) / 10,
+    confidence,
+    reasons,
+    contributions,
+    cappedByAge,
+  };
+}
+
+/* ---------- Explaining a level ---------- */
+
+/** The score bands, for display. */
+export const LEVEL_BANDS = THRESHOLDS.map((t) => ({ level: t.level, min: t.min })).reverse();
+
+/** The rules themselves, so help copy can quote real numbers rather than
+    hardcoding them and drifting when the weights are tuned. */
+export const LEVEL_RULES = {
+  weights: WEIGHTS,
+  bands: LEVEL_BANDS,
+  ageCaps: AGE_CAPS,
+} as const;
+
+/** Score a single signal in isolation — used for the reference tables. */
+export const pointsForAchievements = (n: number) =>
+  clamp(n * WEIGHTS.perAchievement, WEIGHTS.achievementMax);
+
+export const pointsForSessions = (perWeek: number) =>
+  perWeek <= 1 ? 0 : clamp((perWeek - 1) * WEIGHTS.perExtraSessionPerWeek, WEIGHTS.frequencyMax);
+
+export const pointsForYears = (years: number) =>
+  clamp(years * WEIGHTS.tenurePerYear, WEIGHTS.tenureMax);
+
+/** Highest level a child of this age can hold, whatever the score. */
+export function ageCeiling(age: number): ActivityLevel | null {
+  return AGE_CAPS.find((c) => age <= c.throughAge)?.cap ?? null;
+}
+
+export type TenureRung = {
+  level: ActivityLevel;
+  /** Years needed to enter this band. */
+  from: number;
+  /** Years at which the next band starts, or null at the top. */
+  to: number | null;
+  /** False when time alone can never carry an activity this far. */
+  reachable: boolean;
+};
+
+/** Year ranges per level assuming the common case: once a week, still going,
+    nothing recorded as an achievement. Shows why time alone stops short. */
+export function tenureLadder(): TenureRung[] {
+  const base = WEIGHTS.ongoingBonus;
+  const ceiling = WEIGHTS.tenureMax + base;
+  const asc = [...THRESHOLDS].reverse();
+  const yearsFor = (min: number) => Math.max(0, (min - base) / WEIGHTS.tenurePerYear);
+
+  return asc.map((band, i) => {
+    const next = asc[i + 1];
+    return {
+      level: band.level,
+      from: yearsFor(band.min),
+      to: next && ceiling >= next.min ? yearsFor(next.min) : null,
+      reachable: ceiling >= band.min,
+    };
+  });
+}
+
+export type LevelExplainer = LevelSuggestion & {
+  /** The rung above the suggested level. */
+  next: ActivityLevel | null;
+  /** Score still needed to reach it. */
+  pointsToNext: number | null;
+  /** Concrete ways to close that gap, given the current record. */
+  waysToNext: string[];
+};
+
+/** Everything the UI needs to answer "why is my child at this level?". */
+export function explainLevel(activity: Activity, child?: Child | null): LevelExplainer {
+  const s = suggestLevelForActivity(activity, child);
+  const rank = LEVEL_RANK[s.level];
+  const next = ACTIVITY_LEVELS[rank + 1] ?? null;
+  const band = next ? THRESHOLDS.find((t) => t.level === next) : undefined;
+  const pointsToNext = band ? Math.max(0, Math.round((band.min - s.score) * 10) / 10) : null;
+
+  const ways: string[] = [];
+  if (pointsToNext !== null && pointsToNext > 0) {
+    const spentTenure = s.contributions.find((c) => c.key === "tenure");
+    const spentAch = s.contributions.find((c) => c.key === "achievements");
+    const spentFreq = s.contributions.find((c) => c.key === "frequency");
+
+    // Only offer a route that still has headroom under its cap.
+    const tenureLeft = WEIGHTS.tenureMax - (spentTenure?.points ?? 0);
+    if (tenureLeft > 0) {
+      const years = Math.min(pointsToNext, tenureLeft) / WEIGHTS.tenurePerYear;
+      if (years > 0) ways.push(`about ${years.toFixed(1)} more year${years >= 2 ? "s" : ""} of it`);
+    }
+    const achLeft = WEIGHTS.achievementMax - (spentAch?.points ?? 0);
+    if (achLeft > 0) {
+      const n = Math.ceil(Math.min(pointsToNext, achLeft) / WEIGHTS.perAchievement);
+      if (n > 0) ways.push(`${n} more achievement${n > 1 ? "s" : ""}`);
+    }
+    const freqLeft = WEIGHTS.frequencyMax - (spentFreq?.points ?? 0);
+    if (freqLeft > 0) {
+      const n = Math.ceil(Math.min(pointsToNext, freqLeft) / WEIGHTS.perExtraSessionPerWeek);
+      if (n > 0) ways.push(`${n} more session${n > 1 ? "s" : ""} a week`);
+    }
+  }
+
+  return { ...s, next, pointsToNext, waysToNext: ways };
 }
 
 /* ---------- Deriving signals from the record ---------- */

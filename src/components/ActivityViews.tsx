@@ -4,6 +4,7 @@ import { CalendarDays, ChevronLeft, ChevronRight, Plus, SlidersHorizontal } from
 import { EmptyState } from "./states";
 import { MilestoneStar, rangeYears, withinRange } from "./proudly";
 import { LevelBadge } from "./level";
+import { CategoryIcon } from "./CategoryIcon";
 import type { Range } from "./Gantt";
 import {
   type Achievement,
@@ -157,7 +158,7 @@ function ActivityListRow({
         className="grid place-items-center w-12 h-12 rounded-xl shrink-0"
         style={{ background: `${color}1f` }}
       >
-        <span className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
+        <CategoryIcon category={activity.category} size={20} />
       </span>
 
       <span className="flex-1 min-w-0">
@@ -470,6 +471,7 @@ export function ActivityCalendarView({
                   <span className="flex-1 min-w-0">
                     <span className="flex items-center gap-1.5">
                       <span className="text-[13.5px] font-[600] text-ink truncate">{a.name}</span>
+                      <LevelBadge activity={a} />
                       {started && (
                         <span className="shrink-0 text-[10px] font-[700] text-teal bg-mint px-1.5 py-0.5 rounded-full">
                           Started

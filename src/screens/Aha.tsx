@@ -1,7 +1,15 @@
 import { motion } from "framer-motion";
 import { PartyPopper, Trophy } from "lucide-react";
 import { Screen, PrimaryButton, StatItem } from "../components/ui";
-import { achievementsFor, activitiesFor, activityById, fmtMonth, PHOTO_CANDIDATES } from "../data";
+import { LevelBadge } from "../components/level";
+import {
+  achievementsFor,
+  activitiesFor,
+  activityById,
+  durationText,
+  fmtMonth,
+  PHOTO_CANDIDATES,
+} from "../data";
 
 const RANGE_START = 2019;
 const RANGE_END = 2026;
@@ -27,7 +35,7 @@ export function Aha({
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 400, damping: 18 }}
-          className="grid place-items-center w-14 h-14 rounded-2xl bg-gold-soft text-gold mb-5"
+          className="shrink-0 self-start grid place-items-center w-14 h-14 rounded-2xl bg-gold-soft text-gold mb-5"
         >
           <PartyPopper size={26} />
         </motion.div>
@@ -94,7 +102,7 @@ export function Aha({
           className="mt-6"
         >
           <SectionLabel>Activity journey</SectionLabel>
-          <div className="rounded-3xl bg-surface border border-hairline p-4 space-y-3.5">
+          <div className="rounded-3xl bg-surface border border-hairline px-4 pt-1 pb-3 divide-y divide-hairline/70">
             {REET_ACTIVITIES.map((a, i) => {
               const startY = a.start.y;
               const endY = a.end === "present" ? RANGE_END : a.end.y;
@@ -102,14 +110,25 @@ export function Aha({
               const width = ((endY - startY) / SPAN) * 100;
               const present = a.end === "present";
               return (
-                <div key={a.id}>
-                  <div className="flex items-baseline justify-between mb-1.5">
-                    <span className="text-[14px] font-[600] text-ink">{a.name}</span>
-                    <span className="text-[12px] text-ink-soft tabular-nums">
+                <div key={a.id} className="py-3.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-[15px] font-[600] text-ink truncate">{a.name}</span>
+                    <LevelBadge activity={a} />
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-1 text-[11.5px] text-ink-soft">
+                    <span className="tabular-nums">
                       {startY} – {present ? "Present" : endY}
                     </span>
+                    <span aria-hidden>·</span>
+                    <span>{durationText(a.start, a.end)}</span>
+                    {present && (
+                      <span
+                        className="ml-0.5 w-1.5 h-1.5 rounded-full bg-teal shrink-0"
+                        aria-label="Ongoing"
+                      />
+                    )}
                   </div>
-                  <div className="relative h-2.5 rounded-full bg-canvas overflow-hidden">
+                  <div className="relative h-1.5 rounded-full bg-canvas overflow-hidden mt-2.5">
                     <motion.div
                       className="absolute h-full rounded-full"
                       style={{
@@ -126,7 +145,7 @@ export function Aha({
                 </div>
               );
             })}
-            <div className="flex justify-between pt-1 text-[11px] text-ink-soft tabular-nums">
+            <div className="flex justify-between pt-3.5 text-[11px] text-ink-soft tabular-nums">
               <span>{RANGE_START}</span>
               <span>Present</span>
             </div>

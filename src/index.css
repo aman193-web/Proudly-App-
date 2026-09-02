@@ -60,3 +60,63 @@ body {
     box-shadow: 0 0 0 5px rgba(33, 124, 114, 0);
   }
 }
+
+/* Slow rotation for the AI coach button's border line. */
+@keyframes proudlySpin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* Soft glow behind the AI coach button. */
+@keyframes proudlyGlow {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.44;
+    transform: scale(1.08);
+  }
+}
+
+/* Spark on the AI coach mark: a quarter turn with a spring settle, then a hold
+   before looping. Taken from the supplied animated SVG. The transform repeats
+   the group's own translate because a CSS transform replaces the SVG transform
+   attribute outright. */
+@keyframes proudlySpark {
+  0% {
+    animation-timing-function: linear(
+      0, 0.0188, 0.0679, 0.1374, 0.2195, 0.308, 0.3978, 0.4856, 0.5686, 0.6452,
+      0.7142, 0.7753, 0.8283, 0.8735, 0.9113, 0.9423, 0.9671, 0.9866, 1.0014,
+      1.0123, 1.0198, 1.0247, 1.0274, 1.0283, 1.0281, 1.0268, 1.025, 1.0227,
+      1.0202, 1.0177, 1.0152, 1.0128, 1.0106, 1.0085, 1.0068, 1.0052, 1.0039,
+      1.0028, 1.0018, 1.0011, 1.0005, 1, 0.9997, 0.9995, 0.9993, 0.9992, 0.9992,
+      0.9992, 0.9992, 0.9993, 0.9993
+    );
+    transform: translateX(11.5px) translateY(-0.5px) translate(5.658px, 5.658px)
+      rotate(0rad) translate(-5.658px, -5.658px);
+  }
+  41%,
+  100% {
+    transform: translateX(11.5px) translateY(-0.5px) translate(5.658px, 5.658px)
+      rotate(1.571rad) translate(-5.658px, -5.658px);
+  }
+}
+
+.proudly-spark {
+  transform-origin: 0 0;
+  animation: proudlySpark 2s linear infinite;
+}
+
+/* Ambient motion is decoration — drop it when the OS asks. With the animation
+   off the group falls back to its SVG transform attribute, so the spark stays
+   put rather than jumping to the origin. */
+@media (prefers-reduced-motion: reduce) {
+  .proudly-ambient,
+  .proudly-ambient *,
+  .proudly-spark {
+    animation: none !important;
+  }
+}

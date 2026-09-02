@@ -14,6 +14,7 @@ import {
 import { AppHeader, ChildAvatar, PrimaryButton } from "../components/ui";
 import { ChildChip, ChildSheet, MilestoneStar, type ChildId } from "../components/proudly";
 import { EmptyState, showToast } from "../components/states";
+import { CategoryIcon } from "../components/CategoryIcon";
 import {
   type Achievement,
   type Activity,
@@ -110,7 +111,7 @@ export function Portfolio({
 
   if (!acts.length) {
     return (
-      <div className="pt-14 pb-6">
+      <div className="pt-14 pb-28">
         <div className="px-4 flex items-start justify-between">
           <h1 className="font-display text-[24px] font-[700] text-ink leading-tight">Portfolio</h1>
           <ChildChip childId={childId} onOpen={() => setChildSheet(true)} />
@@ -140,7 +141,7 @@ export function Portfolio({
   ];
 
   return (
-    <div className="pt-14 pb-6">
+    <div className="pt-14 pb-28">
       {/* Header */}
       <div className="px-4 flex items-start justify-between">
         <div>
@@ -258,6 +259,8 @@ function FeedPost({ item }: { item: FeedItem }) {
   let childId: string;
   let sub: string;
   let dot: string;
+  /** Null only for an achievement whose activity is missing. */
+  let category: Category | null = null;
   let date: { y: number; m: number };
   let image: string | null;
   let caption: React.ReactNode;
@@ -268,6 +271,7 @@ function FeedPost({ item }: { item: FeedItem }) {
     childId = item.childId;
     sub = item.activityName;
     dot = CATEGORY_COLOR[item.category];
+    category = item.category;
     date = item.date;
     image = item.url;
     caption = item.activityName;
@@ -276,6 +280,7 @@ function FeedPost({ item }: { item: FeedItem }) {
     childId = item.ach.childId;
     sub = act?.name ?? "Achievement";
     dot = act ? CATEGORY_COLOR[act.category] : "#b8893b";
+    category = act?.category ?? null;
     date = item.ach.date;
     image = item.ach.image ?? null;
     caption = item.ach.title;
@@ -285,6 +290,7 @@ function FeedPost({ item }: { item: FeedItem }) {
     childId = item.act.childId;
     sub = item.act.category;
     dot = CATEGORY_COLOR[item.act.category];
+    category = item.act.category;
     date = item.act.start;
     // Every memory already appears as its own photo post, so an activity post
     // reusing one would show the same picture twice. It gets a milestone panel.
@@ -304,7 +310,11 @@ function FeedPost({ item }: { item: FeedItem }) {
         <div className="flex-1 min-w-0">
           <p className="text-[13.5px] font-[700] text-ink leading-tight truncate">{childName}</p>
           <p className="text-[11.5px] text-ink-soft leading-tight truncate flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: dot }} />
+            {category ? (
+              <CategoryIcon category={category} size={13} />
+            ) : (
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: dot }} />
+            )}
             {sub}
           </p>
         </div>
@@ -333,7 +343,13 @@ function FeedPost({ item }: { item: FeedItem }) {
           className="w-full aspect-square flex flex-col items-center justify-center px-10 text-center"
           style={{ background: `${dot}1f` }}
         >
-          <span className="w-4 h-4 rounded-full mb-3" style={{ background: dot }} />
+          <span className="mb-3">
+            {category ? (
+              <CategoryIcon category={category} size={30} />
+            ) : (
+              <span className="block w-4 h-4 rounded-full" style={{ background: dot }} />
+            )}
+          </span>
           <p className="font-display text-[19px] font-[700] text-ink leading-snug">
             {item.kind === "activity" ? item.act.name : sub}
           </p>
@@ -438,10 +454,9 @@ function FeedCell({ item }: { item: FeedItem }) {
       className="aspect-square flex flex-col items-center justify-center px-2 text-center"
       style={{ background: `${CATEGORY_COLOR[item.act.category]}20` }}
     >
-      <span
-        className="w-3 h-3 rounded-full mb-1.5"
-        style={{ background: CATEGORY_COLOR[item.act.category] }}
-      />
+      <span className="mb-1.5">
+        <CategoryIcon category={item.act.category} size={16} />
+      </span>
       <p className="text-[9px] font-[700] text-ink leading-tight line-clamp-2">{item.act.name}</p>
       <p className="text-[8px] text-ink-soft mt-0.5 tabular-nums">
         {item.act.start.y}–{item.act.end === "present" ? "Now" : item.act.end.y}

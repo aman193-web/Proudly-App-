@@ -1,4 +1,12 @@
-import { ChevronRight, GraduationCap, MessageCircleQuestion, Check, Sparkles } from "lucide-react";
+import {
+  Check,
+  ChevronRight,
+  GraduationCap,
+  Info,
+  MessageCircleQuestion,
+  Sparkles,
+} from "lucide-react";
+import { useState } from "react";
 import type { Activity, ActivityLevel } from "../data";
 import { ACTIVITY_LEVELS, LEVEL_RANK } from "../data";
 import {
@@ -8,6 +16,7 @@ import {
   nextLevel,
   suggestionFor,
 } from "../lib/activityLevels";
+import { LEVEL_BANDS, explainLevel } from "../lib/levelSuggestion";
 import { Sheet } from "./Sheet";
 
 /* Level styling — a progression through the existing palette:
@@ -18,6 +27,14 @@ const LEVEL_STYLE: Record<ActivityLevel, string> = {
   Beginner: "bg-mint text-teal-dark",
   Intermediate: "bg-teal text-white",
   Champion: "bg-gold text-white",
+};
+
+/** Selected state for the chooser chips — every level keeps a visible edge. */
+const LEVEL_SELECTED: Record<ActivityLevel, string> = {
+  Learning: "bg-canvas text-ink border-2 border-teal",
+  Beginner: "bg-mint text-teal-dark border-2 border-teal",
+  Intermediate: "bg-teal text-white border-2 border-teal",
+  Champion: "bg-gold text-white border-2 border-gold",
 };
 
 /** Bar colour for the compact rank meter. */
@@ -162,23 +179,27 @@ export function NextLevelCard({
 
   return (
     <div className="rounded-[22px] bg-surface border border-hairline overflow-hidden">
-      {/* Current level — tap to change */}
-      <button
-        onClick={onChangeLevel}
-        className="w-full text-left px-4 pt-4 pb-3.5 active:bg-canvas transition-colors"
-      >
+      {/* Current level. "Change" is its own target so the info affordance can
+          sit beside the label without nesting interactive elements. */}
+      <div className="px-4 pt-4 pb-3.5">
         <div className="flex items-center gap-3">
           <span className="flex-1 min-w-0">
-            <span className="block text-[12px] font-[600] text-ink-soft uppercase tracking-[0.04em]">
-              Current level
+            <span className="flex items-center gap-1.5">
+              <span className="text-[12px] font-[600] text-ink-soft uppercase tracking-[0.04em]">
+                Current level
+              </span>
+              <LevelInfoButton activity={activity} />
             </span>
             <span className="block font-display text-[24px] font-[700] text-ink leading-tight mt-0.5">
               {current}
             </span>
           </span>
-          <span className="flex items-center gap-1 shrink-0 text-[12.5px] font-[600] text-teal">
+          <button
+            onClick={onChangeLevel}
+            className="flex items-center gap-1 shrink-0 h-9 pl-3 pr-2 rounded-full bg-surface border border-hairline text-[12.5px] font-[600] text-teal active:scale-95 transition-transform"
+          >
             Change <ChevronRight size={15} />
-          </span>
+          </button>
         </div>
 
         {/* Where the level came from */}
@@ -204,7 +225,7 @@ export function NextLevelCard({
             <Sparkles size={11} /> PROUDLY suggests {suggested}
           </span>
         )}
-      </button>
+      </div>
 
       {/* Next level */}
       <div className="border-t border-hairline px-4 py-3.5 bg-canvas/60">
@@ -242,5 +263,174 @@ export function NextLevelCard({
         </div>
       </div>
     </div>
+  );
+}
+
+/* ---------- Inline level chooser ----------
+   The level is editable wherever the parent already is — the activity preview
+   sheet and the edit screen — so changing it never means hunting for a screen.
+   Four chips, current one marked, PROUDLY's suggestion flagged. */
+export function LevelChooserRow({
+  activity,
+  label = "Learning level",
+}: {
+  activity: Activity;
+  label?: string;
+}) {
+  const { current, suggested, source, overridden } = useActivityLevel(activity);
+
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-2 mb-2">
+        <span className="flex items-center gap-1.5">
+          <span className="text-[12px] font-[600] text-ink-soft uppercase tracking-[0.04em]">
+            {label}
+          </span>
+          <LevelInfoButton activity={activity} />
+        </span>
+        {source === "proudly" ? (
+          <span className="inline-flex items-center gap-1 text-[11px] font-[600] text-teal">
+            <Sparkles size={11} /> Suggested by PROUDLY
+          </span>
+        ) : (
+          <button
+            onClick={() => resetToSuggested(activity)}
+            className="text-[11px] font-[600] text-teal active:opacity-60"
+          >
+            Reset to {suggested}
+          </button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-4 gap-1.5">
+        {ACTIVITY_LEVELS.map((lvl) => {
+          const active = lvl === current;
+          return (
+            <button
+              key={lvl}
+              onClick={() => setParentLevel(activity, lvl)}
+              aria-pressed={active}
+              className={`relative h-[52px] rounded-xl text-[11px] font-[700] leading-tight px-1 transition-colors ${
+                active
+                  ? LEVEL_SELECTED[lvl]
+                  : "bg-surface border border-hairline text-ink-soft active:bg-canvas"
+              }`}
+            >
+              {lvl}
+              {/* Mark the suggestion when the parent has moved away from it */}
+              {overridden && lvl === suggested && (
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-teal" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- "Why this level?" ----------
+   A small info affordance next to every place a level is shown or set. Opens
+   the real breakdown from the suggestion engine, so what the parent reads is
+   exactly what decided the level. */
+export function LevelInfoButton({
+  activity,
+  label = "Why this level?",
+}: {
+  activity: Activity;
+  label?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        aria-label={label}
+        className="shrink-0 grid place-items-center w-5 h-5 rounded-full text-ink-soft active:scale-90 transition-transform"
+      >
+        <Info size={14} />
+      </button>
+      <LevelInfoSheet activity={activity} open={open} onClose={() => setOpen(false)} />
+    </>
+  );
+}
+
+export function LevelInfoSheet({
+  activity,
+  open,
+  onClose,
+}: {
+  activity: Activity;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const { current, suggested, source } = useActivityLevel(activity);
+  const x = explainLevel(activity);
+
+  return (
+    <Sheet open={open} onClose={onClose}>
+      <h3 className="font-display text-[18px] font-[700] text-ink px-1">
+        Why {activity.name} is {suggested}
+      </h3>
+      <p className="text-[12.5px] text-ink-soft px-1 mt-0.5">
+        PROUDLY reads the record for this activity. Nothing here is fixed — you can set the
+        level yourself at any time.
+      </p>
+
+      {source === "parent" && current !== suggested && (
+        <p className="mt-3 text-[12.5px] font-[600] text-teal bg-mint rounded-xl px-3 py-2">
+          You have this set to {current}. PROUDLY's own read is {suggested}.
+        </p>
+      )}
+
+      {/* What counted */}
+      <div className="mt-4 space-y-2">
+        {x.contributions.length === 0 && (
+          <p className="text-[13px] text-ink-soft px-1">
+            There isn't enough recorded yet to say much — adding sessions or achievements will
+            sharpen this.
+          </p>
+        )}
+        {x.contributions.map((c) => (
+          <div key={c.key} className="rounded-xl bg-surface border border-hairline px-3 py-2.5">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[13.5px] font-[600] text-ink">{c.label}</span>
+              <span className="text-[11.5px] text-ink-soft tabular-nums shrink-0">
+                {c.points} of {c.max}
+              </span>
+            </div>
+            <p className="text-[12px] text-ink-soft mt-0.5">{c.detail}</p>
+            <div className="relative h-1.5 rounded-full bg-canvas mt-2">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full bg-teal"
+                style={{ width: `${Math.min(100, (c.points / c.max) * 100)}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {x.cappedByAge && (
+        <p className="mt-3 text-[12.5px] text-ink-soft bg-canvas border border-hairline rounded-xl px-3 py-2">
+          Held at {x.cappedByAge} for now because of age — time alone shouldn't make a very
+          young child a Champion.
+        </p>
+      )}
+
+      {/* What would move it up */}
+      {x.next && x.pointsToNext !== null && x.waysToNext.length > 0 && (
+        <div className="mt-4 rounded-xl bg-mint/50 px-3 py-2.5">
+          <p className="text-[13px] font-[700] text-ink">To reach {x.next}</p>
+          <p className="text-[12.5px] text-ink-soft mt-0.5 leading-relaxed">
+            Any one of: {x.waysToNext.join(", or ")}.
+          </p>
+        </div>
+      )}
+
+      <p className="text-[11px] text-ink-soft/70 mt-4 px-1 leading-relaxed">
+        Bands: {LEVEL_BANDS.map((b) => `${b.level} ${b.min}+`).join(" · ")}. Current score{" "}
+        {x.score}.
+      </p>
+    </Sheet>
   );
 }
