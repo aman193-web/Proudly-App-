@@ -80,7 +80,7 @@ export function Aha({
               return (
                 <div key={p.id} className="shrink-0">
                   <div className="relative w-20 h-24 rounded-2xl overflow-hidden bg-mint">
-                    <img src={p.url} alt={act?.name ?? ""} className="size-full object-cover" />
+                    <img loading="lazy" decoding="async" src={p.url} alt={act?.name ?? ""} className="size-full object-cover" />
                     {p.achievement && (
                       <div className="absolute top-1.5 left-1.5 grid place-items-center w-5 h-5 rounded-full bg-gold shadow-sm">
                         <Trophy size={10} className="text-white" />

@@ -268,7 +268,7 @@ export function ChildAvatar({
       }}
     >
       {src ? (
-        <img src={src} alt={name} className="size-full object-cover" />
+        <img decoding="async" src={src} alt={name} className="size-full object-cover" />
       ) : (
         <span className="font-display font-[600] text-teal-dark" style={{ fontSize: size * 0.4 }}>
           {name.charAt(0)}

@@ -74,7 +74,7 @@ export function Review({
             >
               <div className="rounded-3xl overflow-hidden bg-surface border border-hairline shadow-[0_24px_48px_-24px_rgba(23,35,33,0.35)]">
                 <div className="relative h-[240px] bg-mint">
-                  <img src={item.image} alt="" className="size-full object-cover" />
+                  <img loading="lazy" decoding="async" src={item.image} alt="" className="size-full object-cover" />
                   {item.achievement && (
                     <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 h-8 pl-2 pr-3 rounded-full bg-gold-soft text-gold text-[12.5px] font-[600]">
                       <Trophy size={14} /> Possible milestone

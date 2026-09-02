@@ -516,7 +516,7 @@ export function AchievementRow({
       className="w-full flex items-center gap-3.5 rounded-2xl bg-surface border border-hairline p-3 text-left active:scale-[0.99] transition-transform"
     >
       {achievement.image ? (
-        <img
+        <img loading="lazy" decoding="async"
           src={achievement.image}
           alt={achievement.title}
           className="w-12 h-12 rounded-xl object-cover shrink-0 bg-mint"
@@ -720,7 +720,7 @@ export function AchievementPreview({
             </div>
           </div>
           {achievement.image && (
-            <img
+            <img loading="lazy" decoding="async"
               src={achievement.image}
               alt={achievement.title}
               className="w-full h-36 object-cover rounded-2xl mt-4 bg-mint"

@@ -134,7 +134,7 @@ export function GanttChart({
 
         {/* Axis (sticky top) */}
         <div
-          className="sticky top-0 z-20 bg-surface/95 backdrop-blur-sm border-b border-hairline"
+          className="sticky top-0 z-20 bg-surface/95 border-b border-hairline"
           style={{ height: AXIS_H }}
         >
           {/* corner */}

@@ -329,7 +329,7 @@ function FeedPost({ item }: { item: FeedItem }) {
 
       {/* Media — edge to edge */}
       {image ? (
-        <img src={image} alt={typeof caption === "string" ? caption : ""} className="w-full aspect-square object-cover bg-mint" />
+        <img loading="lazy" decoding="async" src={image} alt={typeof caption === "string" ? caption : ""} className="w-full aspect-square object-cover bg-mint" />
       ) : isAchievement ? (
         <div className="w-full aspect-square flex flex-col items-center justify-center bg-gradient-to-br from-[#fdf3e3] to-[#f5e0b5] px-10 text-center">
           <span className="text-gold mb-3">
@@ -412,7 +412,7 @@ function FeedCell({ item }: { item: FeedItem }) {
   if (item.kind === "photo") {
     return (
       <div className="aspect-square relative overflow-hidden bg-mint">
-        <img src={item.url} alt={item.activityName} className="size-full object-cover" />
+        <img loading="lazy" decoding="async" src={item.url} alt={item.activityName} className="size-full object-cover" />
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-1.5 pb-1.5 pt-5">
           <p className="text-[8.5px] font-[600] text-white truncate">{item.activityName}</p>
         </div>
@@ -424,7 +424,7 @@ function FeedCell({ item }: { item: FeedItem }) {
     if (item.ach.image) {
       return (
         <div className="aspect-square relative overflow-hidden bg-gold-soft">
-          <img src={item.ach.image} alt={item.ach.title} className="size-full object-cover" />
+          <img loading="lazy" decoding="async" src={item.ach.image} alt={item.ach.title} className="size-full object-cover" />
           <div className="absolute top-1.5 left-1.5 grid place-items-center w-5 h-5 rounded-full bg-gold shadow-sm">
             <span className="text-white" style={{ fontSize: 9, lineHeight: 1 }}>
               ★

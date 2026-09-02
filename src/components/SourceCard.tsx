@@ -43,7 +43,7 @@ export function SourceCard({
         <div
           className="grid place-items-center w-11 h-11 rounded-2xl shrink-0 bg-white border border-hairline/60 overflow-hidden p-1"
         >
-          <img
+          <img decoding="async"
             src={kind === "calendar" ? googleCalIcon : googlePhotosIcon}
             alt={kind === "calendar" ? "Google Calendar" : "Google Photos"}
             className="w-full h-full object-contain"

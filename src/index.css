@@ -51,16 +51,6 @@ body {
   letter-spacing: -0.02em;
 }
 
-@keyframes proudlyPulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(33, 124, 114, 0.45);
-  }
-  50% {
-    box-shadow: 0 0 0 5px rgba(33, 124, 114, 0);
-  }
-}
-
 /* Slow rotation for the AI coach button's border line. */
 @keyframes proudlySpin {
   to {
@@ -105,8 +95,17 @@ body {
   }
 }
 
+/* These three run forever, so they need their own compositor layers. Without
+   will-change the browser repaints the conic gradient, the radial gradient and
+   the SVG group on every frame — continuous paint work behind every scroll and
+   screen transition. With it they are transform/opacity-only composites. */
+.proudly-ambient > span {
+  will-change: transform, opacity;
+}
+
 .proudly-spark {
   transform-origin: 0 0;
+  will-change: transform;
   animation: proudlySpark 2s linear infinite;
 }
 
@@ -118,5 +117,6 @@ body {
   .proudly-ambient *,
   .proudly-spark {
     animation: none !important;
+    will-change: auto !important;
   }
 }

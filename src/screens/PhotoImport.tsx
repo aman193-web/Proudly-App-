@@ -108,7 +108,7 @@ function Select({
               onClick={() => onToggle(d.id)}
               className="relative aspect-square rounded-2xl overflow-hidden bg-mint active:scale-[0.98] transition-transform"
             >
-              <img src={d.url} alt="" className="size-full object-cover" />
+              <img loading="lazy" decoding="async" src={d.url} alt="" className="size-full object-cover" />
               <span
                 className={`absolute inset-0 transition-colors ${
                   d.include ? "bg-teal/10" : "bg-ink/30"
@@ -252,7 +252,7 @@ function Review({
               }`}
             >
               <div className="flex gap-3">
-                <img
+                <img loading="lazy" decoding="async"
                   src={d.url}
                   alt=""
                   className="w-16 h-16 rounded-xl object-cover bg-mint shrink-0"

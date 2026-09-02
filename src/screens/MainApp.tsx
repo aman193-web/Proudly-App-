@@ -1134,7 +1134,7 @@ function ActivityDetail({
               const y = Math.min(activity.start.y + i, endY);
               return (
                 <div key={i} className="shrink-0">
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={m}
                     alt={`${activity.name} memory`}
                     className="w-28 h-32 rounded-2xl object-cover bg-mint"
@@ -1687,7 +1687,7 @@ function AchievementDetail({
       <div className="flex-1 overflow-y-auto scroll-area pb-8">
         {ach.image ? (
           <div className="px-4">
-            <img
+            <img decoding="async"
               src={ach.image}
               alt={ach.title}
               className="w-full h-52 object-cover rounded-3xl bg-mint"
@@ -2011,7 +2011,7 @@ function DiscoveryReview({
           </div>
           <div className="flex gap-1.5 overflow-x-auto scroll-area">
             {PHOTO_CANDIDATES.map((p) => (
-              <img
+              <img loading="lazy" decoding="async"
                 key={p.id}
                 src={p.url}
                 alt=""

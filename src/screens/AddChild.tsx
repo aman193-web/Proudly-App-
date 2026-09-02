@@ -432,7 +432,7 @@ function CropModal({
       {/* Crop area */}
       <div className="flex-1 flex items-center justify-center relative overflow-hidden">
         {/* Dimmed full image behind */}
-        <img
+        <img decoding="async"
           src={src}
           alt=""
           className="absolute inset-0 w-full h-full object-contain pointer-events-none"
@@ -449,7 +449,7 @@ function CropModal({
           onPointerUp={onPointerUp}
           onPointerLeave={onPointerUp}
         >
-          <img
+          <img decoding="async"
             src={src}
             alt=""
             draggable={false}
