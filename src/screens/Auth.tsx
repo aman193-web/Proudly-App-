@@ -2,12 +2,17 @@ import { useState } from "react";
 import {
   Screen,
   AppHeader,
+  AppleButton,
   PrimaryButton,
   GoogleButton,
   TextField,
   PasswordField,
   TextLink,
 } from "../components/ui";
+
+/* Apple sign-in is UI-only until the provider is configured. Both social
+   buttons run through the same handler as the email flow, so wiring a real
+   provider later means replacing these two callbacks and nothing else. */
 
 function Divider() {
   return (
@@ -70,6 +75,7 @@ export function SignIn({
           </PrimaryButton>
           <Divider />
           <GoogleButton onClick={onDone} />
+          <AppleButton onClick={onDone} />
         </div>
 
         <div className="flex-1" />
@@ -129,6 +135,7 @@ export function CreateAccount({
           </PrimaryButton>
           <Divider />
           <GoogleButton onClick={() => onDone(name || "there")} />
+          <AppleButton onClick={() => onDone(name || "there")} />
         </div>
 
         <div className="flex-1" />

@@ -38,9 +38,9 @@ export function Welcome({
         >
           <Logo className="mb-7" />
           <h1 className="font-display text-[34px] leading-[1.06] font-[700] text-ink tracking-tight">
-            Your child's world,
+            Their journey,
             <br />
-            <span className="text-teal">organized automatically.</span>
+            <span className="text-teal">tracked.</span>
           </h1>
           <p className="mt-4 text-[15.5px] leading-relaxed text-ink-soft pr-2">
             PROUDLY turns your Calendar and Photos into a lasting record of every

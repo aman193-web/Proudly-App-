@@ -2,6 +2,8 @@ export type Child = {
   id: string;
   name: string;
   grade: string;
+  /** ISO date, YYYY-MM-DD. Age is always derived from this, never entered. */
+  dob: string;
   photo: string;
   color: string;
 };
@@ -11,6 +13,7 @@ export const CHILDREN: Child[] = [
     id: "reet",
     name: "Reet",
     grade: "Grade 6",
+    dob: "2014-09-12",
     photo:
       "https://images.unsplash.com/photo-1762444760659-54caed7cbb1a?w=200&h=200&fit=crop&auto=format",
     color: "#217c72",
@@ -19,6 +22,7 @@ export const CHILDREN: Child[] = [
     id: "aanya",
     name: "Aanya",
     grade: "Grade 3",
+    dob: "2017-11-03",
     photo:
       "https://images.unsplash.com/photo-1698768645748-c62b3e5202ca?w=200&h=200&fit=crop&auto=format",
     color: "#b8893b",
@@ -50,6 +54,17 @@ const MONTHS = [
 ];
 
 export const fmtMonth = (d: YM) => `${MONTHS[d.m - 1]} ${d.y}`;
+
+/** Whole years old on the given date. Returns null for a missing/unparseable DOB. */
+export function ageFromDob(dob: string | undefined, at: YM = TODAY): number | null {
+  if (!dob) return null;
+  const [y, m, d] = dob.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  let age = at.y - y;
+  // Birthday has not landed yet this year.
+  if (at.m < m) age -= 1;
+  return age < 0 ? null : age;
+}
 
 export function durationText(start: YM, end: YM | "present"): string {
   const e = end === "present" ? TODAY : end;
@@ -97,6 +112,30 @@ export const CATEGORY_COLOR: Record<Category, string> = {
   Other: "#7a857f",
 };
 
+/* ---------- Activity level ----------
+   Four rungs a child can sit on within an activity. PROUDLY suggests one; the
+   parent may override it. The suggestion is kept either way, so an override
+   never destroys what PROUDLY worked out. */
+export type ActivityLevel = "Learning" | "Beginner" | "Intermediate" | "Champion";
+
+export const ACTIVITY_LEVELS: ActivityLevel[] = [
+  "Learning",
+  "Beginner",
+  "Intermediate",
+  "Champion",
+];
+
+/** Rank of a level, for comparisons and thresholds. */
+export const LEVEL_RANK: Record<ActivityLevel, number> = {
+  Learning: 0,
+  Beginner: 1,
+  Intermediate: 2,
+  Champion: 3,
+};
+
+/** Who decided the current level. */
+export type LevelSource = "proudly" | "parent";
+
 /* ---------- Activities ---------- */
 export type Activity = {
   id: string;
@@ -108,6 +147,13 @@ export type Activity = {
   approxStart?: boolean;
   approxEnd?: boolean;
   note?: string;
+  /** Typical sessions per week, where known. Feeds the level suggestion. */
+  sessionsPerWeek?: number;
+  /** What PROUDLY works out from the record. Never overwritten by the parent. */
+  suggestedLevel: ActivityLevel;
+  /** What the app shows and uses. Equals suggestedLevel until a parent changes it. */
+  currentLevel: ActivityLevel;
+  levelSource: LevelSource;
   memories: string[];
   history: { date: YM; label: string }[];
 };
@@ -121,6 +167,10 @@ export const ACTIVITIES: Activity[] = [
     start: { y: 2019, m: 9 },
     end: "present",
     note: "Practices most mornings before school. Loves ragtime lately.",
+    sessionsPerWeek: 2,
+    suggestedLevel: "Champion",
+    currentLevel: "Champion",
+    levelSource: "proudly",
     memories: [
       "https://images.unsplash.com/photo-1577877777751-3f1ec20a0715?w=400&h=400&fit=crop&auto=format",
       "https://images.unsplash.com/photo-1590581296894-3c897baa0e54?w=400&h=400&fit=crop&auto=format",
@@ -140,6 +190,10 @@ export const ACTIVITIES: Activity[] = [
     category: "Sports",
     start: { y: 2021, m: 3 },
     end: { y: 2024, m: 6 },
+    sessionsPerWeek: 2,
+    suggestedLevel: "Intermediate",
+    currentLevel: "Intermediate",
+    levelSource: "proudly",
     memories: [
       "https://images.unsplash.com/photo-1622659097509-4d56de14539e?w=400&h=400&fit=crop&auto=format",
       "https://images.unsplash.com/photo-1622659097972-68f1d8c1829f?w=400&h=400&fit=crop&auto=format",
@@ -158,6 +212,10 @@ export const ACTIVITIES: Activity[] = [
     start: { y: 2020, m: 1 },
     end: { y: 2022, m: 7 },
     approxStart: true,
+    sessionsPerWeek: 1,
+    suggestedLevel: "Intermediate",
+    currentLevel: "Intermediate",
+    levelSource: "proudly",
     memories: [
       "https://images.unsplash.com/photo-1651614158095-b98b6c1da74b?w=400&h=400&fit=crop&auto=format",
     ],
@@ -173,6 +231,10 @@ export const ACTIVITIES: Activity[] = [
     category: "Music",
     start: { y: 2022, m: 9 },
     end: "present",
+    sessionsPerWeek: 1,
+    suggestedLevel: "Intermediate",
+    currentLevel: "Intermediate",
+    levelSource: "proudly",
     memories: [
       "https://images.unsplash.com/photo-1632433796103-83acf2ae78b6?w=400&h=400&fit=crop&auto=format",
     ],
@@ -185,6 +247,10 @@ export const ACTIVITIES: Activity[] = [
     category: "Dance & Theater",
     start: { y: 2023, m: 1 },
     end: "present",
+    sessionsPerWeek: 2,
+    suggestedLevel: "Intermediate",
+    currentLevel: "Intermediate",
+    levelSource: "proudly",
     memories: [
       "https://images.unsplash.com/photo-1681312206210-5f52c564d30d?w=400&h=400&fit=crop&auto=format",
       "https://images.unsplash.com/photo-1558905566-ddbeb2fc2c2f?w=400&h=400&fit=crop&auto=format",
@@ -201,6 +267,10 @@ export const ACTIVITIES: Activity[] = [
     category: "Arts",
     start: { y: 2021, m: 9 },
     end: { y: 2023, m: 6 },
+    sessionsPerWeek: 1,
+    suggestedLevel: "Beginner",
+    currentLevel: "Beginner",
+    levelSource: "proudly",
     memories: [
       "https://images.unsplash.com/photo-1512253080918-79cf0c2e0650?w=400&h=400&fit=crop&auto=format",
     ],
@@ -213,6 +283,10 @@ export const ACTIVITIES: Activity[] = [
     category: "Academics",
     start: { y: 2023, m: 9 },
     end: "present",
+    sessionsPerWeek: 1,
+    suggestedLevel: "Intermediate",
+    currentLevel: "Beginner",
+    levelSource: "parent",
     memories: [
       "https://images.unsplash.com/photo-1714646793130-0dc0c5a04f64?w=400&h=400&fit=crop&auto=format",
     ],
@@ -228,6 +302,10 @@ export const ACTIVITIES: Activity[] = [
     category: "STEM",
     start: { y: 2024, m: 9 },
     end: "present",
+    sessionsPerWeek: 2,
+    suggestedLevel: "Intermediate",
+    currentLevel: "Intermediate",
+    levelSource: "proudly",
     memories: [
       "https://images.unsplash.com/photo-1742047654060-fcd0b0d06b7a?w=400&h=400&fit=crop&auto=format",
     ],
@@ -244,6 +322,10 @@ export const ACTIVITIES: Activity[] = [
     category: "Music",
     start: { y: 2022, m: 9 },
     end: "present",
+    sessionsPerWeek: 1,
+    suggestedLevel: "Intermediate",
+    currentLevel: "Intermediate",
+    levelSource: "proudly",
     memories: [
       "https://images.unsplash.com/photo-1636464808108-644053e72420?w=400&h=400&fit=crop&auto=format",
     ],
@@ -256,6 +338,10 @@ export const ACTIVITIES: Activity[] = [
     category: "Sports",
     start: { y: 2023, m: 3 },
     end: "present",
+    sessionsPerWeek: 2,
+    suggestedLevel: "Intermediate",
+    currentLevel: "Intermediate",
+    levelSource: "proudly",
     memories: [
       "https://images.unsplash.com/photo-1655842556539-db2d2099ded1?w=400&h=400&fit=crop&auto=format",
     ],
@@ -269,6 +355,10 @@ export const ACTIVITIES: Activity[] = [
     start: { y: 2021, m: 6 },
     end: "present",
     approxStart: true,
+    sessionsPerWeek: 1,
+    suggestedLevel: "Intermediate",
+    currentLevel: "Learning",
+    levelSource: "parent",
     memories: [
       "https://images.unsplash.com/photo-1536221993589-9edbbca2c7fc?w=400&h=400&fit=crop&auto=format",
     ],

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Screen, AppHeader, PrimaryButton, TextField, TextLink } from "../components/ui";
 import { StepDots } from "../components/StepDots";
+import { ageFromDob } from "../data";
 
 const GRADES = ["Pre-K", "Kindergarten", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7", "Grade 8"];
 const CIRCLE = 240;
@@ -26,6 +27,7 @@ export function AddChild({
   onContinue: (name: string) => void;
 }) {
   const [name, setName] = useState("");
+  const [dob, setDob] = useState("");
   const [grade, setGrade] = useState("");
   const [croppedUrl, setCroppedUrl] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -270,6 +272,16 @@ export function AddChild({
 
         <div className="mt-7 space-y-4">
           <TextField label="First name" value={name} onChange={setName} placeholder="e.g. Reet" />
+
+          {/* Date of birth. Age is derived from this — we never ask for it. */}
+          <div>
+            <TextField label="Date of birth" type="date" value={dob} onChange={setDob} />
+            <p className="text-[12px] text-ink-soft mt-1.5 ml-0.5">
+              {ageFromDob(dob) !== null
+                ? `${ageFromDob(dob)} years old · helps us pitch activity levels`
+                : "Helps us pitch activity levels for their age"}
+            </p>
+          </div>
 
           {/* Grade selector */}
           <div className="relative">

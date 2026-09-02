@@ -16,7 +16,7 @@ import {
 import { AppHeader, ChildAvatar, PrimaryButton } from "../components/ui";
 import { SourceCard } from "../components/SourceCard";
 import { showToast } from "../components/states";
-import { CHILDREN, PARENT, SOURCES, childById } from "../data";
+import { ageFromDob, CHILDREN, PARENT, SOURCES, childById } from "../data";
 
 export type SettingsTarget =
   | "sources"
@@ -300,6 +300,7 @@ export function EditChild({
 }) {
   const existing = id ? childById(id) : undefined;
   const [name, setName] = useState(existing?.name ?? "");
+  const [dob, setDob] = useState(existing?.dob ?? "");
   const [grade, setGrade] = useState(existing?.grade ?? "");
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -331,6 +332,20 @@ export function EditChild({
             placeholder="Child's name"
             className="h-[52px] w-full rounded-2xl bg-surface px-4 text-[16px] text-ink border border-hairline outline-none focus:border-teal focus:ring-4 focus:ring-teal/10 transition placeholder:text-ink-soft/60"
           />
+        </FieldLabel>
+
+        <FieldLabel label="Date of birth">
+          <input
+            type="date"
+            value={dob}
+            onChange={(e) => setDob(e.target.value)}
+            className="h-[52px] w-full rounded-2xl bg-surface px-4 text-[16px] text-ink border border-hairline outline-none focus:border-teal focus:ring-4 focus:ring-teal/10 transition"
+          />
+          <span className="block text-[12px] text-ink-soft mt-1.5 ml-0.5">
+            {ageFromDob(dob) !== null
+              ? `${ageFromDob(dob)} years old · used to pitch activity levels`
+              : "Used to pitch activity levels for their age"}
+          </span>
         </FieldLabel>
 
         <FieldLabel label="Grade">

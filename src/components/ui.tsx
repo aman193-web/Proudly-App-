@@ -215,6 +215,26 @@ export function GoogleButton({ onClick }: { onClick?: () => void }) {
   );
 }
 
+export function AppleButton({ onClick }: { onClick?: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="h-[54px] w-full rounded-2xl bg-surface border border-hairline flex items-center justify-center gap-3 font-sans font-[600] text-[15px] text-ink active:scale-[0.985] transition-transform"
+    >
+      <AppleGlyph />
+      Continue with Apple
+    </button>
+  );
+}
+
+export function AppleGlyph({ size = 19 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="#172321" aria-hidden>
+      <path d="M16.36 12.79c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.83-.81-3.01-.79-1.55.02-2.98.9-3.777 2.29-1.61 2.79-.41 6.92 1.15 9.18.76 1.11 1.67 2.35 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.78.74 3 .72 1.24-.02 2.02-1.12 2.78-2.24.88-1.28 1.24-2.52 1.26-2.59-.03-.01-2.41-.93-2.43-3.7zM14.09 5.66c.63-.77 1.06-1.83.94-2.9-.91.04-2.02.61-2.67 1.37-.58.68-1.09 1.77-.95 2.81 1.02.08 2.05-.52 2.68-1.28z" />
+    </svg>
+  );
+}
+
 export function GoogleGlyph({ size = 19 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48">
