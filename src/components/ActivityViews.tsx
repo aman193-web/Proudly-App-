@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { CalendarDays, ChevronLeft, ChevronRight, Plus, SlidersHorizontal } from "lucide-react";
 import { EmptyState } from "./states";
 import { MilestoneStar, rangeYears, withinRange } from "./proudly";
+import { LevelBadge } from "./level";
 import type { Range } from "./Gantt";
 import {
   type Achievement,
@@ -162,6 +163,7 @@ function ActivityListRow({
       <span className="flex-1 min-w-0">
         <span className="flex items-center gap-2">
           <span className="text-[14.5px] font-[600] text-ink truncate">{activity.name}</span>
+          <LevelBadge activity={activity} />
           {ongoing && (
             <span className="shrink-0 text-[10.5px] font-[700] text-teal bg-mint px-1.5 py-0.5 rounded-full">
               Ongoing

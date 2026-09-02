@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { ChildAvatar } from "./ui";
+import { LevelBadge } from "./level";
 import { Sheet } from "./Sheet";
 import {
   type Achievement,
@@ -567,6 +568,7 @@ export function ActivityPreview({
             <span className="text-[12.5px] font-[600] text-ink-soft">
               {activity.category}
             </span>
+            <LevelBadge activity={activity} />
             {activity.end === "present" && (
               <span className="ml-auto text-[11.5px] font-[700] text-teal bg-mint px-2 py-0.5 rounded-full">
                 Ongoing

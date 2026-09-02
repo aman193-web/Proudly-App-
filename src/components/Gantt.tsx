@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
+import { LevelPip } from "./level";
 import {
   type Achievement,
   type Activity,
@@ -191,6 +192,9 @@ export function GanttChart({
                   <span className="text-[12.5px] font-[600] text-ink leading-tight truncate">
                     {a.name}
                   </span>
+                </div>
+                <div className="mt-1 pl-[9px]">
+                  <LevelPip activity={a} showText={false} />
                 </div>
               </div>
 

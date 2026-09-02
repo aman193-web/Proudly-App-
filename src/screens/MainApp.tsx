@@ -43,6 +43,8 @@ import {
   MilestoneStar,
 } from "../components/proudly";
 import { ActivityCalendarView, ActivityListView } from "../components/ActivityViews";
+import { LevelBadge, LevelPickerSheet, NextLevelCard } from "../components/level";
+import { CoachFinder } from "./CoachFinder";
 import { Notifications, type NotifTarget } from "./Notifications";
 import { PhotoImport } from "./PhotoImport";
 import { Portfolio, BragSheet } from "./Portfolio";
@@ -89,6 +91,7 @@ const NAV: { id: Tab; label: string; icon: typeof HomeIcon }[] = [
 type Overlay =
   | { kind: "activityDetail"; id: string }
   | { kind: "addActivity"; start?: YM }
+  | { kind: "coachFinder"; activityId: string }
   | { kind: "editActivity"; id: string }
   | { kind: "achievementDetail"; id: string }
   | { kind: "addAchievement"; activityId?: string }
@@ -268,7 +271,11 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
                 onOpenAchievement={openAchievement}
                 onAddAchievement={(activityId) => push({ kind: "addAchievement", activityId })}
                 onAddPhotos={() => push({ kind: "photoImport" })}
+                onConnectCoach={(activityId) => push({ kind: "coachFinder", activityId })}
               />
+            )}
+            {top.kind === "coachFinder" && (
+              <CoachFinder activity={activityById(top.activityId)!} onBack={pop} />
             )}
             {top.kind === "addActivity" && (
               <AddActivity
@@ -528,9 +535,12 @@ function JourneyPreviewRow({ activity, all }: { activity: Activity; all: Activit
   const ongoing = activity.end === "present";
   return (
     <div>
-      <div className="flex items-baseline justify-between mb-1">
-        <span className="text-[13.5px] font-[600] text-ink">{activity.name}</span>
-        <span className="text-[11px] text-ink-soft tabular-nums">
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <span className="flex items-center gap-1.5 min-w-0">
+          <span className="text-[13.5px] font-[600] text-ink truncate">{activity.name}</span>
+          <LevelBadge activity={activity} />
+        </span>
+        <span className="text-[11px] text-ink-soft tabular-nums shrink-0">
           {startY} – {ongoing ? "Present" : endY}
         </span>
       </div>
@@ -734,9 +744,8 @@ function Activities({
         <p className="px-4 mt-5 text-[12px] text-ink-soft leading-relaxed">
           {view === "gantt" ? (
             <>
-              Tap any bar to see details, or a{" "}
+              The bars beside each name show its level. Tap any bar for details, or a{" "}
               <span className="text-gold font-[600]">gold marker</span> to revisit an achievement.
-              Swipe the chart to travel through the years.
             </>
           ) : view === "list" ? (
             <>Tap any activity to see its details, photos and achievements.</>
@@ -880,6 +889,7 @@ function ActivityDetail({
   onOpenAchievement,
   onAddAchievement,
   onAddPhotos,
+  onConnectCoach,
 }: {
   id: string;
   onBack: () => void;
@@ -887,10 +897,12 @@ function ActivityDetail({
   onOpenAchievement: (id: string) => void;
   onAddAchievement: (activityId: string) => void;
   onAddPhotos: () => void;
+  onConnectCoach: (activityId: string) => void;
 }) {
   const activity = activityById(id)!;
   const acts = achievementsForActivity(id);
   const ongoing = activity.end === "present";
+  const [levelSheet, setLevelSheet] = useState(false);
   const history = [...activity.history].sort((a, b) => dec(a.date) - dec(b.date));
 
   return (
@@ -914,8 +926,9 @@ function ActivityDetail({
               style={{ background: CATEGORY_COLOR[activity.category] }}
             />
             <span className="text-[13px] font-[600] text-ink-soft">{activity.category}</span>
+            <LevelBadge activity={activity} />
             {ongoing && (
-              <span className="ml-2 text-[11.5px] font-[700] text-teal bg-mint px-2 py-0.5 rounded-full">
+              <span className="text-[11.5px] font-[700] text-teal bg-mint px-2 py-0.5 rounded-full">
                 Ongoing
               </span>
             )}
@@ -938,6 +951,16 @@ function ActivityDetail({
             <Summary value={String(acts.length)} label="achievements" accent />
             <Summary value={String(activity.memories.length)} label="memories" />
           </div>
+        </div>
+
+        {/* Level + what's next */}
+        <div className="px-4 mt-4">
+          <NextLevelCard
+            activity={activity}
+            onChangeLevel={() => setLevelSheet(true)}
+            onAskProudly={() => showToast("Ask PROUDLY is coming soon")}
+            onConnectCoach={() => onConnectCoach(id)}
+          />
         </div>
 
         {/* History */}
@@ -1036,6 +1059,12 @@ function ActivityDetail({
           </div>
         )}
       </div>
+
+      <LevelPickerSheet
+        activity={activity}
+        open={levelSheet}
+        onClose={() => setLevelSheet(false)}
+      />
     </div>
   );
 }
