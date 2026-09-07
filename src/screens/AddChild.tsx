@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { Screen, AppHeader, PrimaryButton, TextField, TextLink } from "../components/ui";
 import { StepDots } from "../components/StepDots";
-import { ageFromDob } from "../data";
 
 const GRADES = ["Pre-K", "Kindergarten", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7", "Grade 8"];
 const CIRCLE = 240;
@@ -27,7 +26,7 @@ export function AddChild({
   onContinue: (name: string) => void;
 }) {
   const [name, setName] = useState("");
-  const [dob, setDob] = useState("");
+  const [age, setAge] = useState("");
   const [grade, setGrade] = useState("");
   const [croppedUrl, setCroppedUrl] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -273,13 +272,18 @@ export function AddChild({
         <div className="mt-7 space-y-4">
           <TextField label="First name" value={name} onChange={setName} placeholder="e.g. Reet" />
 
-          {/* Date of birth. Age is derived from this — we never ask for it. */}
+          {/* Age, optional. Level suggestions simply skip the age ceiling when
+              it is missing, so there is nothing to block onboarding on. */}
           <div>
-            <TextField label="Date of birth" type="date" value={dob} onChange={setDob} />
+            <TextField
+              label="Age"
+              type="number"
+              value={age}
+              onChange={(v) => setAge(v.replace(/\D/g, "").slice(0, 2))}
+              placeholder="Optional"
+            />
             <p className="text-[12px] text-ink-soft mt-1.5 ml-0.5">
-              {ageFromDob(dob) !== null
-                ? `${ageFromDob(dob)} years old · helps us pitch activity levels`
-                : "Helps us pitch activity levels for their age"}
+              {age ? `${age} years old · helps us pitch activity levels` : "Optional · helps us pitch activity levels"}
             </p>
           </div>
 

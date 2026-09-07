@@ -2,7 +2,6 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   BarChart3,
-  CalendarDays,
   Check,
   ChevronDown,
   ListIcon,
@@ -70,12 +69,15 @@ export function ChildSheet({
   childId,
   onSelect,
   allowAll = true,
+  onAddChild,
 }: {
   open: boolean;
   onClose: () => void;
   childId: ChildId;
   onSelect: (id: ChildId) => void;
   allowAll?: boolean;
+  /** Carried over from the Home selector bar, which had its own add button. */
+  onAddChild?: () => void;
 }) {
   const options: { id: ChildId; name: string; photo?: string }[] = [
     ...CHILDREN.map((c) => ({ id: c.id as ChildId, name: c.name, photo: c.photo })),
@@ -114,95 +116,22 @@ export function ChildSheet({
             </button>
           );
         })}
+        {onAddChild && (
+          <button
+            onClick={() => {
+              onClose();
+              onAddChild();
+            }}
+            className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-dashed border-hairline bg-surface active:bg-canvas transition-colors"
+          >
+            <span className="grid place-items-center w-[38px] h-[38px] rounded-full bg-canvas border border-hairline text-ink-soft">
+              <Plus size={17} />
+            </span>
+            <span className="text-[15px] font-[600] text-ink-soft">Add a child</span>
+          </button>
+        )}
       </div>
     </Sheet>
-  );
-}
-
-/* ---------- Home child selector bar ---------- */
-export function ChildSelectorBar({
-  childId,
-  onSelect,
-  onAddChild,
-}: {
-  childId: ChildId;
-  onSelect: (id: ChildId) => void;
-  onAddChild?: () => void;
-}) {
-  return (
-    <div className="px-4 flex items-center gap-3 overflow-x-auto scroll-area py-1">
-      {/* 'All Kids' option */}
-      <button
-        onClick={() => onSelect("all")}
-        className={`flex items-center gap-2 pl-2 pr-3.5 py-1.5 rounded-full border transition-all duration-200 shrink-0 ${
-          childId === "all"
-            ? "bg-teal text-white border-teal shadow-md shadow-teal/20 scale-[1.02]"
-            : "bg-surface border-hairline text-ink hover:border-teal/40"
-        }`}
-      >
-        <span
-          className={`grid place-items-center w-7 h-7 rounded-full font-[700] text-[11px] ${
-            childId === "all" ? "bg-white/20 text-white" : "bg-mint text-teal-dark"
-          }`}
-        >
-          ALL
-        </span>
-        <div className="text-left">
-          <div className="text-[13px] font-[700] leading-none">All Kids</div>
-          <div
-            className={`text-[10px] mt-0.5 ${
-              childId === "all" ? "text-white/80" : "text-ink-soft"
-            }`}
-          >
-            Family view
-          </div>
-        </div>
-      </button>
-
-      {CHILDREN.map((c) => {
-        const active = c.id === childId;
-        return (
-          <button
-            key={c.id}
-            onClick={() => onSelect(c.id)}
-            className={`flex items-center gap-2.5 pl-1.5 pr-4 py-1.5 rounded-full border transition-all duration-200 shrink-0 relative ${
-              active
-                ? "bg-surface border-teal text-ink shadow-md shadow-teal/10 scale-[1.02] ring-2 ring-teal/20"
-                : "bg-surface/80 border-hairline text-ink-soft hover:border-teal/30 hover:bg-surface"
-            }`}
-          >
-            <div className="relative">
-              <ChildAvatar src={c.photo} name={c.name} size={32} ring={active ? "#217c72" : "transparent"} />
-              {active && (
-                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-teal rounded-full border-2 border-surface flex items-center justify-center">
-                  <span className="w-1.5 h-1.5 bg-white rounded-full" />
-                </span>
-              )}
-            </div>
-            <div className="text-left">
-              <div
-                className={`text-[13.5px] font-[700] leading-none ${
-                  active ? "text-teal" : "text-ink"
-                }`}
-              >
-                {c.name}
-              </div>
-              <div className="text-[10.5px] text-ink-soft mt-0.5 font-[500]">{c.grade}</div>
-            </div>
-          </button>
-        );
-      })}
-
-      <button
-        onClick={onAddChild}
-        className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full border border-dashed border-teal/40 text-teal hover:bg-mint/30 transition-colors text-[12.5px] font-[600]"
-      >
-        <span className="w-5 h-5 rounded-full bg-mint flex items-center justify-center text-teal font-[700] text-[13px]">
-          +
-        </span>
-        Add
-      </button>
-    </div>
   );
 }
 
@@ -425,14 +354,13 @@ export function RangeMenu({
 }
 
 /* ---------- View toggle (Gantt / List / Calendar) ----------
-   Only the active tab carries its label so all three fit beside the range
+   Only the active tab carries its label so both fit beside the range
    dropdown on a 375pt screen. */
-export type ActivityView = "gantt" | "list" | "calendar";
+export type ActivityView = "gantt" | "list";
 
 const VIEW_OPTIONS: { id: ActivityView; label: string; Icon: typeof BarChart3 }[] = [
   { id: "gantt", label: "Gantt", Icon: BarChart3 },
   { id: "list", label: "List", Icon: ListIcon },
-  { id: "calendar", label: "Calendar", Icon: CalendarDays },
 ];
 
 export function ViewTabs({

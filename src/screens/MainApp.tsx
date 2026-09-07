@@ -36,13 +36,12 @@ import {
   CategorySheet,
   type ChildId,
   ChildChip,
-  ChildSelectorBar,
   ChildSheet,
   EmptyGantt,
   FilterButton,
   MilestoneStar,
 } from "../components/proudly";
-import { ActivityCalendarView, ActivityListView } from "../components/ActivityViews";
+import { ActivityListView } from "../components/ActivityViews";
 import { levelStateOf } from "../lib/activityLevels";
 import {
   LevelBadge,
@@ -459,11 +458,7 @@ function Home({
 }) {
   const acts = activitiesFor(childId);
   const achs = achievementsFor(childId);
-  const years = useMemo(() => {
-    if (!acts.length) return 0;
-    const min = Math.min(...acts.map((a) => a.start.y));
-    return new Date().getFullYear() - min + 1;
-  }, [acts]);
+  const [childSheet, setChildSheet] = useState(false);
 
   // Journey preview: four rows, still-running first then longest-running.
   // Six was too many to scan, and start-year order buried the active ones.
@@ -502,20 +497,9 @@ function Home({
             <Bell size={18} className="text-ink" />
             <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-gold border-2 border-surface" />
           </button>
-        </div>
-      </div>
-
-      {/* Child selector */}
-      <div className="mt-4">
-        <ChildSelectorBar childId={childId} onSelect={onSelectChild} onAddChild={onAddChild} />
-      </div>
-
-      {/* Compact summary */}
-      <div className="px-4 mt-4">
-        <div className="flex rounded-2xl bg-surface border border-hairline divide-x divide-hairline">
-          <Summary value={String(acts.length)} label="Activities" />
-          <Summary value={String(achs.length)} label="Achievements" accent />
-          <Summary value={String(years)} label="Years tracked" />
+          {/* Same compact dropdown the Activities screen uses, sitting to the
+              right of the bell in place of the old horizontal selector bar. */}
+          <ChildChip childId={childId} onOpen={() => setChildSheet(true)} />
         </div>
       </div>
 
@@ -523,19 +507,20 @@ function Home({
       <div className="px-4 mt-4">
         <button
           onClick={onOpenDiscover}
-          className="w-full rounded-2xl bg-teal text-white p-4 flex items-center gap-3.5 text-left active:scale-[0.99] transition-transform relative overflow-hidden"
+          className="w-full rounded-2xl bg-teal text-white px-3.5 py-3 flex items-center gap-3 text-left active:scale-[0.99] transition-transform relative overflow-hidden"
         >
           <div className="absolute -right-6 -top-8 w-28 h-28 rounded-full bg-white/10" />
-          <span className="grid place-items-center w-11 h-11 rounded-xl bg-white/15 shrink-0">
-            <Images size={20} />
+          <span className="grid place-items-center w-10 h-10 rounded-xl bg-white/15 shrink-0">
+            <Images size={19} />
           </span>
-          <div className="flex-1 relative">
-            <p className="text-[15px] font-[700]">4 new moments found</p>
-            <p className="text-[12.5px] text-mint/90 mt-0.5">
+          <div className="flex-1 min-w-0 relative">
+            <p className="text-[14.5px] font-[700] leading-tight">4 new moments found</p>
+            {/* nowrap + truncate so this stays a single line at any width */}
+            <p className="text-[12px] text-mint/90 mt-0.5 whitespace-nowrap truncate">
               3 activities · 1 possible achievement
             </p>
           </div>
-          <span className="text-[13px] font-[700] bg-white/20 rounded-full px-3 py-1.5 relative">
+          <span className="text-[12.5px] font-[700] bg-white/20 rounded-full px-2.5 py-1 relative shrink-0">
             Review
           </span>
         </button>
@@ -587,6 +572,16 @@ function Home({
           </p>
         )}
       </div>
+
+      {/* All Kids belongs here — Home is the family view. Adding a child moved
+          into the sheet when the selector bar's own add button went away. */}
+      <ChildSheet
+        open={childSheet}
+        onClose={() => setChildSheet(false)}
+        childId={childId}
+        onSelect={onSelectChild}
+        onAddChild={onAddChild}
+      />
     </div>
   );
 }
@@ -816,16 +811,6 @@ function Activities({
           </div>
         ) : view === "list" ? (
           <ActivityListView activities={acts} range={range} onTapActivity={onTapActivity} />
-        ) : view === "calendar" ? (
-          <ActivityCalendarView
-            activities={acts}
-            achievements={achs}
-            range={range}
-            jumpToken={jump.token}
-            onTapActivity={onTapActivity}
-            onTapAchievement={onTapAchievement}
-            onAddActivity={onAddActivity}
-          />
         ) : (
           <>
             <GanttChart
@@ -858,14 +843,8 @@ function Activities({
               The name under each activity is its level. Tap any bar for details, or a{" "}
               <span className="text-gold font-[600]">gold marker</span> to revisit an achievement.
             </>
-          ) : view === "list" ? (
-            <>Tap any activity to see its details, photos and achievements.</>
           ) : (
-            <>
-              Each activity keeps to its regular weekday. Tap any date to see what
-              was on, or an{" "}
-              <span className="text-gold font-[600]">achievement</span> to revisit it.
-            </>
+            <>Tap any activity to see its details, photos and achievements.</>
           )}
         </p>
       )}
