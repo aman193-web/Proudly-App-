@@ -734,8 +734,7 @@ function Activities({
             {allActs.length} activities · {yearsSpan} years
           </p>
         </div>
-        <div className="flex items-center gap-2 pt-0.5">
-          <FilterButton active={filtered} onClick={() => setCatSheet(true)} />
+        <div className="pt-0.5">
           <ChildChip childId={childId} onOpen={() => setChildSheet(true)} />
         </div>
       </div>
@@ -768,7 +767,7 @@ function Activities({
         </div>
       )}
 
-      {/* View toggle + range dropdown + Today */}
+      {/* View toggle + filter, then range dropdown + Today on the right */}
       <div className="px-4 mt-3.5">
         <ActivityControls
           view={view}
@@ -776,6 +775,8 @@ function Activities({
           range={range}
           onRangeChange={setRange}
           onJumpToday={onJumpToday}
+          filterActive={filtered}
+          onFilter={() => setCatSheet(true)}
         />
       </div>
 

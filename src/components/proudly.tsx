@@ -139,18 +139,23 @@ export function ChildSheet({
 export function FilterButton({
   active,
   onClick,
+  // `compact` matches the 32px control-row pills; the default 36px suits headers.
+  compact = false,
 }: {
   active: boolean;
   onClick: () => void;
+  compact?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`relative grid place-items-center w-9 h-9 rounded-full border active:scale-95 transition-transform ${
-        active ? "bg-teal text-white border-teal" : "bg-surface text-ink border-hairline"
-      }`}
+      aria-label="Filter activities"
+      aria-pressed={active}
+      className={`relative shrink-0 grid place-items-center rounded-full border active:scale-95 transition-transform ${
+        compact ? "w-8 h-8" : "w-9 h-9"
+      } ${active ? "bg-teal text-white border-teal" : "bg-surface text-ink border-hairline"}`}
     >
-      <SlidersHorizontal size={17} />
+      <SlidersHorizontal size={compact ? 15 : 17} />
     </button>
   );
 }
@@ -363,6 +368,13 @@ const VIEW_OPTIONS: { id: ActivityView; label: string; Icon: typeof BarChart3 }[
   { id: "list", label: "List", Icon: ListIcon },
 ];
 
+// The active tab is the only one that shows its label, so the row would resize
+// on every switch. Reserving the longest label keeps the toggle a fixed width.
+const LONGEST_VIEW_LABEL = VIEW_OPTIONS.reduce(
+  (longest, o) => (o.label.length > longest.length ? o.label : longest),
+  "",
+);
+
 export function ViewTabs({
   value,
   onChange,
@@ -371,7 +383,7 @@ export function ViewTabs({
   onChange: (v: ActivityView) => void;
 }) {
   return (
-    <div className="flex-1 flex items-center gap-0.5 bg-canvas rounded-full p-1 border border-hairline">
+    <div className="shrink-0 flex items-center gap-0.5 bg-canvas rounded-full p-1 border border-hairline">
       {VIEW_OPTIONS.map(({ id, label, Icon }) => {
         const active = id === value;
         return (
@@ -381,11 +393,18 @@ export function ViewTabs({
             aria-label={`${label} view`}
             aria-pressed={active}
             className={`flex items-center justify-center gap-1.5 py-1.5 rounded-full text-[12.5px] font-[600] transition-colors ${
-              active ? "flex-1 bg-surface text-teal shadow-sm" : "px-2.5 text-ink-soft"
+              active ? "px-3 bg-surface text-teal shadow-sm" : "px-2.5 text-ink-soft"
             }`}
           >
             <Icon size={14} />
-            {active && <span className="whitespace-nowrap">{label}</span>}
+            {active && (
+              <span className="grid justify-items-center">
+                <span className="col-start-1 row-start-1 whitespace-nowrap">{label}</span>
+                <span aria-hidden className="col-start-1 row-start-1 invisible whitespace-nowrap">
+                  {LONGEST_VIEW_LABEL}
+                </span>
+              </span>
+            )}
           </button>
         );
       })}
@@ -393,28 +412,33 @@ export function ViewTabs({
   );
 }
 
-/* ---------- Control row: view tabs + range dropdown + Today ----------
-   `view` is optional so the expanded Gantt can reuse the row without tabs. */
+/* ---------- Control row ----------
+   Left: view tabs. Right: filter + range dropdown + Today.
+   `view` and `onFilter` are both optional so the expanded Gantt can reuse the
+   row with only the right-hand group. */
 export function ActivityControls({
   view,
   onViewChange,
   range,
   onRangeChange,
   onJumpToday,
+  filterActive = false,
+  onFilter,
 }: {
   view?: ActivityView;
   onViewChange?: (v: ActivityView) => void;
   range: Range;
   onRangeChange: (r: Range) => void;
   onJumpToday: () => void;
+  filterActive?: boolean;
+  onFilter?: () => void;
 }) {
   return (
     <div className="flex items-center gap-2">
-      {view && onViewChange ? (
-        <ViewTabs value={view} onChange={onViewChange} />
-      ) : (
-        <span className="flex-1" />
-      )}
+      {view && onViewChange && <ViewTabs value={view} onChange={onViewChange} />}
+      {/* Spacer keeps filter, range and Today flush with the right edge. */}
+      <span className="flex-1" />
+      {onFilter && <FilterButton active={filterActive} onClick={onFilter} compact />}
       <RangeMenu value={range} onChange={onRangeChange} />
       <button
         onClick={onJumpToday}

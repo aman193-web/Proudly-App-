@@ -272,21 +272,6 @@ export function AddChild({
         <div className="mt-7 space-y-4">
           <TextField label="First name" value={name} onChange={setName} placeholder="e.g. Reet" />
 
-          {/* Age, optional. Level suggestions simply skip the age ceiling when
-              it is missing, so there is nothing to block onboarding on. */}
-          <div>
-            <TextField
-              label="Age"
-              type="number"
-              value={age}
-              onChange={(v) => setAge(v.replace(/\D/g, "").slice(0, 2))}
-              placeholder="Optional"
-            />
-            <p className="text-[12px] text-ink-soft mt-1.5 ml-0.5">
-              {age ? `${age} years old · helps us pitch activity levels` : "Optional · helps us pitch activity levels"}
-            </p>
-          </div>
-
           {/* Grade selector */}
           <div className="relative">
             <span className="block text-[13px] font-[500] text-ink-soft mb-1.5 ml-0.5">Grade</span>
@@ -327,6 +312,21 @@ export function AddChild({
                 ))}
               </motion.div>
             )}
+          </div>
+
+          {/* Age, optional. Level suggestions simply skip the age ceiling when
+              it is missing, so there is nothing to block onboarding on. */}
+          <div>
+            <TextField
+              label="Age"
+              type="number"
+              value={age}
+              onChange={(v) => setAge(v.replace(/\D/g, "").slice(0, 2))}
+              placeholder="Optional"
+            />
+            <p className="text-[12px] text-ink-soft mt-1.5 ml-0.5">
+              {age ? `${age} years old · helps us pitch activity levels` : "Optional · helps us pitch activity levels"}
+            </p>
           </div>
         </div>
 
