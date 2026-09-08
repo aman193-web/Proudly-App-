@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
 import { Check } from "lucide-react";
+import { LABEL_W } from "./Gantt";
 
 /* ============================================================= EMPTY STATE
    One consistent empty state with exactly one clear next step. */
@@ -64,14 +65,20 @@ export function GanttSkeleton({ height = 430 }: { height?: number }) {
       style={{ height }}
     >
       {/* axis */}
-      <div className="flex items-center gap-6 h-[34px] border-b border-hairline pl-[88px] pr-4">
+      <div
+        className="flex items-center gap-6 h-[34px] border-b border-hairline pr-4"
+        style={{ paddingLeft: LABEL_W }}
+      >
         {[0, 1, 2, 3].map((i) => (
           <Shimmer key={i} className="h-2.5 w-8 rounded-full" />
         ))}
       </div>
       {rows.map((w, i) => (
         <div key={i} className="flex items-center" style={{ height: 54 }}>
-          <div className="w-[88px] pl-3 pr-2 border-r border-hairline h-full flex items-center gap-1.5">
+          <div
+            className="pl-3 pr-2 border-r border-hairline h-full flex items-center gap-1.5"
+            style={{ width: LABEL_W }}
+          >
             <span className="w-1.5 h-1.5 rounded-full bg-hairline shrink-0" />
             <Shimmer className="h-2.5 flex-1 rounded-full" />
           </div>

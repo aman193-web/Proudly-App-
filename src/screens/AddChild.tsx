@@ -11,7 +11,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
-import { Screen, AppHeader, PrimaryButton, TextField, TextLink } from "../components/ui";
+import { Screen, AppHeader, PrimaryButton, TextField } from "../components/ui";
 import { StepDots } from "../components/StepDots";
 
 const GRADES = ["Pre-K", "Kindergarten", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7", "Grade 8"];
@@ -330,13 +330,10 @@ export function AddChild({
           </div>
         </div>
 
-        <div className="mt-auto pt-8 pb-6 space-y-3">
+        <div className="mt-auto pt-8 pb-6">
           <PrimaryButton onClick={() => onContinue(name || "Reet")} disabled={!name}>
             Continue
           </PrimaryButton>
-          <div className="text-center">
-            <TextLink onClick={() => onContinue(name || "Reet")}>Add another child later</TextLink>
-          </div>
         </div>
       </div>
 

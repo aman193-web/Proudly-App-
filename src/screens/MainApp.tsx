@@ -8,6 +8,7 @@ import {
   ChevronRight,
   FileText,
   FolderOpen,
+  GraduationCap,
   Home as HomeIcon,
   Images,
   Maximize2,
@@ -248,6 +249,7 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
           onJumpToday={jumpToday}
           onTapActivity={setPreviewActivity}
           onTapAchievement={setPreviewAchievement}
+          onFindCoach={(activityId) => push({ kind: "coachFinder", activityId })}
           onClose={pop}
         />
       )}
@@ -310,6 +312,7 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
                 onOpenNotifications={() => push({ kind: "notifications" })}
                 onAddChild={() => push({ kind: "editChild" })}
                 onOpenBrag={() => push({ kind: "bragSheet" })}
+                onFindCoach={(activityId) => push({ kind: "coachFinder", activityId })}
               />
             )}
             {tab === "activities" && (
@@ -328,6 +331,8 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
                 onTapAchievement={setPreviewAchievement}
                 onExpand={() => push({ kind: "expand" })}
                 onAddActivity={(start) => push({ kind: "addActivity", start })}
+                onAskProudly={(activityId) => openAsk(activityId)}
+                onFindCoach={(activityId) => push({ kind: "coachFinder", activityId })}
               />
             )}
             {tab === "achievements" && (
@@ -446,6 +451,7 @@ function Home({
   onOpenNotifications,
   onAddChild,
   onOpenBrag,
+  onFindCoach,
 }: {
   childId: ChildId;
   onSelectChild: (id: ChildId) => void;
@@ -455,6 +461,7 @@ function Home({
   onOpenNotifications: () => void;
   onAddChild: () => void;
   onOpenBrag: () => void;
+  onFindCoach: (activityId: string) => void;
 }) {
   const acts = activitiesFor(childId);
   const achs = achievementsFor(childId);
@@ -533,22 +540,28 @@ function Home({
         onAction={() => onGoTab("activities")}
       />
       <div className="px-4">
-        <button
-          onClick={() => onGoTab("activities")}
-          className="w-full rounded-[22px] bg-surface border border-hairline px-4 pt-1 pb-3 active:scale-[0.99] transition-transform"
-        >
+        <div className="w-full rounded-[22px] bg-surface border border-hairline px-4 pt-1 pb-3">
           <div className="divide-y divide-hairline/70">
             {preview.map((a) => (
-              <JourneyPreviewRow key={a.id} activity={a} all={acts} />
+              <JourneyPreviewRow
+                key={a.id}
+                activity={a}
+                all={acts}
+                onOpen={() => onGoTab("activities")}
+                onFindCoach={() => onFindCoach(a.id)}
+              />
             ))}
           </div>
-          <div className="flex items-center justify-center gap-1.5 pt-3.5 text-[13px] font-[600] text-teal">
+          <button
+            onClick={() => onGoTab("activities")}
+            className="w-full flex items-center justify-center gap-1.5 pt-3.5 text-[13px] font-[600] text-teal active:opacity-60 transition-opacity"
+          >
             {acts.length > preview.length
               ? `View all ${acts.length} activities`
               : "View full activity journey"}{" "}
             <ChevronRight size={16} />
-          </div>
-        </button>
+          </button>
+        </div>
       </div>
 
       {/* Recent achievements */}
@@ -601,7 +614,17 @@ function Summary({ value, label, accent }: { value: string; label: string; accen
   );
 }
 
-function JourneyPreviewRow({ activity, all }: { activity: Activity; all: Activity[] }) {
+function JourneyPreviewRow({
+  activity,
+  all,
+  onOpen,
+  onFindCoach,
+}: {
+  activity: Activity;
+  all: Activity[];
+  onOpen: () => void;
+  onFindCoach: () => void;
+}) {
   const min = Math.min(...all.map((a) => a.start.y));
   const max = Math.max(new Date().getFullYear(), ...all.map((a) => (a.end === "present" ? 0 : a.end.y)));
   const span = Math.max(max - min, 1);
@@ -611,22 +634,38 @@ function JourneyPreviewRow({ activity, all }: { activity: Activity; all: Activit
   const width = Math.max(((endY - startY) / span) * 100, 6);
   const ongoing = activity.end === "present";
   return (
-    <div className="py-3.5 text-left">
-      <div className="flex items-center gap-2 min-w-0">
-        <span className="text-[15px] font-[600] text-ink truncate">{activity.name}</span>
-        <LevelBadge activity={activity} />
-      </div>
-
-      <div className="flex items-center gap-1.5 mt-1 text-[11.5px] text-ink-soft">
-        <span className="tabular-nums">
-          {startY} – {ongoing ? "Present" : endY}
+    // Relative so the coach button can pin to the row's top-right; the rest of
+    // the row stays one tap target into the activities tab.
+    <div className="relative py-3.5">
+      <button onClick={onOpen} className="w-full text-left">
+        <span className="flex items-center gap-2 min-w-0 pr-[104px]">
+          <span className="text-[15px] font-[600] text-ink truncate">{activity.name}</span>
+          <LevelBadge activity={activity} />
         </span>
-        <span aria-hidden>·</span>
-        <span>{durationText(activity.start, activity.end)}</span>
-        {ongoing && (
-          <span className="ml-0.5 w-1.5 h-1.5 rounded-full bg-teal shrink-0" aria-label="Ongoing" />
-        )}
-      </div>
+
+        <span className="flex items-center gap-1.5 mt-1 text-[11.5px] text-ink-soft">
+          <span className="tabular-nums">
+            {startY} – {ongoing ? "Present" : endY}
+          </span>
+          <span aria-hidden>·</span>
+          <span>{durationText(activity.start, activity.end)}</span>
+          {ongoing && (
+            <span
+              className="ml-0.5 w-1.5 h-1.5 rounded-full bg-teal shrink-0"
+              aria-label="Ongoing"
+            />
+          )}
+        </span>
+      </button>
+
+      <button
+        onClick={onFindCoach}
+        aria-label={`Find a ${activity.name} coach`}
+        className="absolute top-3 right-0 h-[26px] px-2.5 rounded-full bg-teal text-white text-[11px] font-[700] inline-flex items-center gap-1 active:scale-95 transition-transform"
+      >
+        <GraduationCap size={12} />
+        Find a coach
+      </button>
 
       <div className="relative h-1.5 rounded-full bg-canvas mt-2.5">
         <div
@@ -679,6 +718,8 @@ function Activities({
   onTapAchievement,
   onExpand,
   onAddActivity,
+  onAskProudly,
+  onFindCoach,
 }: {
   childId: ChildId;
   onSelectChild: (id: ChildId) => void;
@@ -694,6 +735,8 @@ function Activities({
   onTapAchievement: (a: Achievement) => void;
   onExpand: () => void;
   onAddActivity: (start?: YM) => void;
+  onAskProudly: (activityId: string) => void;
+  onFindCoach: (activityId: string) => void;
 }) {
   const [childSheet, setChildSheet] = useState(false);
   const [catSheet, setCatSheet] = useState(false);
@@ -811,7 +854,13 @@ function Activities({
             />
           </div>
         ) : view === "list" ? (
-          <ActivityListView activities={acts} range={range} onTapActivity={onTapActivity} />
+          <ActivityListView
+            activities={acts}
+            range={range}
+            onTapActivity={onTapActivity}
+            onAskProudly={(a) => onAskProudly(a.id)}
+            onFindCoach={(a) => onFindCoach(a.id)}
+          />
         ) : (
           <>
             <GanttChart
@@ -823,6 +872,7 @@ function Activities({
               jumpTarget={jump.target}
               onTapActivity={onTapActivity}
               onTapAchievement={onTapAchievement}
+              onFindCoach={(a) => onFindCoach(a.id)}
             />
             <div className="mt-3 flex items-center justify-between">
               <GanttLegend />
@@ -907,6 +957,7 @@ function ExpandedGantt({
   onJumpToday,
   onTapActivity,
   onTapAchievement,
+  onFindCoach,
   onClose,
 }: {
   childId: ChildId;
@@ -919,6 +970,7 @@ function ExpandedGantt({
   onJumpToday: () => void;
   onTapActivity: (a: Activity) => void;
   onTapAchievement: (a: Achievement) => void;
+  onFindCoach: (activityId: string) => void;
   onClose: () => void;
 }) {
   const [childSheet, setChildSheet] = useState(false);
@@ -954,6 +1006,7 @@ function ExpandedGantt({
           jumpTarget={jump.target}
           onTapActivity={onTapActivity}
           onTapAchievement={onTapAchievement}
+          onFindCoach={(a) => onFindCoach(a.id)}
         />
       </div>
       <div className="px-4 pb-6">

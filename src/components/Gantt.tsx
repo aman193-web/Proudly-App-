@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
+import { GraduationCap } from "lucide-react";
 import { LevelPip } from "./level";
 import {
   type Achievement,
@@ -10,10 +11,16 @@ import {
 } from "../data";
 
 /* Layout constants — tuned so labels stay narrow and the timeline gets the room. */
-const LABEL_W = 106;
+export const LABEL_W = 106;
 const ROW_H = 54;
+/* Rows with a coach button spend height, not width, so the timeline keeps every
+   pixel: 15.6 (name) + 4 + 9.5 (level) + 6 + 22 (button) = 57, centred in 78. */
+const ROW_H_ACTIONS = 78;
 const AXIS_H = 34;
 const BAR_H = 22;
+
+const LABEL_BASE =
+  "sticky left-0 z-10 h-full bg-surface border-r border-hairline flex flex-col justify-center pl-3 pr-2";
 
 export type Range = "1y" | "3y" | "5y" | "all";
 
@@ -23,6 +30,26 @@ const PX_PER_YEAR: Record<Range, number> = {
   "5y": 148,
   all: 118,
 };
+
+/* Category dot + name, then the level word underneath. */
+function RowLabelText({ activity }: { activity: Activity }) {
+  return (
+    <span className="block min-w-0">
+      <span className="flex items-center gap-1.5">
+        <span
+          className="w-1.5 h-1.5 rounded-full shrink-0"
+          style={{ background: CATEGORY_COLOR[activity.category] }}
+        />
+        <span className="text-[12.5px] font-[600] text-ink leading-tight truncate">
+          {activity.name}
+        </span>
+      </span>
+      <span className="block mt-1 pl-[9px]">
+        <LevelPip activity={activity} />
+      </span>
+    </span>
+  );
+}
 
 function GoldMilestone({ size = 18 }: { size?: number }) {
   return (
@@ -51,6 +78,7 @@ export function GanttChart({
   onTapAchievement,
   jumpToken,
   jumpTarget,
+  onFindCoach,
 }: {
   activities: Activity[];
   achievements: Achievement[];
@@ -62,9 +90,13 @@ export function GanttChart({
   jumpToken?: number;
   // Decimal-year to center on; defaults to today.
   jumpTarget?: number;
+  /* When given, every row carries a Find-a-coach button in its label and rows
+     grow to fit it. Omit it and the chart renders exactly as it did before. */
+  onFindCoach?: (a: Activity) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pxPerYear = PX_PER_YEAR[range];
+  const rowH = onFindCoach ? ROW_H_ACTIONS : ROW_H;
 
   const { domainStart, domainEnd } = useMemo(() => {
     if (!activities.length) return { domainStart: 2019, domainEnd: 2026 };
@@ -81,7 +113,7 @@ export function GanttChart({
 
   const timeW = (domainEnd - domainStart) * pxPerYear;
   const xOf = (d: number) => (d - domainStart) * pxPerYear;
-  const contentH = AXIS_H + activities.length * ROW_H;
+  const contentH = AXIS_H + activities.length * rowH;
 
   const years: number[] = [];
   for (let y = Math.ceil(domainStart); y <= Math.floor(domainEnd); y++) years.push(y);
@@ -178,24 +210,21 @@ export function GanttChart({
             mask = "linear-gradient(90deg, #000 82%, transparent 100%)";
 
           return (
-            <div key={a.id} className="relative" style={{ height: ROW_H }}>
-              {/* sticky label */}
-              <div
-                className="sticky left-0 z-10 h-full bg-surface border-r border-hairline flex flex-col justify-center pl-3 pr-2"
-                style={{ width: LABEL_W }}
-              >
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                    style={{ background: CATEGORY_COLOR[a.category] }}
-                  />
-                  <span className="text-[12.5px] font-[600] text-ink leading-tight truncate">
-                    {a.name}
-                  </span>
-                </div>
-                <div className="mt-1 pl-[9px]">
-                  <LevelPip activity={a} />
-                </div>
+            <div key={a.id} className="relative" style={{ height: rowH }}>
+              {/* Sticky label — pinned, so the buttons stay reachable however
+                  far the timeline is scrolled. */}
+              <div className={LABEL_BASE} style={{ width: LABEL_W }}>
+                <RowLabelText activity={a} />
+                {onFindCoach && (
+                  <button
+                    onClick={() => onFindCoach(a)}
+                    aria-label={`Find a ${a.name} coach`}
+                    className="mt-1.5 w-full h-[22px] rounded-full inline-flex items-center justify-center gap-1 bg-teal text-white text-[9.5px] font-[700] active:scale-95 transition-transform"
+                  >
+                    <GraduationCap size={11} />
+                    Find a coach
+                  </button>
+                )}
               </div>
 
               {/* bar */}
@@ -205,7 +234,7 @@ export function GanttChart({
                 style={{
                   left: LABEL_W + startX,
                   width: w,
-                  top: (ROW_H - BAR_H) / 2,
+                  top: (rowH - BAR_H) / 2,
                   height: BAR_H,
                 }}
               >
@@ -236,7 +265,7 @@ export function GanttChart({
                   key={m.id}
                   onClick={() => onTapAchievement(m)}
                   className="absolute z-[6] -translate-x-1/2 -translate-y-1/2 active:scale-90 transition-transform"
-                  style={{ left: LABEL_W + xOf(dec(m.date)), top: ROW_H / 2 }}
+                  style={{ left: LABEL_W + xOf(dec(m.date)), top: rowH / 2 }}
                 >
                   <GoldMilestone />
                 </button>

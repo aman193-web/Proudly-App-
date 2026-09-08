@@ -1,6 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { CalendarDays, ChevronLeft, ChevronRight, Plus, SlidersHorizontal } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  GraduationCap,
+  MessageCircleQuestion,
+  Plus,
+  SlidersHorizontal,
+} from "lucide-react";
 import { EmptyState } from "./states";
 import { MilestoneStar, rangeYears, withinRange } from "./proudly";
 import { LevelBadge } from "./level";
@@ -76,10 +84,14 @@ export function ActivityListView({
   activities,
   range,
   onTapActivity,
+  onAskProudly,
+  onFindCoach,
 }: {
   activities: Activity[];
   range: Range;
   onTapActivity: (a: Activity) => void;
+  onAskProudly: (a: Activity) => void;
+  onFindCoach: (a: Activity) => void;
 }) {
   const rows = useMemo(
     () =>
@@ -129,7 +141,13 @@ export function ActivityListView({
           </div>
           <div className="space-y-2.5">
             {g.items.map((a) => (
-              <ActivityListRow key={a.id} activity={a} onClick={() => onTapActivity(a)} />
+              <ActivityListRow
+                key={a.id}
+                activity={a}
+                onClick={() => onTapActivity(a)}
+                onAskProudly={() => onAskProudly(a)}
+                onFindCoach={() => onFindCoach(a)}
+              />
             ))}
           </div>
         </div>
@@ -138,58 +156,106 @@ export function ActivityListView({
   );
 }
 
+/* One follow-up action. The pair splits the card width evenly; `primary` fills
+   with the app teal so the coach action carries the weight. */
+function RowAction({
+  icon,
+  label,
+  onClick,
+  primary = false,
+}: {
+  icon: ReactNode;
+  label: string;
+  onClick: () => void;
+  primary?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 h-9 rounded-xl inline-flex items-center justify-center gap-1.5 text-[12.5px] font-[600] active:scale-[0.98] transition-transform ${
+        primary ? "bg-teal text-white" : "bg-canvas border border-hairline text-ink"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
 function ActivityListRow({
   activity,
   onClick,
+  onAskProudly,
+  onFindCoach,
 }: {
   activity: Activity;
   onClick: () => void;
+  onAskProudly: () => void;
+  onFindCoach: () => void;
 }) {
   const color = CATEGORY_COLOR[activity.category];
   const achCount = achievementsForActivity(activity.id).length;
   const ongoing = activity.end === "present";
 
+  // The card can no longer be one big button: the actions below are buttons of
+  // their own, so the row's tap target is the inner button instead.
   return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center gap-3.5 rounded-2xl bg-surface border border-hairline p-3 text-left active:scale-[0.99] transition-transform"
-    >
-      <span
-        className="grid place-items-center w-12 h-12 rounded-xl shrink-0"
-        style={{ background: `${color}1f` }}
+    <div className="rounded-2xl bg-surface border border-hairline">
+      <button
+        onClick={onClick}
+        className="w-full flex items-center gap-3.5 p-3 text-left rounded-2xl active:bg-canvas/70 transition-colors"
       >
-        <CategoryIcon category={activity.category} size={20} />
-      </span>
+        <span
+          className="grid place-items-center w-12 h-12 rounded-xl shrink-0"
+          style={{ background: `${color}1f` }}
+        >
+          <CategoryIcon category={activity.category} size={20} />
+        </span>
 
-      <span className="flex-1 min-w-0">
-        <span className="flex items-center gap-2">
-          <span className="text-[14.5px] font-[600] text-ink truncate">{activity.name}</span>
-          <LevelBadge activity={activity} />
-          {ongoing && (
-            <span className="shrink-0 text-[10.5px] font-[700] text-teal bg-mint px-1.5 py-0.5 rounded-full">
-              Ongoing
-            </span>
-          )}
-        </span>
-        <span className="block text-[12px] text-ink-soft mt-0.5 truncate">
-          {activity.category} · {fmtMonth(activity.start)} –{" "}
-          {ongoing ? "Present" : fmtMonth(activity.end as YM)}
-        </span>
-        <span className="flex items-center gap-2 mt-1">
-          <span className="text-[11.5px] text-ink-soft">
-            {durationText(activity.start, activity.end)}
+        <span className="flex-1 min-w-0">
+          <span className="flex items-center gap-2">
+            <span className="text-[14.5px] font-[600] text-ink truncate">{activity.name}</span>
+            <LevelBadge activity={activity} />
+            {ongoing && (
+              <span className="shrink-0 text-[10.5px] font-[700] text-teal bg-mint px-1.5 py-0.5 rounded-full">
+                Ongoing
+              </span>
+            )}
           </span>
-          {achCount > 0 && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-[600] text-gold bg-gold-soft px-1.5 py-0.5 rounded-full">
-              <MilestoneStar size={10} />
-              {achCount}
+          <span className="block text-[12px] text-ink-soft mt-0.5 truncate">
+            {activity.category} · {fmtMonth(activity.start)} –{" "}
+            {ongoing ? "Present" : fmtMonth(activity.end as YM)}
+          </span>
+          <span className="flex items-center gap-2 mt-1">
+            <span className="text-[11.5px] text-ink-soft">
+              {durationText(activity.start, activity.end)}
             </span>
-          )}
+            {achCount > 0 && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-[600] text-gold bg-gold-soft px-1.5 py-0.5 rounded-full">
+                <MilestoneStar size={10} />
+                {achCount}
+              </span>
+            )}
+          </span>
         </span>
-      </span>
 
-      <ChevronRight size={18} className="text-ink-soft shrink-0" />
-    </button>
+        <ChevronRight size={18} className="text-ink-soft shrink-0" />
+      </button>
+
+      <div className="flex items-center gap-2 px-3 pb-3">
+        <RowAction
+          icon={<MessageCircleQuestion size={14} />}
+          label="Ask PROUDLY"
+          onClick={onAskProudly}
+        />
+        <RowAction
+          icon={<GraduationCap size={14} />}
+          label="Find a coach"
+          onClick={onFindCoach}
+          primary
+        />
+      </div>
+    </div>
   );
 }
 
