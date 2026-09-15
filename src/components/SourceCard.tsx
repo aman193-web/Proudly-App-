@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { AlertTriangle, Check, Loader2, RefreshCw } from "lucide-react";
 import googleCalIcon from "@/imports/image.png";
 import googlePhotosIcon from "@/imports/image-1.png";
+import { FetchRangeControl } from "./FetchRange";
 
 export type SourceState =
   | "not_connected"
@@ -24,14 +25,21 @@ export function SourceCard({
   purpose,
   state,
   onAction,
+  range,
+  onRangeChange,
 }: {
   kind: "calendar" | "photos";
   title: string;
   purpose: string;
   state: SourceState;
   onAction: () => void;
+  /* Supplying both turns on the fetch-history row. It only makes sense once a
+     source is connected, since there is nothing to scope before that. */
+  range?: string;
+  onRangeChange?: (id: string) => void;
 }) {
   const connected = state === "connected";
+  const showRange = connected && range !== undefined && onRangeChange !== undefined;
 
   return (
     <div
@@ -60,6 +68,16 @@ export function SourceCard({
         <StatusPill state={state} />
         <ActionControl state={state} onAction={onAction} />
       </div>
+
+      {showRange && (
+        <div className="mt-3 pt-3 border-t border-hairline">
+          <FetchRangeControl
+            value={range}
+            onChange={onRangeChange}
+            sourceName={title}
+          />
+        </div>
+      )}
     </div>
   );
 }

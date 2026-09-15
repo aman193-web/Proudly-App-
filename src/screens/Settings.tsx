@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { AppHeader, ChildAvatar, PrimaryButton } from "../components/ui";
 import { SourceCard } from "../components/SourceCard";
+import { DEFAULT_FETCH_RANGE } from "../components/FetchRange";
 import { EmptyState, showToast } from "../components/states";
 import type { ActivityLevel } from "../data";
 import {
@@ -496,6 +497,8 @@ export function ConnectedSources({ onBack }: { onBack: () => void }) {
   const [calState, setCalState] = useState<"connected" | "reconnect">("connected");
   const [photoState, setPhotoState] = useState<"connected" | "reconnect">("reconnect");
   const [autoSync, setAutoSync] = useState(true);
+  const [calRange, setCalRange] = useState(DEFAULT_FETCH_RANGE);
+  const [photoRange, setPhotoRange] = useState(DEFAULT_FETCH_RANGE);
 
   return (
     <div className="size-full flex flex-col bg-canvas">
@@ -518,6 +521,11 @@ export function ConnectedSources({ onBack }: { onBack: () => void }) {
                 showToast("Google Calendar reconnected");
               }
             }}
+            range={calRange}
+            onRangeChange={(r) => {
+              setCalRange(r);
+              showToast("Calendar history range updated");
+            }}
           />
           <SourceCard
             kind="photos"
@@ -533,6 +541,11 @@ export function ConnectedSources({ onBack }: { onBack: () => void }) {
                 setPhotoState("connected");
                 showToast("Google Photos reconnected");
               }
+            }}
+            range={photoRange}
+            onRangeChange={(r) => {
+              setPhotoRange(r);
+              showToast("Photos history range updated");
             }}
           />
         </div>

@@ -3,6 +3,7 @@ import { ShieldCheck } from "lucide-react";
 import { Screen, AppHeader, PrimaryButton, TextLink } from "../components/ui";
 import { StepDots } from "../components/StepDots";
 import { SourceCard, type SourceState } from "../components/SourceCard";
+import { DEFAULT_FETCH_RANGE } from "../components/FetchRange";
 
 export function ConnectSources({
   childName,
@@ -15,6 +16,9 @@ export function ConnectSources({
 }) {
   const [cal, setCal] = useState<SourceState>("not_connected");
   const [photos, setPhotos] = useState<SourceState>("not_connected");
+  /* Set before Processing runs, so the first sync is already scoped. */
+  const [calRange, setCalRange] = useState(DEFAULT_FETCH_RANGE);
+  const [photoRange, setPhotoRange] = useState(DEFAULT_FETCH_RANGE);
 
   const connect = (set: (s: SourceState) => void, current: SourceState) => {
     if (current === "connected") return;
@@ -44,6 +48,8 @@ export function ConnectSources({
             purpose="Find activity events, practices, and milestones."
             state={cal}
             onAction={() => connect(setCal, cal)}
+            range={calRange}
+            onRangeChange={setCalRange}
           />
           <SourceCard
             kind="photos"
@@ -51,6 +57,8 @@ export function ConnectSources({
             purpose="Connect real memories to each activity."
             state={photos}
             onAction={() => connect(setPhotos, photos)}
+            range={photoRange}
+            onRangeChange={setPhotoRange}
           />
         </div>
 
