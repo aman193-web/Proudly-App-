@@ -4,7 +4,8 @@ import { Screen, AppHeader, PrimaryButton } from "../components/ui";
 import { StepDots } from "../components/StepDots";
 import { Sheet } from "../components/Sheet";
 import { CategoryIcon } from "../components/CategoryIcon";
-import type { Category } from "../data";
+import { CATEGORY_COLOR, CATEGORY_SHORT, type Category } from "../data";
+import { categorizeActivity } from "../lib/categorize";
 
 /* Final onboarding step
    ---------------------
@@ -15,7 +16,11 @@ import type { Category } from "../data";
 
    Sessions live in a sheet rather than inline: a single calendar activity can
    carry dozens of events, and inlining them would bury the activities under
-   their own detail. */
+   their own detail.
+
+   Categories are not stored on the fixtures — they are inferred from the event
+   title by lib/categorize, which is what a real Calendar sync would have to do
+   and keeps this screen honest about where the guess comes from. */
 
 type ReviewSession = {
   id: string;
@@ -28,7 +33,6 @@ type ReviewSession = {
 type ReviewActivity = {
   id: string;
   name: string;
-  category: Category;
   /** Span as read from the calendar, e.g. "Mar 2021 – Jun 2024". */
   timeline: string;
   location?: string;
@@ -56,7 +60,6 @@ const FOUND_ACTIVITIES: ReviewActivity[] = [
   {
     id: "soccer",
     name: "Soccer practice",
-    category: "Sports",
     timeline: "Mar 2021 – Jun 2024",
     location: "Riverside Park",
     sessions: [
@@ -71,7 +74,6 @@ const FOUND_ACTIVITIES: ReviewActivity[] = [
   {
     id: "piano",
     name: "Piano lesson",
-    category: "Music",
     timeline: "Sep 2019 – Present",
     location: "Bellevue Music School",
     sessions: [
@@ -88,7 +90,6 @@ const FOUND_ACTIVITIES: ReviewActivity[] = [
   {
     id: "swim",
     name: "Swim club",
-    category: "Sports",
     timeline: "Jan 2020 – Aug 2022",
     location: "Aquatic Center",
     sessions: [
@@ -102,7 +103,6 @@ const FOUND_ACTIVITIES: ReviewActivity[] = [
   {
     id: "robotics",
     name: "Robotics club",
-    category: "STEM",
     timeline: "Sep 2024 – Present",
     location: "Lincoln Middle School",
     sessions: [
@@ -115,7 +115,6 @@ const FOUND_ACTIVITIES: ReviewActivity[] = [
   {
     id: "choir",
     name: "Choir rehearsal",
-    category: "Music",
     timeline: "Sep 2022 – Present",
     location: "Community Hall",
     sessions: [
@@ -244,30 +243,30 @@ export function Review({
       {/* Fixed intro — kept short so the list gets the height */}
       <div className="shrink-0 px-4 pt-3">
         <StepDots total={3} current={2} />
-        <h1 className="font-display text-[21px] font-[700] text-ink leading-tight mt-4">
+        <h1 className="font-display text-[22px] font-[700] text-ink leading-tight mt-5">
           Here's what we found
         </h1>
-        <p className="text-[13px] text-ink-soft mt-0.5 leading-snug">
+        <p className="text-[13.5px] text-ink-soft mt-1 leading-snug">
           Everything is selected. Uncheck anything that doesn't belong.
         </p>
 
         {/* Select-all + running tally, one row */}
-        <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-surface border border-hairline px-3 py-2">
+        <div className="mt-4 flex items-center justify-between gap-2 rounded-xl bg-surface border border-hairline px-3.5 py-2.5">
           <button
             onClick={() => selectAll(!counts.all)}
             className="flex items-center gap-2 active:opacity-60"
           >
             <CheckBox state={counts.all ? "on" : counts.none ? "off" : "mixed"} />
-            <span className="text-[13px] font-[600] text-ink">Select all</span>
+            <span className="text-[13.5px] font-[600] text-ink">Select all</span>
           </button>
-          <span className="text-[11.5px] text-ink-soft tabular-nums">
+          <span className="text-[12px] text-ink-soft tabular-nums">
             {counts.activities} activities · {counts.achievements} achievements
           </span>
         </div>
       </div>
 
       {/* The list is the only thing that scrolls */}
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pt-3 pb-4">
+      <div className="flex-1 overflow-y-auto scroll-area px-4 pt-4 pb-5">
         <SectionHead
           label="Activities"
           count={FOUND_ACTIVITIES.length}
@@ -278,35 +277,40 @@ export function Review({
             const state = activityState(a);
             const kept = sessionSel[a.id].size;
             return (
-              <div key={a.id} className="flex items-center gap-2 pl-3 pr-2 py-2">
+              <div key={a.id} className="flex items-center gap-2 pl-3.5 pr-2 py-3">
                 {/* Row toggle and the sessions link are siblings — nesting them
                     would make one button swallow the other's clicks. */}
                 <button
                   onClick={() => toggleActivity(a)}
                   aria-pressed={state !== "off"}
-                  className="flex items-center gap-2.5 flex-1 min-w-0 text-left active:opacity-60"
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left active:opacity-60"
                 >
                   <CheckBox state={state} />
                   <span className="min-w-0 flex-1">
-                    <span className="flex items-center gap-1.5 min-w-0">
-                      <CategoryIcon category={a.category} size={13} />
-                      <span className="text-[13.5px] font-[600] text-ink truncate">
-                        {a.name}
+                    <span className="block text-[14.5px] font-[600] text-ink truncate">
+                      {a.name}
+                    </span>
+                    <span className="flex items-center gap-1.5 min-w-0 mt-1">
+                      <CategoryPill category={categorizeActivity(a.name)} />
+                      <span className="text-[11.5px] text-ink-soft truncate">
+                        {a.timeline}
                       </span>
                     </span>
-                    <span className="block text-[11px] text-ink-soft truncate mt-0.5">
-                      {a.timeline}
-                      {a.location ? ` · ${a.location}` : ""}
-                    </span>
+                    {a.location && (
+                      <span className="flex items-center gap-1 text-[11.5px] text-ink-soft truncate mt-1">
+                        <MapPin size={10} className="shrink-0" />
+                        <span className="truncate">{a.location}</span>
+                      </span>
+                    )}
                   </span>
                 </button>
                 <button
                   onClick={() => setSheetFor(a.id)}
-                  className="shrink-0 inline-flex items-center gap-0.5 h-7 pl-2 pr-1 rounded-lg text-[11.5px] font-[600] text-teal active:bg-canvas transition-colors"
+                  className="shrink-0 inline-flex items-center gap-0.5 h-8 pl-2.5 pr-1.5 rounded-lg text-[12px] font-[600] text-teal active:bg-canvas transition-colors"
                 >
                   {kept === a.sessions.length ? a.sessions.length : `${kept}/${a.sessions.length}`}{" "}
                   sessions
-                  <ChevronRight size={13} />
+                  <ChevronRight size={14} />
                 </button>
               </div>
             );
@@ -317,7 +321,7 @@ export function Review({
           label="Achievements"
           count={FOUND_ACHIEVEMENTS.length}
           icon={<Trophy size={12} />}
-          className="mt-4"
+          className="mt-5"
         />
         <div className="rounded-2xl bg-surface border border-hairline divide-y divide-hairline overflow-hidden">
           {FOUND_ACHIEVEMENTS.map((a) => (
@@ -325,15 +329,15 @@ export function Review({
               key={a.id}
               onClick={() => toggleAchievement(a.id)}
               aria-pressed={achSel.has(a.id)}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-left active:opacity-60"
+              className="w-full flex items-center gap-3 px-3.5 py-3 text-left active:opacity-60"
             >
               <CheckBox state={achSel.has(a.id) ? "on" : "off"} />
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1.5 min-w-0">
                   <Trophy size={13} className="text-gold shrink-0" />
-                  <span className="text-[13.5px] font-[600] text-ink truncate">{a.title}</span>
+                  <span className="text-[14px] font-[600] text-ink truncate">{a.title}</span>
                 </span>
-                <span className="block text-[11px] text-ink-soft truncate mt-0.5">
+                <span className="block text-[11.5px] text-ink-soft truncate mt-1">
                   {a.activity} · {a.date}
                 </span>
               </span>
@@ -448,12 +452,29 @@ function SectionHead({
 }) {
   return (
     <p
-      className={`flex items-center gap-1.5 text-[11px] font-[700] text-ink-soft uppercase tracking-[0.08em] mb-1.5 ml-0.5 ${className}`}
+      className={`flex items-center gap-1.5 text-[11px] font-[700] text-ink-soft uppercase tracking-[0.08em] mb-2 ml-0.5 ${className}`}
     >
       {icon}
       {label}
       <span className="text-ink-soft/70 tabular-nums">({count})</span>
     </p>
+  );
+}
+
+/** Colour-coded category chip. Short label so it fits beside the timeline. */
+function CategoryPill({ category }: { category: Category }) {
+  const color = CATEGORY_COLOR[category];
+  return (
+    <span
+      className="shrink-0 inline-flex items-center gap-1 h-[19px] pl-1.5 pr-2 rounded-full text-[10.5px] font-[700]"
+      // Tint from the category colour, so the chip matches the dots and icons
+      // already used for this category everywhere else.
+      style={{ background: `${color}1f`, color }}
+      title={category}
+    >
+      <CategoryIcon category={category} size={11} color={color} />
+      {CATEGORY_SHORT[category]}
+    </span>
   );
 }
 

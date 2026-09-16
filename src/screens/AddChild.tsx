@@ -26,6 +26,7 @@ export function AddChild({
   onContinue: (name: string) => void;
 }) {
   const [name, setName] = useState("");
+  const [nickname, setNickname] = useState("");
   const [age, setAge] = useState("");
   const [grade, setGrade] = useState("");
   const [croppedUrl, setCroppedUrl] = useState<string | null>(null);
@@ -271,6 +272,19 @@ export function AddChild({
 
         <div className="mt-7 space-y-4">
           <TextField label="First name" value={name} onChange={setName} placeholder="e.g. Reet" />
+
+          {/* Nickname, optional — what the family actually calls them. */}
+          <div>
+            <TextField
+              label="Nickname"
+              value={nickname}
+              onChange={setNickname}
+              placeholder="Optional"
+            />
+            <p className="text-[12px] text-ink-soft mt-1.5 ml-0.5">
+              Optional · what you'll see around the app
+            </p>
+          </div>
 
           {/* Grade selector */}
           <div className="relative">

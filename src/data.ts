@@ -80,34 +80,47 @@ export function durationText(start: YM, end: YM | "present"): string {
 
 /* ---------- Categories ---------- */
 export type Category =
-  | "Sports"
-  | "Music"
+  | "Sports & Athletics"
+  | "Music & Performance"
   | "Dance & Theater"
   | "Academics"
-  | "Arts"
-  | "STEM"
+  | "Arts & Crafts"
+  | "STEM & Robotics"
   | "Outdoors"
   | "Other";
 
 export const CATEGORIES: Category[] = [
-  "Sports",
-  "Music",
+  "Sports & Athletics",
+  "Music & Performance",
   "Dance & Theater",
   "Academics",
-  "Arts",
-  "STEM",
+  "Arts & Crafts",
+  "STEM & Robotics",
   "Outdoors",
   "Other",
 ];
 
+/* Short form for places a full category name would not fit — row pills, tight
+   trailing labels. The full name is used wherever there is room. */
+export const CATEGORY_SHORT: Record<Category, string> = {
+  "Sports & Athletics": "Sports",
+  "Music & Performance": "Music",
+  "Dance & Theater": "Dance",
+  Academics: "Academics",
+  "Arts & Crafts": "Arts",
+  "STEM & Robotics": "STEM",
+  Outdoors: "Outdoors",
+  Other: "Other",
+};
+
 // Quiet category tint used only for the small identifier dot — bars stay calm.
 export const CATEGORY_COLOR: Record<Category, string> = {
-  Sports: "#3d7fb0",
-  Music: "#217c72",
+  "Sports & Athletics": "#3d7fb0",
+  "Music & Performance": "#217c72",
   "Dance & Theater": "#a85ca0",
   Academics: "#c08a2e",
-  Arts: "#c96b52",
-  STEM: "#5a6bb5",
+  "Arts & Crafts": "#c96b52",
+  "STEM & Robotics": "#5a6bb5",
   Outdoors: "#5b924f",
   Other: "#7a857f",
 };
@@ -163,7 +176,7 @@ export const ACTIVITIES: Activity[] = [
     id: "piano",
     childId: "reet",
     name: "Piano",
-    category: "Music",
+    category: "Music & Performance",
     start: { y: 2019, m: 9 },
     end: "present",
     note: "Practices most mornings before school. Loves ragtime lately.",
@@ -187,7 +200,7 @@ export const ACTIVITIES: Activity[] = [
     id: "soccer",
     childId: "reet",
     name: "Soccer",
-    category: "Sports",
+    category: "Sports & Athletics",
     start: { y: 2021, m: 3 },
     end: { y: 2024, m: 6 },
     sessionsPerWeek: 2,
@@ -208,7 +221,7 @@ export const ACTIVITIES: Activity[] = [
     id: "swimming",
     childId: "reet",
     name: "Swimming",
-    category: "Sports",
+    category: "Sports & Athletics",
     start: { y: 2020, m: 1 },
     end: { y: 2022, m: 7 },
     approxStart: true,
@@ -228,7 +241,7 @@ export const ACTIVITIES: Activity[] = [
     id: "choir",
     childId: "reet",
     name: "Choir",
-    category: "Music",
+    category: "Music & Performance",
     start: { y: 2022, m: 9 },
     end: "present",
     sessionsPerWeek: 1,
@@ -264,7 +277,7 @@ export const ACTIVITIES: Activity[] = [
     id: "art",
     childId: "reet",
     name: "Art Club",
-    category: "Arts",
+    category: "Arts & Crafts",
     start: { y: 2021, m: 9 },
     end: { y: 2023, m: 6 },
     sessionsPerWeek: 1,
@@ -299,7 +312,7 @@ export const ACTIVITIES: Activity[] = [
     id: "robotics",
     childId: "reet",
     name: "Robotics",
-    category: "STEM",
+    category: "STEM & Robotics",
     start: { y: 2024, m: 9 },
     end: "present",
     sessionsPerWeek: 2,
@@ -319,7 +332,7 @@ export const ACTIVITIES: Activity[] = [
     id: "a-piano",
     childId: "aanya",
     name: "Piano",
-    category: "Music",
+    category: "Music & Performance",
     start: { y: 2022, m: 9 },
     end: "present",
     sessionsPerWeek: 1,
@@ -335,7 +348,7 @@ export const ACTIVITIES: Activity[] = [
     id: "a-gym",
     childId: "aanya",
     name: "Gymnastics",
-    category: "Sports",
+    category: "Sports & Athletics",
     start: { y: 2023, m: 3 },
     end: "present",
     sessionsPerWeek: 2,
@@ -351,7 +364,7 @@ export const ACTIVITIES: Activity[] = [
     id: "a-paint",
     childId: "aanya",
     name: "Painting",
-    category: "Arts",
+    category: "Arts & Crafts",
     start: { y: 2021, m: 6 },
     end: "present",
     approxStart: true,

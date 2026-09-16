@@ -70,12 +70,12 @@ export class CoachSearchError extends Error {
 
 const FIRST = ["Marden", "Oakfield", "Rosewood", "Bellhaven", "Northgate", "Clearwater", "Ashby", "Linden"];
 const KIND: Partial<Record<Category, string[]>> = {
-  Music: ["School of Music", "Music Academy", "Conservatory", "Studios"],
-  Sports: ["Sports Club", "Athletics Centre", "Academy", "Training Ground"],
+  "Music & Performance": ["School of Music", "Music Academy", "Conservatory", "Studios"],
+  "Sports & Athletics": ["Sports Club", "Athletics Centre", "Academy", "Training Ground"],
   "Dance & Theater": ["Dance Academy", "School of Dance", "Performing Arts", "Studio"],
   Academics: ["Learning Centre", "Tutors", "Academy", "Study Club"],
-  Arts: ["Art Studio", "Atelier", "Creative Studio", "Art School"],
-  STEM: ["Robotics Lab", "STEM Academy", "Innovation Club", "Tech Studio"],
+  "Arts & Crafts": ["Art Studio", "Atelier", "Creative Studio", "Art School"],
+  "STEM & Robotics": ["Robotics Lab", "STEM Academy", "Innovation Club", "Tech Studio"],
   Outdoors: ["Outdoor Centre", "Adventure Club", "Trailhead", "Field School"],
   Other: ["Centre", "Club", "Academy", "Studio"],
 };

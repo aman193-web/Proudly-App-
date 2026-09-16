@@ -20,12 +20,12 @@ import { type Category, CATEGORY_COLOR } from "../data";
    The icon carries the same category colour the dot did, so the colour
    language across the app is unchanged. */
 const CATEGORY_ICON: Record<Category, typeof Music> = {
-  Sports: Volleyball,
-  Music: Music,
+  "Sports & Athletics": Volleyball,
+  "Music & Performance": Music,
   "Dance & Theater": Drama,
   Academics: BookOpen,
-  Arts: Palette,
-  STEM: FlaskConical,
+  "Arts & Crafts": Palette,
+  "STEM & Robotics": FlaskConical,
   Outdoors: Trees,
   Other: Shapes,
 };

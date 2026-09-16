@@ -7,7 +7,6 @@ import { AddChild } from "./screens/AddChild";
 import { ConnectSources } from "./screens/ConnectSources";
 import { Processing } from "./screens/Processing";
 import { Review } from "./screens/Review";
-import { Aha } from "./screens/Aha";
 import { MainApp } from "./screens/MainApp";
 
 type Route =
@@ -18,7 +17,6 @@ type Route =
   | "connect"
   | "processing"
   | "review"
-  | "aha"
   | "app";
 
 export default function App() {
@@ -69,11 +67,10 @@ export default function App() {
         {route === "processing" && (
           <Processing key="processing" childName={childName} onDone={() => go("review")} />
         )}
+        {/* Review hands straight to the app — the "history is ready" screen is
+            hidden for now. Restore it by routing onDone to "aha" again. */}
         {route === "review" && (
-          <Review key="review" onBack={() => go("connect")} onDone={() => go("aha")} />
-        )}
-        {route === "aha" && (
-          <Aha key="aha" childName={childName} onExplore={() => go("app")} />
+          <Review key="review" onBack={() => go("connect")} onDone={() => go("app")} />
         )}
         {route === "app" && <MainApp key="app" onSignOut={() => go("welcome")} />}
       </AnimatePresence>

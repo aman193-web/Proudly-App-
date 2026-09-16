@@ -1958,7 +1958,7 @@ function DiscoveryReview({
       id: "soccer",
       kind: "activity" as const,
       title: "Soccer",
-      category: "Sports",
+      category: "Sports & Athletics",
       child: "Reet",
       source: "Google Calendar",
       date: "Sep 2025 – Present",
@@ -1969,7 +1969,7 @@ function DiscoveryReview({
       id: "ach-robotics",
       kind: "achievement" as const,
       title: "Regional Tournament — Runner Up",
-      category: "Sports",
+      category: "Sports & Athletics",
       child: "Reet",
       source: "Google Photos",
       date: "Mar 2026",
@@ -1980,7 +1980,7 @@ function DiscoveryReview({
       id: "piano-dupe",
       kind: "duplicate" as const,
       title: "Piano Practice (Duplicate)",
-      category: "Music",
+      category: "Music & Performance",
       child: "Reet",
       source: "Google Calendar",
       date: "Ongoing",
@@ -1991,7 +1991,7 @@ function DiscoveryReview({
       id: "a-gym-new",
       kind: "activity" as const,
       title: "Gymnastics Meet",
-      category: "Sports",
+      category: "Sports & Athletics",
       child: "Aanya",
       source: "Google Calendar",
       date: "Nov 2025",
@@ -2002,7 +2002,7 @@ function DiscoveryReview({
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
-  const [editCategory, setEditCategory] = useState<Category>("Sports");
+  const [editCategory, setEditCategory] = useState<Category>("Sports & Athletics");
 
   const startEdit = (it: typeof items[0]) => {
     setEditingId(it.id);
