@@ -348,7 +348,6 @@ function Review({
             });
           }
         }}
-        allowAll={false}
       />
 
       {/* Activity picker */}

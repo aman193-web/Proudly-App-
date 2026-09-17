@@ -70,7 +70,12 @@ export default function App() {
         {/* Review hands straight to the app — the "history is ready" screen is
             hidden for now. Restore it by routing onDone to "aha" again. */}
         {route === "review" && (
-          <Review key="review" onBack={() => go("connect")} onDone={() => go("app")} />
+          <Review
+            key="review"
+            childName={childName}
+            onBack={() => go("connect")}
+            onDone={() => go("app")}
+          />
         )}
         {route === "app" && <MainApp key="app" onSignOut={() => go("welcome")} />}
       </AnimatePresence>

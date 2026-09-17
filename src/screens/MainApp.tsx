@@ -1390,7 +1390,6 @@ function AddActivity({
         onClose={() => setChildSheet(false)}
         childId={selectedChild}
         onSelect={(id) => setSelectedChild(id as string)}
-        allowAll={false}
       />
       <CategorySheet
         open={catSheet}
@@ -1546,7 +1545,6 @@ function EditActivity({ id, onBack }: { id: string; onBack: () => void }) {
         onClose={() => setChildSheet(false)}
         childId={childId}
         onSelect={(id) => setChildId(id as string)}
-        allowAll={false}
       />
       <CategorySheet
         open={catSheet}
@@ -1935,7 +1933,6 @@ function AddAchievement({
           setSelectedChild(id as string);
           setSelectedActivity("");
         }}
-        allowAll={false}
       />
     </div>
   );

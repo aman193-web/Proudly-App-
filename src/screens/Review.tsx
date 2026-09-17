@@ -1,5 +1,14 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, Check, ChevronRight, Images, MapPin, Trophy } from "lucide-react";
+import {
+  BadgeCheck,
+  CalendarDays,
+  Check,
+  ChevronRight,
+  HelpCircle,
+  Images,
+  MapPin,
+  Trophy,
+} from "lucide-react";
 import { Screen, AppHeader, PrimaryButton } from "../components/ui";
 import { StepDots } from "../components/StepDots";
 import { Sheet } from "../components/Sheet";
@@ -30,12 +39,20 @@ type ReviewSession = {
   location?: string;
 };
 
+/* Whether the sync is sure this activity is this child's. "unsure" is not a
+   lesser activity — it is one the parent has to rule on, which is why the two
+   are split into their own sections. */
+type Confidence = "confirmed" | "unsure";
+
 type ReviewActivity = {
   id: string;
   name: string;
   /** Span as read from the calendar, e.g. "Mar 2021 – Jun 2024". */
   timeline: string;
   location?: string;
+  confidence: Confidence;
+  /** Why we are unsure. Required in spirit for "unsure", shown on the row. */
+  doubt?: string;
   sessions: ReviewSession[];
 };
 
@@ -59,6 +76,7 @@ const s = (
 const FOUND_ACTIVITIES: ReviewActivity[] = [
   {
     id: "soccer",
+    confidence: "confirmed",
     name: "Soccer practice",
     timeline: "Mar 2021 – Jun 2024",
     location: "Riverside Park",
@@ -73,6 +91,7 @@ const FOUND_ACTIVITIES: ReviewActivity[] = [
   },
   {
     id: "piano",
+    confidence: "confirmed",
     name: "Piano lesson",
     timeline: "Sep 2019 – Present",
     location: "Bellevue Music School",
@@ -89,6 +108,8 @@ const FOUND_ACTIVITIES: ReviewActivity[] = [
   },
   {
     id: "swim",
+    confidence: "unsure",
+    doubt: "Could be Aanya's — no photo match",
     name: "Swim club",
     timeline: "Jan 2020 – Aug 2022",
     location: "Aquatic Center",
@@ -102,6 +123,7 @@ const FOUND_ACTIVITIES: ReviewActivity[] = [
   },
   {
     id: "robotics",
+    confidence: "confirmed",
     name: "Robotics club",
     timeline: "Sep 2024 – Present",
     location: "Lincoln Middle School",
@@ -114,6 +136,7 @@ const FOUND_ACTIVITIES: ReviewActivity[] = [
   },
   {
     id: "choir",
+    confidence: "confirmed",
     name: "Choir rehearsal",
     timeline: "Sep 2022 – Present",
     location: "Community Hall",
@@ -123,7 +146,35 @@ const FOUND_ACTIVITIES: ReviewActivity[] = [
       s("ch3", "Choir rehearsal", "Thu 5 Sep 2024", "4:00 – 5:00 PM", "Community Hall"),
     ],
   },
+  {
+    id: "artclass",
+    name: "Art class",
+    timeline: "Feb 2025 – Mar 2025",
+    location: "Lincoln Middle School",
+    confidence: "unsure",
+    doubt: "Only 2 events — may be a one-off",
+    sessions: [
+      s("ar1", "Art class", "Thu 6 Feb 2025", "3:30 – 4:30 PM", "Lincoln Middle School"),
+      s("ar2", "Art class", "Thu 13 Mar 2025", "3:30 – 4:30 PM", "Lincoln Middle School"),
+    ],
+  },
+  {
+    id: "kumon",
+    name: "Kumon math",
+    timeline: "Sep 2023 – Present",
+    location: "Kumon Northgate",
+    confidence: "unsure",
+    doubt: "No name in the event title",
+    sessions: [
+      s("ku1", "Kumon math", "Wed 6 Sep 2023", "5:00 – 6:00 PM", "Kumon Northgate"),
+      s("ku2", "Kumon math", "Wed 13 Sep 2023", "5:00 – 6:00 PM", "Kumon Northgate"),
+      s("ku3", "Kumon math", "Wed 4 Sep 2024", "5:00 – 6:00 PM", "Kumon Northgate"),
+    ],
+  },
 ];
+
+const CONFIRMED = FOUND_ACTIVITIES.filter((a) => a.confidence === "confirmed");
+const UNSURE = FOUND_ACTIVITIES.filter((a) => a.confidence === "unsure");
 
 const FOUND_ACHIEVEMENTS: ReviewAchievement[] = [
   {
@@ -152,12 +203,15 @@ const FOUND_ACHIEVEMENTS: ReviewAchievement[] = [
 type Tri = "on" | "off" | "mixed";
 
 export function Review({
+  childName,
   onBack,
   onDone,
 }: {
+  childName: string;
   onBack: () => void;
   onDone: () => void;
 }) {
+  const who = childName.trim() || "your child";
   /* An activity's selection is derived from its sessions rather than tracked
      separately, so the two can never disagree: selected means "at least one
      session kept". */
@@ -234,6 +288,21 @@ export function Review({
     setAchSel(on ? new Set(FOUND_ACHIEVEMENTS.map((a) => a.id)) : new Set());
   };
 
+  /* Section-level toggle, so clearing the whole uncertain batch is one tap. */
+  const sectionState = (list: ReviewActivity[]): Tri => {
+    const kept = list.reduce((n, a) => n + sessionSel[a.id].size, 0);
+    const total = list.reduce((n, a) => n + a.sessions.length, 0);
+    return kept === 0 ? "off" : kept === total ? "on" : "mixed";
+  };
+
+  const setSection = (list: ReviewActivity[], on: boolean) =>
+    setSessionSel((prev) => ({
+      ...prev,
+      ...Object.fromEntries(
+        list.map((a) => [a.id, on ? new Set(a.sessions.map((x) => x.id)) : new Set<string>()]),
+      ),
+    }));
+
   const sheetActivity = FOUND_ACTIVITIES.find((a) => a.id === sheetFor) ?? null;
 
   return (
@@ -247,7 +316,8 @@ export function Review({
           Here's what we found
         </h1>
         <p className="text-[13.5px] text-ink-soft mt-1 leading-snug">
-          Everything is selected. Uncheck anything that doesn't belong.
+          Everything is selected. The ones we're unsure about are listed
+          separately — check those before accepting.
         </p>
 
         {/* Select-all + running tally, one row */}
@@ -268,53 +338,47 @@ export function Review({
       {/* The list is the only thing that scrolls */}
       <div className="flex-1 overflow-y-auto scroll-area px-4 pt-4 pb-5">
         <SectionHead
-          label="Activities"
-          count={FOUND_ACTIVITIES.length}
-          icon={<CalendarDays size={12} />}
+          label="Confirmed activities"
+          count={CONFIRMED.length}
+          icon={<BadgeCheck size={12} className="text-teal" />}
+          state={sectionState(CONFIRMED)}
+          onToggle={(on) => setSection(CONFIRMED, on)}
         />
         <div className="rounded-2xl bg-surface border border-hairline divide-y divide-hairline overflow-hidden">
-          {FOUND_ACTIVITIES.map((a) => {
-            const state = activityState(a);
-            const kept = sessionSel[a.id].size;
-            return (
-              <div key={a.id} className="flex items-center gap-2 pl-3.5 pr-2 py-3">
-                {/* Row toggle and the sessions link are siblings — nesting them
-                    would make one button swallow the other's clicks. */}
-                <button
-                  onClick={() => toggleActivity(a)}
-                  aria-pressed={state !== "off"}
-                  className="flex items-center gap-3 flex-1 min-w-0 text-left active:opacity-60"
-                >
-                  <CheckBox state={state} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-[14.5px] font-[600] text-ink truncate">
-                      {a.name}
-                    </span>
-                    <span className="flex items-center gap-1.5 min-w-0 mt-1">
-                      <CategoryPill category={categorizeActivity(a.name)} />
-                      <span className="text-[11.5px] text-ink-soft truncate">
-                        {a.timeline}
-                      </span>
-                    </span>
-                    {a.location && (
-                      <span className="flex items-center gap-1 text-[11.5px] text-ink-soft truncate mt-1">
-                        <MapPin size={10} className="shrink-0" />
-                        <span className="truncate">{a.location}</span>
-                      </span>
-                    )}
-                  </span>
-                </button>
-                <button
-                  onClick={() => setSheetFor(a.id)}
-                  className="shrink-0 inline-flex items-center gap-0.5 h-8 pl-2.5 pr-1.5 rounded-lg text-[12px] font-[600] text-teal active:bg-canvas transition-colors"
-                >
-                  {kept === a.sessions.length ? a.sessions.length : `${kept}/${a.sessions.length}`}{" "}
-                  sessions
-                  <ChevronRight size={14} />
-                </button>
-              </div>
-            );
-          })}
+          {CONFIRMED.map((a) => (
+            <ActivityRow
+              key={a.id}
+              activity={a}
+              state={activityState(a)}
+              kept={sessionSel[a.id].size}
+              onToggle={() => toggleActivity(a)}
+              onOpenSessions={() => setSheetFor(a.id)}
+            />
+          ))}
+        </div>
+
+        <SectionHead
+          label="Other activities"
+          count={UNSURE.length}
+          icon={<HelpCircle size={12} className="text-gold" />}
+          state={sectionState(UNSURE)}
+          onToggle={(on) => setSection(UNSURE, on)}
+          className="mt-5"
+        />
+        <p className="text-[11.5px] text-ink-soft leading-snug mb-2 ml-0.5">
+          We couldn't confirm these are {who}'s.
+        </p>
+        <div className="rounded-2xl bg-surface border border-hairline divide-y divide-hairline overflow-hidden">
+          {UNSURE.map((a) => (
+            <ActivityRow
+              key={a.id}
+              activity={a}
+              state={activityState(a)}
+              kept={sessionSel[a.id].size}
+              onToggle={() => toggleActivity(a)}
+              onOpenSessions={() => setSheetFor(a.id)}
+            />
+          ))}
         </div>
 
         <SectionHead
@@ -439,25 +503,97 @@ function SessionList({
   );
 }
 
+/** One activity. Rendered in both sections, so it lives on its own. */
+function ActivityRow({
+  activity: a,
+  state,
+  kept,
+  onToggle,
+  onOpenSessions,
+}: {
+  activity: ReviewActivity;
+  state: Tri;
+  kept: number;
+  onToggle: () => void;
+  onOpenSessions: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-2 pl-3.5 pr-2 py-3">
+      {/* Row toggle and the sessions link are siblings — nesting them would
+          make one button swallow the other's clicks. */}
+      <button
+        onClick={onToggle}
+        aria-pressed={state !== "off"}
+        className="flex items-center gap-3 flex-1 min-w-0 text-left active:opacity-60"
+      >
+        <CheckBox state={state} />
+        <span className="min-w-0 flex-1">
+          <span className="block text-[14.5px] font-[600] text-ink truncate">{a.name}</span>
+          <span className="flex items-center gap-1.5 min-w-0 mt-1">
+            <CategoryPill category={categorizeActivity(a.name)} />
+            <span className="text-[11.5px] text-ink-soft truncate">{a.timeline}</span>
+          </span>
+          {/* An unsure row shows why instead of the location — the reason is
+              what the parent needs to rule on, and every session in the sheet
+              still carries its own location. Keeps both sections one height. */}
+          {a.doubt ? (
+            <span className="flex items-center gap-1 text-[11.5px] text-gold truncate mt-1">
+              <HelpCircle size={10} className="shrink-0" />
+              <span className="truncate">{a.doubt}</span>
+            </span>
+          ) : (
+            a.location && (
+              <span className="flex items-center gap-1 text-[11.5px] text-ink-soft truncate mt-1">
+                <MapPin size={10} className="shrink-0" />
+                <span className="truncate">{a.location}</span>
+              </span>
+            )
+          )}
+        </span>
+      </button>
+      <button
+        onClick={onOpenSessions}
+        className="shrink-0 inline-flex items-center gap-0.5 h-8 pl-2.5 pr-1.5 rounded-lg text-[12px] font-[600] text-teal active:bg-canvas transition-colors"
+      >
+        {kept === a.sessions.length ? a.sessions.length : `${kept}/${a.sessions.length}`} sessions
+        <ChevronRight size={14} />
+      </button>
+    </div>
+  );
+}
+
 function SectionHead({
   label,
   count,
   icon,
+  state,
+  onToggle,
   className = "",
 }: {
   label: string;
   count: number;
   icon: React.ReactNode;
+  /** Supplying both adds a select-all/clear control for the section. */
+  state?: Tri;
+  onToggle?: (on: boolean) => void;
   className?: string;
 }) {
   return (
-    <p
-      className={`flex items-center gap-1.5 text-[11px] font-[700] text-ink-soft uppercase tracking-[0.08em] mb-2 ml-0.5 ${className}`}
-    >
-      {icon}
-      {label}
-      <span className="text-ink-soft/70 tabular-nums">({count})</span>
-    </p>
+    <div className={`flex items-center justify-between gap-2 mb-2 ml-0.5 ${className}`}>
+      <span className="flex items-center gap-1.5 text-[11px] font-[700] text-ink-soft uppercase tracking-[0.08em]">
+        {icon}
+        {label}
+        <span className="text-ink-soft/70 tabular-nums">({count})</span>
+      </span>
+      {state && onToggle && (
+        <button
+          onClick={() => onToggle(state !== "on")}
+          className="text-[11.5px] font-[600] text-teal active:opacity-60"
+        >
+          {state === "on" ? "Clear" : "Select all"}
+        </button>
+      )}
+    </div>
   );
 }
 

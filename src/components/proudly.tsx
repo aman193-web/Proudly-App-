@@ -68,28 +68,24 @@ export function ChildSheet({
   onClose,
   childId,
   onSelect,
-  allowAll = true,
   onAddChild,
 }: {
   open: boolean;
   onClose: () => void;
   childId: ChildId;
   onSelect: (id: ChildId) => void;
-  allowAll?: boolean;
   /** Carried over from the Home selector bar, which had its own add button. */
   onAddChild?: () => void;
 }) {
-  const options: { id: ChildId; name: string; photo?: string }[] = [
-    ...CHILDREN.map((c) => ({ id: c.id as ChildId, name: c.name, photo: c.photo })),
-    ...(allowAll ? [{ id: "all" as ChildId, name: "All Kids" }] : []),
-  ];
+  /* One child at a time — there is no "All Kids" option, so the sheet lists
+     exactly the children on the account. The allowAll prop went with it. */
   return (
     <Sheet open={open} onClose={onClose}>
       <h3 className="font-display text-[18px] font-[700] text-ink px-1 mb-2">
         Whose journey?
       </h3>
       <div className="space-y-1.5">
-        {options.map((o) => {
+        {CHILDREN.map((o) => {
           const active = o.id === childId;
           return (
             <button
@@ -102,13 +98,7 @@ export function ChildSheet({
                 active ? "bg-mint/50 border-teal/40" : "bg-surface border-hairline"
               }`}
             >
-              {o.photo ? (
-                <ChildAvatar src={o.photo} name={o.name} size={38} />
-              ) : (
-                <span className="grid place-items-center w-[38px] h-[38px] rounded-full bg-mint text-teal-dark text-[13px] font-[700]">
-                  All
-                </span>
-              )}
+              <ChildAvatar src={o.photo} name={o.name} size={38} />
               <span className="text-[15px] font-[600] text-ink">{o.name}</span>
               {active && (
                 <span className="ml-auto w-2.5 h-2.5 rounded-full bg-teal" />
