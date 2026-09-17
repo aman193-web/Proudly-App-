@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, ShieldCheck } from "lucide-react";
+import { Mail } from "lucide-react";
 import {
   Screen,
   AppHeader,
@@ -211,24 +211,6 @@ export function CreateAccount({
             </motion.div>
           )}
         </div>
-
-        {/* Same treatment as the reassurance on Connect sources. Both claims
-            already exist in-product — "your family's record stays yours" from
-            Data & privacy, "nothing is posted or shared" from Connected
-            sources — so this asserts nothing new about how data is handled.
-
-            Collapsed only: with the form open this pushed the consent line off
-            the bottom by 69px, and tightening every margin enough to absorb
-            that would undo the breathing room it was added to create. By then
-            the parent has read it and committed. */}
-        {!showEmail && (
-        <div className="mt-6 flex items-start gap-2.5 rounded-2xl bg-mint/50 px-4 py-3">
-          <ShieldCheck size={17} className="text-teal-dark shrink-0 mt-0.5" />
-          <p className="text-[12.5px] leading-snug text-teal-dark/90">
-            Your family's record stays yours. Nothing is ever posted or shared.
-          </p>
-        </div>
-        )}
 
         <div className="flex-1 min-h-3" />
 
