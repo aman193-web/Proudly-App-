@@ -1,13 +1,12 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Mail } from "lucide-react";
 import {
   Screen,
   AppHeader,
   AppleButton,
-  AppleGlyph,
   PrimaryButton,
   GoogleButton,
-  GoogleGlyph,
   TextField,
   PasswordField,
   TextLink,
@@ -46,43 +45,10 @@ function GhostButton({
   return (
     <button
       onClick={onClick}
-      className="h-[54px] w-full rounded-2xl bg-transparent border border-hairline text-ink font-sans font-[600] text-[15px] tracking-tight flex items-center justify-center gap-3 active:scale-[0.985] active:bg-surface transition-all duration-150"
+      className="h-[58px] w-full rounded-2xl bg-transparent border border-hairline text-ink font-sans font-[600] text-[15px] tracking-tight flex items-center justify-center gap-3 active:scale-[0.985] active:bg-surface transition-all duration-150"
     >
       {children}
     </button>
-  );
-}
-
-/* The email screen's social option. The full-width labelled buttons already
-   had their turn on the screen before it, so repeating them at the same weight
-   would just be the same choice twice. Icon-only, half height, centred. */
-function SocialFallback({
-  onGoogle,
-  onApple,
-}: {
-  onGoogle: () => void;
-  onApple: () => void;
-}) {
-  return (
-    <div>
-      <Divider label="or continue with" />
-      <div className="mt-3 flex items-center justify-center gap-3">
-        <button
-          onClick={onGoogle}
-          aria-label="Continue with Google"
-          className="h-11 w-[76px] grid place-items-center rounded-xl bg-surface border border-hairline active:scale-95 transition-transform"
-        >
-          <GoogleGlyph size={20} />
-        </button>
-        <button
-          onClick={onApple}
-          aria-label="Continue with Apple"
-          className="h-11 w-[76px] grid place-items-center rounded-xl bg-surface border border-hairline active:scale-95 transition-transform"
-        >
-          <AppleGlyph size={20} />
-        </button>
-      </div>
-    </div>
   );
 }
 
@@ -162,19 +128,26 @@ export function SignIn({
 export function CreateAccount({
   onBack,
   onDone,
-  onEmail,
   onSignIn,
 }: {
   onBack: () => void;
-  onDone: () => void;
-  /** Opens the email form on its own screen. */
-  onEmail: () => void;
+  onDone: (name: string) => void;
   onSignIn: () => void;
 }) {
+  /* The form is revealed in place rather than pushed onto its own screen or
+     into a sheet. Sheets in this app are for picking things, not typing into,
+     and a three-field form in one fights the keyboard; a second screen buries
+     email a navigation step deep. The space below the buttons is empty anyway,
+     so the form simply fills it and the social buttons stay in view. */
+  const [showEmail, setShowEmail] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [pw, setPw] = useState("");
+
   return (
     <Screen>
       <AppHeader title="Create account" onBack={onBack} />
-      <div className="flex-1 px-4 pt-4 flex flex-col">
+      <div className="flex-1 overflow-y-auto scroll-area px-4 pt-4 flex flex-col">
         <div>
           <h1 className="font-display text-[26px] font-[700] text-ink leading-tight">
             Let's get set up
@@ -184,11 +157,9 @@ export function CreateAccount({
           </p>
         </div>
 
-        {/* Top-aligned, with the slack left at the bottom. Centring three
-            buttons in a 874pt screen detaches them from the heading. */}
         <div className="mt-8 space-y-3">
-          <GoogleButton onClick={onDone} />
-          <AppleButton onClick={onDone} />
+          <GoogleButton onClick={() => onDone(name)} />
+          <AppleButton onClick={() => onDone(name)} />
         </div>
 
         <div className="mt-6">
@@ -196,75 +167,49 @@ export function CreateAccount({
         </div>
 
         <div className="mt-6">
-          <GhostButton onClick={onEmail}>
-            <Mail size={18} className="text-ink-soft" />
-            Continue with email
-          </GhostButton>
-        </div>
-
-        <div className="flex-1 min-h-6" />
-        <p className="text-center text-[14.5px] text-ink-soft pb-8">
-          Already have an account? <TextLink onClick={onSignIn}>Sign in</TextLink>
-        </p>
-      </div>
-    </Screen>
-  );
-}
-
-/** The three fields, on their own screen behind "Continue with email". */
-export function CreateAccountEmail({
-  onBack,
-  onDone,
-  onSignIn,
-}: {
-  onBack: () => void;
-  onDone: (name: string) => void;
-  onSignIn: () => void;
-}) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [pw, setPw] = useState("");
-  return (
-    <Screen>
-      <AppHeader title="Create account" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pt-4 flex flex-col">
-        <div>
-          <h1 className="font-display text-[26px] font-[700] text-ink leading-tight">
-            Your details
-          </h1>
-          <p className="text-[15px] text-ink-soft mt-1">
-            Three things and you're in.
-          </p>
-        </div>
-
-        <div className="mt-7 space-y-4">
-          <TextField label="Your name" value={name} onChange={setName} placeholder="e.g. Priya" />
-          <TextField
-            label="Email"
-            type="email"
-            value={email}
-            onChange={setEmail}
-            placeholder="you@example.com"
-          />
-          <PasswordField
-            label="Password"
-            value={pw}
-            onChange={setPw}
-            placeholder="Create a password"
-          />
-        </div>
-
-        <div className="mt-6">
-          <PrimaryButton onClick={() => onDone(name)} disabled={!name || !email || !pw}>
-            Create account
-          </PrimaryButton>
-        </div>
-
-        <div className="mt-6">
-          <SocialFallback
-            onGoogle={() => onDone(name)}
-            onApple={() => onDone(name)}
-          />
+          {!showEmail ? (
+            <GhostButton onClick={() => setShowEmail(true)}>
+              <Mail size={18} className="text-ink-soft" />
+              Continue with email
+            </GhostButton>
+          ) : (
+            /* The trigger is replaced rather than left sitting above its own
+               fields. Nothing is lost by not being able to collapse it again —
+               Google and Apple are still right there above. */
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="space-y-4"
+            >
+              <TextField
+                label="Your name"
+                value={name}
+                onChange={setName}
+                placeholder="e.g. Priya"
+                autoFocus
+              />
+              <TextField
+                label="Email"
+                type="email"
+                value={email}
+                onChange={setEmail}
+                placeholder="you@example.com"
+              />
+              <PasswordField
+                label="Password"
+                value={pw}
+                onChange={setPw}
+                placeholder="Create a password"
+              />
+              <PrimaryButton
+                onClick={() => onDone(name)}
+                disabled={!name || !email || !pw}
+              >
+                Create account
+              </PrimaryButton>
+            </motion.div>
+          )}
         </div>
 
         <div className="flex-1 min-h-6" />
