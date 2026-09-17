@@ -207,7 +207,7 @@ export function GoogleButton({ onClick }: { onClick?: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="h-[58px] w-full rounded-2xl bg-surface border border-hairline flex items-center justify-center gap-3 font-sans font-[600] text-[15px] text-ink active:scale-[0.985] transition-transform"
+      className="h-[58px] w-full rounded-2xl bg-surface border border-hairline shadow-[0_2px_10px_-4px_rgba(23,35,33,0.16)] flex items-center justify-center gap-3 font-sans font-[600] text-[15px] text-ink active:scale-[0.985] transition-transform"
     >
       <GoogleGlyph />
       Continue with Google
@@ -219,7 +219,7 @@ export function AppleButton({ onClick }: { onClick?: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="h-[58px] w-full rounded-2xl bg-surface border border-hairline flex items-center justify-center gap-3 font-sans font-[600] text-[15px] text-ink active:scale-[0.985] transition-transform"
+      className="h-[58px] w-full rounded-2xl bg-surface border border-hairline shadow-[0_2px_10px_-4px_rgba(23,35,33,0.16)] flex items-center justify-center gap-3 font-sans font-[600] text-[15px] text-ink active:scale-[0.985] transition-transform"
     >
       <AppleGlyph />
       Continue with Apple
