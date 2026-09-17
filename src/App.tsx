@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { PhoneShell } from "./components/ui";
 import { Welcome } from "./screens/Welcome";
-import { SignIn, CreateAccount } from "./screens/Auth";
+import { SignIn, CreateAccount, CreateAccountEmail } from "./screens/Auth";
 import { AddChild } from "./screens/AddChild";
 import { ConnectSources } from "./screens/ConnectSources";
 import { Processing } from "./screens/Processing";
@@ -13,6 +13,7 @@ type Route =
   | "welcome"
   | "signin"
   | "create"
+  | "createEmail"
   | "addChild"
   | "connect"
   | "processing"
@@ -42,6 +43,15 @@ export default function App() {
           <CreateAccount
             key="create"
             onBack={() => go("welcome")}
+            onDone={() => go("addChild")}
+            onEmail={() => go("createEmail")}
+            onSignIn={() => go("signin")}
+          />
+        )}
+        {route === "createEmail" && (
+          <CreateAccountEmail
+            key="createEmail"
+            onBack={() => go("create")}
             onDone={() => go("addChild")}
             onSignIn={() => go("signin")}
           />
