@@ -1939,6 +1939,21 @@ function AddAchievement({
 }
 
 /* ============================================================= DISCOVERY REVIEW */
+/* One auto-detected find awaiting review. `child` is null when the sync could
+   not tell whose event it is — those cards offer Assign rather than Add,
+   because there is no child to add them to yet. */
+type DiscoveryItem = {
+  id: string;
+  kind: "activity" | "achievement" | "duplicate";
+  title: string;
+  category: string;
+  child: string | null;
+  source: string;
+  date: string;
+  detail: string;
+  editing: boolean;
+};
+
 function DiscoveryReview({
   open,
   onClose,
@@ -1950,7 +1965,7 @@ function DiscoveryReview({
   onEditActivity?: (id: string) => void;
   onOpenPhotos?: () => void;
 }) {
-  const [items, setItems] = useState([
+  const [items, setItems] = useState<DiscoveryItem[]>([
     {
       id: "soccer",
       kind: "activity" as const,
@@ -1995,13 +2010,62 @@ function DiscoveryReview({
       detail: "Detected weekend competition event",
       editing: false,
     },
+    /* Unattributed finds: the event was read, but nothing in it says whose it
+       is, so there is no child to add it to yet. These carry Assign instead of
+       Add — see the action row below. */
+    {
+      id: "other-saturday",
+      kind: "activity" as const,
+      title: "Saturday Morning Club",
+      category: "Other",
+      child: null,
+      source: "Google Calendar",
+      date: "Jan 2026 – Present",
+      detail: "12 recurring events · no child named in the invite",
+      editing: false,
+    },
+    {
+      id: "other-centre",
+      kind: "activity" as const,
+      title: "Community Centre Session",
+      category: "Other",
+      child: null,
+      source: "Google Calendar",
+      date: "Sep 2025 – Present",
+      detail: "Recurring Thursday event on a shared calendar",
+      editing: false,
+    },
+    {
+      id: "other-workshop",
+      kind: "activity" as const,
+      title: "Weekend Workshop",
+      category: "Other",
+      child: null,
+      source: "Google Calendar",
+      date: "Feb 2026",
+      detail: "One-off event · could belong to either child",
+      editing: false,
+    },
   ]);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editCategory, setEditCategory] = useState<Category>("Sports & Athletics");
+  /** Which unattributed card is waiting on a child, if any. */
+  const [assignFor, setAssignFor] = useState<string | null>(null);
 
-  const startEdit = (it: typeof items[0]) => {
+  /* Assigning answers "whose is this?", not "add it" — the card keeps its
+     Ignore/Add row afterwards so the parent still confirms. Category stays
+     Other until they edit it. */
+  const assignTo = (id: ChildId) => {
+    const name = childById(id)?.name;
+    if (!name) return;
+    setItems((prev) => prev.map((it) => (it.id === assignFor ? { ...it, child: name } : it)));
+    setAssignFor(null);
+    showToast(`Assigned to ${name}`);
+  };
+
+  const startEdit = (it: DiscoveryItem) => {
     setEditingId(it.id);
     setEditTitle(it.title);
     setEditCategory(it.category as Category);
@@ -2025,6 +2089,7 @@ function DiscoveryReview({
   };
 
   return (
+    <>
     <Sheet open={open} onClose={onClose}>
       <div className="flex items-center justify-between px-1 mb-1">
         <h3 className="font-display text-[20px] font-[700] text-ink">
@@ -2146,13 +2211,15 @@ function DiscoveryReview({
                         className={`grid place-items-center w-10 h-10 rounded-xl shrink-0 ${
                           it.kind === "achievement"
                             ? "bg-gold-soft text-gold"
-                            : it.kind === "duplicate"
+                            : it.child === null || it.kind === "duplicate"
                               ? "bg-canvas text-ink-soft border border-hairline"
                               : "bg-mint text-teal-dark"
                         }`}
                       >
                         {it.kind === "achievement" ? (
                           <MilestoneStar size={20} />
+                        ) : it.child === null ? (
+                          <User size={20} />
                         ) : it.kind === "duplicate" ? (
                           <BarChart3 size={20} />
                         ) : (
@@ -2169,7 +2236,7 @@ function DiscoveryReview({
                             }}
                           />
                           <span className="text-[11px] font-[600] text-ink-soft uppercase">
-                            {it.child} · {it.category}
+                            {it.child ?? "Unassigned"} · {it.category}
                           </span>
                         </div>
                         <h4 className="text-[15px] font-[700] text-ink leading-snug mt-0.5 truncate">
@@ -2197,12 +2264,21 @@ function DiscoveryReview({
                         >
                           Ignore
                         </button>
-                        <button
-                          onClick={() => acceptItem(it.id)}
-                          className="px-3.5 py-1.5 rounded-full bg-teal text-white text-[12.5px] font-[600] flex items-center gap-1 active:scale-95 transition shadow-xs"
-                        >
-                          <Check size={14} /> Add
-                        </button>
+                        {it.child === null ? (
+                          <button
+                            onClick={() => setAssignFor(it.id)}
+                            className="pl-3.5 pr-2.5 py-1.5 rounded-full bg-teal text-white text-[12.5px] font-[600] flex items-center gap-0.5 active:scale-95 transition shadow-xs"
+                          >
+                            Assign <ChevronRight size={14} />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => acceptItem(it.id)}
+                            className="px-3.5 py-1.5 rounded-full bg-teal text-white text-[12.5px] font-[600] flex items-center gap-1 active:scale-95 transition shadow-xs"
+                          >
+                            <Check size={14} /> Add
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -2213,5 +2289,17 @@ function DiscoveryReview({
         </div>
       )}
     </Sheet>
+
+    {/* Sibling of the review sheet, not nested inside it — a Sheet is
+        absolutely positioned, so nesting would anchor this one to the review
+        panel instead of the screen. Rendering it after also puts it on top. */}
+    <ChildSheet
+      open={assignFor !== null}
+      onClose={() => setAssignFor(null)}
+      childId=""
+      onSelect={assignTo}
+      title="Assign to which child?"
+    />
+    </>
   );
 }

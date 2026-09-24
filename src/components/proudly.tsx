@@ -69,6 +69,7 @@ export function ChildSheet({
   childId,
   onSelect,
   onAddChild,
+  title = "Whose journey?",
 }: {
   open: boolean;
   onClose: () => void;
@@ -76,13 +77,15 @@ export function ChildSheet({
   onSelect: (id: ChildId) => void;
   /** Carried over from the Home selector bar, which had its own add button. */
   onAddChild?: () => void;
+  /** The picker is also used to assign an unattributed event to a child. */
+  title?: string;
 }) {
   /* One child at a time — there is no "All Kids" option, so the sheet lists
      exactly the children on the account. The allowAll prop went with it. */
   return (
     <Sheet open={open} onClose={onClose}>
       <h3 className="font-display text-[18px] font-[700] text-ink px-1 mb-2">
-        Whose journey?
+        {title}
       </h3>
       <div className="space-y-1.5">
         {CHILDREN.map((o) => {
