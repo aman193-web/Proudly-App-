@@ -1,4 +1,4 @@
-/* Ask PROUDLY — assistant service
+/* Ask BragOn — assistant service
    -------------------------------
    All assistant behaviour lives here. UI components render messages and
    dispatch actions; they never contain answer logic.
@@ -185,7 +185,7 @@ export function suggestedPrompts(ctx: AskContext): string[] {
 /* ---------- Prompt assembly (shared with the backend) ---------- */
 
 export const SYSTEM_PROMPT = [
-  "You are PROUDLY, an assistant that helps a parent understand and support their child's activities.",
+  "You are BragOn, an assistant that helps a parent understand and support their child's activities.",
   "Be warm, concrete and brief — two or three short paragraphs at most.",
   "Ground every claim in the supplied context. If something is not in the context, say you don't have it rather than inventing it.",
   "Never guarantee outcomes, and never give medical, diagnostic or clinical advice.",
@@ -204,8 +204,8 @@ export function buildContextBlock(ctx: AskContext): string {
   if (a) {
     L.push(
       `Activity: ${a.name} (${a.category})`,
-      `Current level: ${a.currentLevel} (${a.levelSource === "parent" ? "set by the parent" : "suggested by PROUDLY"})`,
-      `PROUDLY suggests: ${a.suggestedLevel}`,
+      `Current level: ${a.currentLevel} (${a.levelSource === "parent" ? "set by the parent" : "suggested by BragOn"})`,
+      `BragOn suggests: ${a.suggestedLevel}`,
       `Next level: ${a.nextLevel ?? "already at the top level"}`,
       `Started ${a.started}, ${a.duration}${a.ongoing ? ", still going" : ", finished"}`,
     );
@@ -317,7 +317,7 @@ export const mockProvider: AskProudlyProvider = {
     if (has(q, "progress", "how are they doing", "doing well", "improved")) {
       if (a) {
         return {
-          text: `${who} has kept ${a.name} going for ${a.duration}, which is the part most children do not manage. PROUDLY reads that record as ${a.suggestedLevel}${
+          text: `${who} has kept ${a.name} going for ${a.duration}, which is the part most children do not manage. BragOn reads that record as ${a.suggestedLevel}${
             a.levelSource === "parent" ? `, though you have it set to ${a.currentLevel}` : ""
           }. ${
             a.achievements.length
@@ -342,7 +342,7 @@ export const mockProvider: AskProudlyProvider = {
           a.achievements.length
             ? `${who} already has ${a.achievements.join(" and ")}, so the next rung up in the same series is the natural target.`
             : `A first recorded milestone is worth more than a big one later; it gives ${who} something to point at.`
-        } Add it in PROUDLY when it happens and the level suggestion picks it up.`,
+        } Add it in BragOn when it happens and the level suggestion picks it up.`,
       };
     }
 
@@ -403,7 +403,7 @@ export function createBackendProvider(url: string): AskProudlyProvider {
           }),
         });
       } catch (e) {
-        throw new AskProudlyError("Couldn't reach PROUDLY. Check your connection.", e);
+        throw new AskProudlyError("Couldn't reach BragOn. Check your connection.", e);
       }
       if (!res.ok) throw new AskProudlyError(`Assistant returned ${res.status}.`);
       const json = (await res.json()) as Partial<AssistantReply>;

@@ -1,17 +1,16 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BellOff, Calendar, ChevronRight, Images, RefreshCw } from "lucide-react";
 import { AppHeader } from "../components/ui";
 import { EmptyState } from "../components/states";
 import { MilestoneStar } from "../components/proudly";
 import { NOTIFICATIONS, type NotifKind, type Notification } from "../data";
+import { Icon } from "../components/Icon";
 
-export type NotifTarget = "discovery" | "photos" | "sources";
+export type NotifTarget = "discovery" | "sources";
 
 const TARGET: Record<NotifKind, NotifTarget | null> = {
   activities: "discovery",
   achievement: "discovery",
-  photos: "photos",
   reconnect: "sources",
   sync: null,
 };
@@ -24,27 +23,21 @@ function Glyph({ kind }: { kind: NotifKind }) {
         <MilestoneStar size={19} />
       </span>
     );
-  if (kind === "photos")
-    return (
-      <span className={`${base} bg-mint text-teal-dark`}>
-        <Images size={19} />
-      </span>
-    );
   if (kind === "reconnect")
     return (
       <span className={`${base} bg-gold-soft text-[#a3762a]`}>
-        <RefreshCw size={18} />
+        <Icon name="sync" size={18} />
       </span>
     );
   if (kind === "sync")
     return (
       <span className={`${base} bg-canvas text-ink-soft border border-hairline`}>
-        <Calendar size={18} />
+        <Icon name="calendar_month" size={18} />
       </span>
     );
   return (
     <span className={`${base} bg-mint text-teal-dark`}>
-      <Calendar size={18} />
+      <Icon name="calendar_month" size={18} />
     </span>
   );
 }
@@ -88,9 +81,9 @@ export function Notifications({
       <div className="flex-1 overflow-y-auto scroll-area pb-8">
         {items.length === 0 ? (
           <EmptyState
-            icon={<BellOff size={26} />}
+            icon={<Icon name="notifications_off" size={26} />}
             title="You're all caught up"
-            body="We'll let you know when there's a new activity, achievement, or photo to review."
+            body="We'll let you know when there's a new activity or achievement to review."
             actionLabel="Back to Home"
             onAction={onBack}
           />
@@ -134,7 +127,7 @@ export function Notifications({
                           <span className="text-[11.5px] text-ink-soft/80">{n.time}</span>
                           {actionable && (
                             <span className="flex items-center gap-0.5 text-[12px] font-[600] text-teal">
-                              Review <ChevronRight size={14} />
+                              Review <Icon name="chevron_right" size={14} />
                             </span>
                           )}
                         </div>

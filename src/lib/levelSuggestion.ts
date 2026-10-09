@@ -327,7 +327,7 @@ export function suggestLevelForActivity(
 /** The level to show and use. */
 export const effectiveLevel = (activity: Activity): ActivityLevel => activity.currentLevel;
 
-/** True when the parent has moved this off PROUDLY's suggestion. */
+/** True when the parent has moved this off BragOn's suggestion. */
 export const isParentOverridden = (activity: Activity): boolean =>
   activity.levelSource === "parent" && activity.currentLevel !== activity.suggestedLevel;
 
@@ -342,7 +342,7 @@ export function setParentLevel(activity: Activity, level: ActivityLevel): LevelS
   };
 }
 
-/** Hand control back to PROUDLY. */
+/** Hand control back to BragOn. */
 export function resetToSuggested(activity: Activity): LevelState {
   return {
     suggestedLevel: activity.suggestedLevel,

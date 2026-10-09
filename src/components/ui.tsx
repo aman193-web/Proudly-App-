@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, Eye, EyeOff } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { PhoneFrame } from "./PhoneFrame";
+import { Icon } from "./Icon";
 
 /* ---------- Phone shell ----------
    The app is a phone design, so it renders inside a hardware frame with the
@@ -26,33 +26,65 @@ export function Screen({ children }: { children: ReactNode }) {
   );
 }
 
+/* Screen header — Oct-1 redesign.
+   -------------------------------
+   A bare row (back arrow left, step or action right) with the title below it,
+   large and left-aligned. Replaces the centred 17px title.
+
+   The title stays on this component rather than moving into each screen's
+   body: every screen already routes its title through here, so all 22 call
+   sites pick up the new treatment without being touched. Screens that also
+   carry their own heading drop it instead.
+
+   Spacing is the prototype's: a 56px row padded 8px, the step label 16px off
+   the right edge, and a 24px gutter on the title. Screen bodies use the same
+   24px so titles and content share an edge — SCREEN_X below is that gutter. */
+
+/** The prototype's horizontal gutter. Shared so titles and bodies cannot drift. */
+export const SCREEN_X = "px-6";
 export function AppHeader({
   title,
   onBack,
   trailing,
+  step,
 }: {
   title?: string;
   onBack?: () => void;
   trailing?: ReactNode;
+  /** Right-aligned progress label, e.g. "Step 1 of 3". */
+  step?: string;
 }) {
   return (
-    <div className="shrink-0 pt-12 px-4 pb-2 flex items-center gap-3">
-      {onBack ? <BackButton onClick={onBack} /> : <span className="w-10" />}
-      <h2 className="flex-1 text-center font-display text-[17px] font-[600] text-ink">
-        {title}
-      </h2>
-      {trailing ?? <span className="w-10" />}
+    <div className="shrink-0 pt-10">
+      <div className="h-14 px-2 flex items-center">
+        {onBack ? <BackButton onClick={onBack} /> : <span className="w-12" />}
+        <div className="flex-1" />
+        {step && (
+          <span className="text-[13px] font-[500] text-ink-soft pr-4 whitespace-nowrap">
+            {step}
+          </span>
+        )}
+        {trailing}
+      </div>
+      {title && (
+        <h1 className="px-6 pt-1 pb-2 font-[700] text-[28px] leading-[1.15] tracking-[-0.02em] text-ink">
+          {title}
+        </h1>
+      )}
     </div>
   );
 }
 
+/* Bare arrow, no circle chrome — the prototype's back control is a 48px tap
+   target that only tints on press. */
 export function BackButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="grid place-items-center w-10 h-10 rounded-full bg-surface border border-hairline text-ink active:scale-95 transition-transform"
+      aria-label="Back"
+      className="grid place-items-center w-12 h-12 rounded-full text-ink active:bg-hairline/50 transition-colors"
     >
-      <ArrowLeft size={19} strokeWidth={2.2} />
+      <Icon name="arrow_back" size={22} strokeWidth={2.2} />
     </button>
   );
 }
@@ -73,8 +105,8 @@ export function PrimaryButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`h-[54px] w-full rounded-2xl bg-teal text-white font-sans font-[600] text-[16px] tracking-tight
-        shadow-[0_10px_24px_-10px_rgba(33,124,114,0.7)]
+      className={`h-14 w-full rounded-full bg-teal text-white font-sans font-[600] text-[16px] tracking-tight
+        shadow-[0_10px_24px_-10px_rgba(36,100,79,0.7)]
         active:scale-[0.985] transition-all duration-150
         disabled:opacity-40 disabled:shadow-none ${className}`}
     >
@@ -95,7 +127,7 @@ export function SecondaryButton({
   return (
     <button
       onClick={onClick}
-      className={`h-[54px] w-full rounded-2xl bg-surface border border-hairline text-ink font-sans font-[600] text-[16px] tracking-tight active:scale-[0.985] transition-all duration-150 ${className}`}
+      className={`h-14 w-full rounded-full bg-surface border border-hairline text-ink font-sans font-[600] text-[16px] tracking-tight active:scale-[0.985] transition-all duration-150 ${className}`}
     >
       {children}
     </button>
@@ -195,7 +227,7 @@ export function PasswordField({
           onClick={() => setShow((s) => !s)}
           className="grid place-items-center w-9 h-9 rounded-xl text-ink-soft active:bg-canvas"
         >
-          {show ? <EyeOff size={18} /> : <Eye size={18} />}
+          {show ? <Icon name="visibility_off" size={18} /> : <Icon name="visibility" size={18} />}
         </button>
       </div>
     </label>
@@ -207,7 +239,7 @@ export function GoogleButton({ onClick }: { onClick?: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="h-[58px] w-full rounded-2xl bg-surface border border-hairline shadow-[0_2px_10px_-4px_rgba(23,35,33,0.16)] flex items-center justify-center gap-3 font-sans font-[600] text-[15px] text-ink active:scale-[0.985] transition-transform"
+      className="h-14 w-full rounded-full bg-surface border border-hairline shadow-[0_2px_10px_-4px_rgba(27,29,28,0.16)] flex items-center justify-center gap-3 font-sans font-[600] text-[15px] text-ink active:scale-[0.985] transition-transform"
     >
       <GoogleGlyph />
       Continue with Google
@@ -219,7 +251,7 @@ export function AppleButton({ onClick }: { onClick?: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="h-[58px] w-full rounded-2xl bg-surface border border-hairline shadow-[0_2px_10px_-4px_rgba(23,35,33,0.16)] flex items-center justify-center gap-3 font-sans font-[600] text-[15px] text-ink active:scale-[0.985] transition-transform"
+      className="h-14 w-full rounded-full bg-surface border border-hairline shadow-[0_2px_10px_-4px_rgba(27,29,28,0.16)] flex items-center justify-center gap-3 font-sans font-[600] text-[15px] text-ink active:scale-[0.985] transition-transform"
     >
       <AppleGlyph />
       Continue with Apple
@@ -319,7 +351,7 @@ export function CheckBadge({ size = 20, tone = "teal" }: { size?: number; tone?:
         background: tone === "teal" ? "#217c72" : "#b8893b",
       }}
     >
-      <Check size={size * 0.62} strokeWidth={3} />
+      <Icon name="check" size={size * 0.62} strokeWidth={3} />
     </motion.span>
   );
 }

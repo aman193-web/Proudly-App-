@@ -1,14 +1,9 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  BarChart3,
-  Check,
-  ChevronDown,
-  ListIcon,
-  Plus,
-  SlidersHorizontal,
-  Sparkles,
-} from "lucide-react";
+import { BarChart3, ListIcon } from "lucide-react";
+import { Icon } from "./Icon";
+import { NoteButton } from "./NoteButton";
+import { fmtHours, hoursFor } from "../lib/hours";
 import { ChildAvatar } from "./ui";
 import { LevelBadge, LevelChooserRow } from "./level";
 import { CategoryIcon } from "./CategoryIcon";
@@ -58,7 +53,7 @@ export function ChildChip({
       <span className="text-[13.5px] font-[600] text-ink">
         {child ? child.name : "All Kids"}
       </span>
-      <ChevronDown size={15} className="text-ink-soft" />
+      <Icon name="keyboard_arrow_down" size={15} className="text-ink-soft" />
     </button>
   );
 }
@@ -118,7 +113,7 @@ export function ChildSheet({
             className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-dashed border-hairline bg-surface active:bg-canvas transition-colors"
           >
             <span className="grid place-items-center w-[38px] h-[38px] rounded-full bg-canvas border border-hairline text-ink-soft">
-              <Plus size={17} />
+              <Icon name="add" size={17} />
             </span>
             <span className="text-[15px] font-[600] text-ink-soft">Add a child</span>
           </button>
@@ -148,7 +143,7 @@ export function FilterButton({
         compact ? "w-8 h-8" : "w-9 h-9"
       } ${active ? "bg-teal text-white border-teal" : "bg-surface text-ink border-hairline"}`}
     >
-      <SlidersHorizontal size={compact ? 15 : 17} />
+      <Icon name="tune" size={compact ? 15 : 17} />
     </button>
   );
 }
@@ -297,7 +292,7 @@ export function RangeMenu({
       >
         <span className="whitespace-nowrap">{rangeLabel(value)}</span>
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }}>
-          <ChevronDown size={14} className="text-ink-soft" />
+          <Icon name="keyboard_arrow_down" size={14} className="text-ink-soft" />
         </motion.span>
       </button>
 
@@ -339,7 +334,7 @@ export function RangeMenu({
                       </span>
                       <span className="block text-[11.5px] text-ink-soft">{o.hint}</span>
                     </span>
-                    {active && <Check size={15} className="text-teal shrink-0" strokeWidth={3} />}
+                    {active && <Icon name="check" size={15} className="text-teal shrink-0" strokeWidth={3} />}
                   </button>
                 );
               })}
@@ -460,13 +455,7 @@ export function AchievementRow({
       onClick={onClick}
       className="w-full flex items-center gap-3.5 rounded-2xl bg-surface border border-hairline p-3 text-left active:scale-[0.99] transition-transform"
     >
-      {achievement.image ? (
-        <img loading="lazy" decoding="async"
-          src={achievement.image}
-          alt={achievement.title}
-          className="w-12 h-12 rounded-xl object-cover shrink-0 bg-mint"
-        />
-      ) : activity ? (
+      {activity ? (
         // The row already reads as an achievement, so the tile is more useful
         // saying which activity it belongs to.
         <span
@@ -514,7 +503,7 @@ export function EmptyGantt({
   return (
     <div className="px-4 mt-8 flex flex-col items-center text-center">
       <span className="grid place-items-center w-14 h-14 rounded-2xl bg-mint text-teal-dark mb-4">
-        <Sparkles size={26} />
+        <Icon name="auto_awesome" size={26} />
       </span>
       <h3 className="font-display text-[19px] font-[700] text-ink leading-snug max-w-[260px]">
         {name}'s activity journey starts here
@@ -533,7 +522,7 @@ export function EmptyGantt({
           onClick={onAdd}
           className="flex-1 h-11 rounded-xl bg-teal text-white font-[600] text-[14px] active:scale-95 transition-transform flex items-center justify-center gap-1.5"
         >
-          <Plus size={16} /> Add activity
+          <Icon name="add" size={16} /> Add activity
         </button>
       </div>
     </div>
@@ -546,19 +535,20 @@ export function ActivityPreview({
   onClose,
   onView,
   onEdit,
+  onLogHours,
 }: {
   activity: Activity | null;
   onClose: () => void;
   onView: (id: string) => void;
   onEdit: (id: string) => void;
+  onLogHours: (a: Activity) => void;
 }) {
   const acts = activity ? achievementsForActivity(activity.id) : [];
-  const memoryCount = activity?.memories.length ?? 0;
   return (
     <Sheet open={!!activity} onClose={onClose}>
       {activity && (
-        <div>
-          <div className="flex items-center gap-2 px-1">
+        <div className="px-1">
+          <div className="flex items-center gap-2">
             <span
               className="w-2.5 h-2.5 rounded-full"
               style={{ background: CATEGORY_COLOR[activity.category] }}
@@ -568,24 +558,47 @@ export function ActivityPreview({
             </span>
             <LevelBadge activity={activity} />
             {activity.end === "present" && (
-              <span className="ml-auto text-[11.5px] font-[700] text-teal bg-mint px-2 py-0.5 rounded-full">
+              <span className="ml-auto text-[11.5px] font-[700] text-pine bg-pine-soft px-2 py-0.5 rounded-full">
                 Ongoing
               </span>
             )}
           </div>
-          <h3 className="font-display text-[24px] font-[700] text-ink px-1 mt-1.5">
+
+          <h3 className="font-[700] text-[24px] leading-[1.15] tracking-[-0.02em] text-ink mt-1.5">
             {activity.name}
           </h3>
-          <p className="text-[13.5px] text-ink-soft px-1 mt-0.5">
-            {activity.approxStart ? "~" : ""}
-            {fmtMonth(activity.start)} –{" "}
-            {activity.end === "present" ? "Present" : fmtMonth(activity.end)} ·{" "}
-            {durationText(activity.start, activity.end)}
+
+          {/* The span, the tally and the hours read as one line of fact
+              rather than a card — the count was dominating a sheet whose job
+              is to get you to the activity. */}
+          <p className="flex flex-wrap items-center gap-x-1.5 text-[13.5px] text-ink-soft mt-1">
+            <span>
+              {activity.approxStart ? "~" : ""}
+              {fmtMonth(activity.start)} –{" "}
+              {activity.end === "present" ? "Present" : fmtMonth(activity.end)} ·{" "}
+              {durationText(activity.start, activity.end)}
+            </span>
+            {acts.length > 0 && (
+              <span className="inline-flex items-center gap-1 font-[600] text-amber-dark">
+                <Icon name="trophy" size={15} fill className="text-amber" />
+                {acts.length}
+              </span>
+            )}
+            {hoursFor(activity.id) > 0 && (
+              <span className="font-[600] text-pine-dark">
+                · {fmtHours(hoursFor(activity.id))}
+              </span>
+            )}
           </p>
 
-          <div className="flex gap-2.5 px-1 mt-4">
-            <MiniStat value={String(acts.length)} label="achievements" accent />
-            <MiniStat value={String(memoryCount)} label="memories" />
+          <div className="flex gap-2 mt-4">
+            <NoteButton id={activity.id} title={activity.name} seed={activity.note} label />
+            <button
+              onClick={() => onLogHours(activity)}
+              className="flex items-center gap-1.5 h-10 pl-3 pr-4 rounded-full bg-surface border border-hairline text-[13.5px] font-[600] text-ink active:scale-95 transition-transform"
+            >
+              <Icon name="more_time" size={18} className="text-pine" /> Log hours
+            </button>
           </div>
 
           {/* Change the level right here — one tap from anywhere the sheet opens */}
@@ -596,13 +609,13 @@ export function ActivityPreview({
           <div className="flex gap-2.5 mt-5">
             <button
               onClick={() => onEdit(activity.id)}
-              className="flex-1 h-12 rounded-xl bg-surface border border-hairline text-ink font-[600] text-[15px] active:scale-95 transition-transform"
+              className="flex-1 h-12 rounded-full bg-surface border border-hairline text-ink font-[600] text-[15px] active:scale-95 transition-transform"
             >
               Edit
             </button>
             <button
               onClick={() => onView(activity.id)}
-              className="flex-[1.4] h-12 rounded-xl bg-teal text-white font-[600] text-[15px] active:scale-95 transition-transform"
+              className="flex-[1.4] h-12 rounded-full bg-pine text-white font-[600] text-[15px] active:scale-95 transition-transform"
             >
               View activity
             </button>
@@ -664,13 +677,6 @@ export function AchievementPreview({
               </p>
             </div>
           </div>
-          {achievement.image && (
-            <img loading="lazy" decoding="async"
-              src={achievement.image}
-              alt={achievement.title}
-              className="w-full h-36 object-cover rounded-2xl mt-4 bg-mint"
-            />
-          )}
           <button
             onClick={() => onView(achievement.id)}
             className="w-full h-12 rounded-xl bg-teal text-white font-[600] text-[15px] mt-4 active:scale-95 transition-transform"

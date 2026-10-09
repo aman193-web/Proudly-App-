@@ -1,20 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Bell,
-  ChevronRight,
-  Database,
-  GraduationCap,
-  Images,
-  Info,
-  LogOut,
-  Pencil,
-  Plus,
-  RefreshCw,
-  ShieldCheck,
-  Trash2,
-  Users,
-} from "lucide-react";
+import { Calendar } from "lucide-react";
+import { Icon } from "../components/Icon";
 import { AppHeader, ChildAvatar, PrimaryButton } from "../components/ui";
 import { SourceCard } from "../components/SourceCard";
 import { DEFAULT_FETCH_RANGE } from "../components/FetchRange";
@@ -39,13 +26,17 @@ export type SettingsTarget =
   | "levelsHelp"
   | "account"
   | "notifPrefs"
-  | "data";
+  | "data"
+  /* The redesign's nav has four tabs, so these two screens are reached from
+     Profile instead of from the bar. */
+  | "achievements"
+;
 
 function SavedCoachesRow({ onClick }: { onClick: () => void }) {
   const count = useSavedCount();
   return (
     <Row
-      icon={<GraduationCap size={18} />}
+      icon={<Icon name="school" size={18} />}
       label="Saved coaches"
       value={count ? String(count) : "None yet"}
       onClick={onClick}
@@ -130,9 +121,9 @@ export function LevelsHelp({ onBack }: { onBack: () => void }) {
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Learning levels" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-10">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-10">
         <p className="text-[14.5px] text-ink leading-relaxed mt-1">
-          Every activity sits at one of four levels. PROUDLY suggests one from what's recorded,
+          Every activity sits at one of four levels. BragOn suggests one from what's recorded,
           and you can change it whenever you disagree.
         </p>
 
@@ -299,8 +290,8 @@ export function LevelsHelp({ onBack }: { onBack: () => void }) {
         <div className="mt-6 rounded-2xl bg-mint/50 px-3.5 py-3">
           <p className="text-[13px] text-ink leading-relaxed">
             <strong className="font-[700]">You always have the final say.</strong> Changing a
-            level never erases PROUDLY's suggestion — both are kept, so you can go back to it.
-            Tap the <Info size={12} className="inline align-[-1px]" /> beside any level to see
+            level never erases BragOn's suggestion — both are kept, so you can go back to it.
+            Tap the <Icon name="info" size={12} className="inline align-[-1px]" /> beside any level to see
             what counted for that activity.
           </p>
         </div>
@@ -320,11 +311,11 @@ export function SavedCoaches({ onBack }: { onBack: () => void }) {
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Saved coaches" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         {saved.length === 0 ? (
           <div className="rounded-[22px] bg-surface border border-hairline mt-2">
             <EmptyState
-              icon={<GraduationCap size={24} />}
+              icon={<Icon name="school" size={24} />}
               title="No saved coaches yet"
               body="When you find a coach worth remembering, tap the bookmark to keep it here."
             />
@@ -347,65 +338,152 @@ export function SavedCoaches({ onBack }: { onBack: () => void }) {
 }
 
 /* ============================================================= PROFILE TAB */
+/* Profile — Oct-1 redesign.
+   -------------------------
+   The prototype drops the card groups for flat rows under uppercase section
+   labels: kids first, then the connected accounts, each list ending in a pine
+   "add" row. It only covers those two sections; the app's other settings
+   (notifications, account, data, help) stay, restyled onto the same pattern
+   rather than left in boxes that no other screen uses any more. */
 export function ProfileTab({ onOpen }: { onOpen: (t: SettingsTarget) => void }) {
+  const savedCoaches = useSavedCount();
+
   return (
-    <div className="pt-14 pb-28">
-      <div className="px-4 flex items-center gap-4">
-        <ChildAvatar src={PARENT.photo} name={PARENT.name} size={60} ring="#217c72" />
-        <div className="min-w-0">
-          <h1 className="font-display text-[22px] font-[700] text-ink leading-tight truncate">
-            {PARENT.name}
-          </h1>
-          <p className="text-[13.5px] text-ink-soft mt-0.5">
-            Parent · {CHILDREN.length} children
-          </p>
-        </div>
+    <div className="pb-28">
+      <div className="pt-[56px] px-6 pb-2">
+        <h2 className="font-[700] text-[30px] leading-[1.1] tracking-[-0.025em] text-ink">
+          Profile
+        </h2>
+        <p className="text-[14px] text-ink-soft mt-1">
+          {PARENT.name} · {PARENT.email}
+        </p>
       </div>
 
-      <Group title="Family">
-        <Row
-          icon={<Users size={18} />}
-          label="Children"
-          value={`${CHILDREN.length}`}
-          onClick={() => onOpen("children")}
-        />
-        <Row
-          icon={<Images size={18} />}
-          label="Connected sources"
-          value="Calendar · Photos"
-          onClick={() => onOpen("sources")}
-        />
-        <SavedCoachesRow onClick={() => onOpen("savedCoaches")} />
-      </Group>
+      <SectionHeading>Kids</SectionHeading>
+      <div className="py-1">
+        {CHILDREN.map((k) => (
+          <div key={k.id} className="flex items-center gap-3.5 min-h-[60px] px-6">
+            <ChildAvatar src={k.photo} name={k.name} size={40} />
+            <div className="min-w-0 flex flex-col gap-0.5">
+              <span className="text-[16px] font-[600] text-ink truncate">{k.name}</span>
+              <span className="text-[13px] text-ink-soft truncate">
+                {[k.grade, k.dob && `${ageFromDob(k.dob)} years old`]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </span>
+            </div>
+          </div>
+        ))}
+        <FlatAddRow label="Add a child" onClick={() => onOpen("children")} />
+      </div>
 
-      <Group title="Preferences">
-        <Row
-          icon={<Bell size={18} />}
+      <SectionHeading>Connected calendars</SectionHeading>
+      <div className="py-1">
+        <div className="flex items-center gap-3.5 min-h-[56px] pl-6 pr-4">
+          <Calendar size={22} className="w-10 shrink-0 text-pine" />
+          <span className="flex-1 min-w-0 text-[15px] font-[500] text-ink truncate">
+            {SOURCES.calendar.account}
+          </span>
+          <button
+            onClick={() => onOpen("sources")}
+            className="h-10 px-3 rounded-full text-[13px] font-[600] text-rust active:bg-rust-soft transition-colors"
+          >
+            Manage
+          </button>
+        </div>
+        <FlatAddRow label="Connect another account" onClick={() => onOpen("sources")} />
+      </div>
+
+      <SectionHeading>Their record</SectionHeading>
+      <div className="py-1">
+        <FlatRow
+          icon={<Icon name="trophy" size={22} />}
+          label="All accomplishments"
+          onClick={() => onOpen("achievements")}
+        />
+      </div>
+
+      <SectionHeading>Settings</SectionHeading>
+      <div className="py-1">
+        <FlatRow
+          icon={<Icon name="school" size={22} />}
+          label="Saved coaches"
+          value={savedCoaches ? String(savedCoaches) : "None yet"}
+          onClick={() => onOpen("savedCoaches")}
+        />
+        <FlatRow
+          icon={<Icon name="notifications" size={22} />}
           label="Notifications"
           onClick={() => onOpen("notifPrefs")}
         />
-        <Row
-          icon={<ShieldCheck size={18} />}
+        <FlatRow
+          icon={<Icon name="shield" size={22} />}
           label="Account"
           onClick={() => onOpen("account")}
         />
-        <Row
-          icon={<Database size={18} />}
+        <FlatRow
+          icon={<Icon name="database" size={22} />}
           label="Data & privacy"
           onClick={() => onOpen("data")}
         />
-      </Group>
-
-      <Group title="Help">
-        <Row
-          icon={<Info size={18} />}
+        <FlatRow
+          icon={<Icon name="info" size={22} />}
           label="How learning levels work"
           onClick={() => onOpen("levelsHelp")}
         />
-      </Group>
+      </div>
 
-      <p className="text-center text-[11.5px] text-ink-soft/70 mt-8">PROUDLY · v1.0</p>
+      <p className="text-center text-[11.5px] text-ink-soft/70 mt-8">BragOn · v1.0</p>
     </div>
+  );
+}
+
+/** Uppercase section label, the prototype's only grouping device. */
+function SectionHeading({ children }: { children: ReactNode }) {
+  return (
+    <div className="pt-[22px] px-6 pb-1">
+      <span className="text-[13px] font-[600] tracking-[0.04em] text-ink-soft uppercase whitespace-nowrap">
+        {children}
+      </span>
+    </div>
+  );
+}
+
+/** Boxless settings row — icon in a fixed 40px slot so labels line up. */
+function FlatRow({
+  icon,
+  label,
+  value,
+  onClick,
+}: {
+  icon: ReactNode;
+  label: string;
+  value?: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3.5 min-h-[56px] pl-6 pr-5 text-left active:bg-surface/70 transition-colors"
+    >
+      <span className="grid place-items-center w-10 shrink-0 text-ink-soft">{icon}</span>
+      <span className="flex-1 min-w-0 text-[15px] font-[500] text-ink truncate">{label}</span>
+      {value && <span className="text-[13px] text-ink-soft shrink-0">{value}</span>}
+      <Icon name="chevron_right" size={18} className="text-ink-soft/70 shrink-0" />
+    </button>
+  );
+}
+
+/** The pine "add" row that closes each list in the prototype. */
+function FlatAddRow({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3.5 min-h-[56px] px-6 text-left text-pine text-[15px] font-[600] active:bg-pine-soft/50 transition-colors"
+    >
+      <Icon name="add" size={22} className="w-10 shrink-0" />
+      {label}
+    </button>
   );
 }
 
@@ -452,7 +530,7 @@ function Row({
         {label}
       </span>
       {value && <span className="text-[13px] text-ink-soft">{value}</span>}
-      {onClick && <ChevronRight size={17} className="text-ink-soft/70" />}
+      {onClick && <Icon name="chevron_right" size={17} className="text-ink-soft/70" />}
     </button>
   );
 }
@@ -492,21 +570,25 @@ function Toggle({
   );
 }
 
+/** Grade vocabulary, shared with the onboarding child form. */
+const GRADES = [
+  "Pre-K", "K", "1st", "2nd", "3rd", "4th", "5th", "6th",
+  "7th", "8th", "9th", "10th", "11th", "12th",
+];
+
 /* ============================================================= CONNECTED SOURCES */
 export function ConnectedSources({ onBack }: { onBack: () => void }) {
   const [calState, setCalState] = useState<"connected" | "reconnect">("connected");
-  const [photoState, setPhotoState] = useState<"connected" | "reconnect">("reconnect");
   const [autoSync, setAutoSync] = useState(true);
   const [calRange, setCalRange] = useState(DEFAULT_FETCH_RANGE);
-  const [photoRange, setPhotoRange] = useState(DEFAULT_FETCH_RANGE);
 
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Connected sources" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <p className="text-[13px] text-ink-soft mt-1 mb-4 leading-relaxed">
-          PROUDLY reads Google Calendar and Photos to build the activity journey. They stay
-          together and nothing is posted or shared.
+          BragOn reads your Google Calendar to build the activity journey. Nothing is
+          posted or shared.
         </p>
 
         <div className="space-y-3">
@@ -527,27 +609,6 @@ export function ConnectedSources({ onBack }: { onBack: () => void }) {
               showToast("Calendar history range updated");
             }}
           />
-          <SourceCard
-            kind="photos"
-            title="Google Photos"
-            purpose={
-              photoState === "connected"
-                ? `${SOURCES.photos.account} · Select more photos anytime`
-                : "Permission expired — reconnect to keep memories in sync."
-            }
-            state={photoState}
-            onAction={() => {
-              if (photoState === "reconnect") {
-                setPhotoState("connected");
-                showToast("Google Photos reconnected");
-              }
-            }}
-            range={photoRange}
-            onRangeChange={(r) => {
-              setPhotoRange(r);
-              showToast("Photos history range updated");
-            }}
-          />
         </div>
 
         {/* Sync */}
@@ -566,7 +627,7 @@ export function ConnectedSources({ onBack }: { onBack: () => void }) {
             className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-canvas transition-colors"
           >
             <span className="grid place-items-center w-9 h-9 rounded-xl bg-mint text-teal-dark shrink-0">
-              <RefreshCw size={17} />
+              <Icon name="sync" size={17} />
             </span>
             <div className="flex-1">
               <p className="text-[15px] font-[600] text-ink">Sync now</p>
@@ -594,16 +655,8 @@ export function ChildManagement({
       <AppHeader
         title="Children"
         onBack={onBack}
-        trailing={
-          <button
-            onClick={onAddChild}
-            className="grid place-items-center w-10 h-10 rounded-full bg-surface border border-hairline text-teal active:scale-95 transition-transform"
-          >
-            <Plus size={19} />
-          </button>
-        }
       />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <div className="space-y-2.5 mt-1">
           {CHILDREN.map((c) => (
             <button
@@ -616,16 +669,16 @@ export function ChildManagement({
                 <p className="text-[16px] font-[700] text-ink">{c.name}</p>
                 <p className="text-[13px] text-ink-soft">{c.grade}</p>
               </div>
-              <Pencil size={17} className="text-ink-soft" />
+              <Icon name="edit" size={17} className="text-ink-soft" />
             </button>
           ))}
         </div>
 
         <button
           onClick={onAddChild}
-          className="w-full mt-3 rounded-2xl border border-dashed border-teal/40 text-teal p-4 flex items-center justify-center gap-2 text-[14.5px] font-[600] active:scale-[0.99] transition-transform"
+          className="w-full mt-3 rounded-2xl border border-dashed border-pine/40 text-pine p-4 flex items-center justify-center gap-2 text-[14.5px] font-[600] active:scale-[0.99] transition-transform"
         >
-          <Plus size={18} /> Add child
+          <Icon name="add" size={18} /> Add a child
         </button>
       </div>
     </div>
@@ -654,16 +707,16 @@ export function EditChild({
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title={existing ? "Edit child" : "Add child"} onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         {/* Reference photo */}
         <div className="flex flex-col items-center mt-2 mb-5">
           <div className="relative">
             <ChildAvatar src={existing?.photo} name={name || "?"} size={92} ring="#217c72" />
             <span className="absolute bottom-0 right-0 grid place-items-center w-8 h-8 rounded-full bg-teal text-white border-2 border-canvas">
-              <Pencil size={14} />
+              <Icon name="edit" size={14} />
             </span>
           </div>
-          <p className="text-[12.5px] text-ink-soft mt-2.5">Reference photo helps match memories</p>
+          <p className="text-[12.5px] text-ink-soft mt-2.5">Shown on their journey and brag sheet</p>
         </div>
 
         <FieldLabel label="Name">
@@ -691,12 +744,18 @@ export function EditChild({
         </FieldLabel>
 
         <FieldLabel label="Grade">
-          <input
+          <select
             value={grade}
             onChange={(e) => setGrade(e.target.value)}
-            placeholder="e.g. Grade 6"
-            className="h-[52px] w-full rounded-2xl bg-surface px-4 text-[16px] text-ink border border-hairline outline-none focus:border-teal focus:ring-4 focus:ring-teal/10 transition placeholder:text-ink-soft/60"
-          />
+            className="h-[52px] w-full appearance-none rounded-2xl bg-surface pl-4 pr-10 text-[16px] text-ink border border-hairline outline-none focus:border-pine transition"
+          >
+            <option value="">Select</option>
+            {GRADES.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
         </FieldLabel>
 
         {existing && (
@@ -723,7 +782,7 @@ export function EditChild({
                     className="w-full mt-3 flex items-center gap-3 rounded-2xl bg-[#fbeceb] border border-[#e2b6b0] p-4 text-left"
                   >
                     <span className="grid place-items-center w-9 h-9 rounded-xl bg-white text-[#c0504a]">
-                      <Trash2 size={17} />
+                      <Icon name="delete" size={17} />
                     </span>
                     <div>
                       <p className="text-[14.5px] font-[600] text-[#c0504a]">
@@ -740,7 +799,7 @@ export function EditChild({
           </>
         )}
       </div>
-      <div className="shrink-0 px-4 pt-3 pb-8 border-t border-hairline bg-canvas">
+      <div className="shrink-0 px-6 pt-3 pb-8 border-t border-hairline bg-canvas">
         <PrimaryButton onClick={save} disabled={!name || !grade}>
           {existing ? "Save changes" : "Add child"}
         </PrimaryButton>
@@ -769,7 +828,7 @@ export function AccountSettings({
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Account" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <div className="flex items-center gap-4 mt-2 mb-2">
           <ChildAvatar src={PARENT.photo} name={PARENT.name} size={56} ring="#217c72" />
           <div>
@@ -779,15 +838,15 @@ export function AccountSettings({
         </div>
 
         <div className="mt-6 rounded-2xl bg-surface border border-hairline divide-y divide-hairline overflow-hidden">
-          <Row icon={<Pencil size={18} />} label="Edit profile" onClick={() => showToast("Profile saved")} />
-          <Row icon={<ShieldCheck size={18} />} label="Change password" onClick={() => {}} />
+          <Row icon={<Icon name="edit" size={18} />} label="Edit profile" onClick={() => showToast("Profile saved")} />
+          <Row icon={<Icon name="shield" size={18} />} label="Change password" onClick={() => {}} />
         </div>
 
         <button
           onClick={onSignOut}
           className="w-full mt-6 flex items-center justify-center gap-2 rounded-2xl bg-surface border border-hairline p-4 text-[15px] font-[600] text-[#c0504a] active:scale-[0.99] transition-transform"
         >
-          <LogOut size={18} /> Sign out
+          <Icon name="logout" size={18} /> Sign out
         </button>
       </div>
     </div>
@@ -799,7 +858,6 @@ export function NotificationPrefs({ onBack }: { onBack: () => void }) {
   const [prefs, setPrefs] = useState({
     activities: true,
     achievements: true,
-    photos: true,
     connection: true,
   });
   const set = (k: keyof typeof prefs) => (v: boolean) => setPrefs((p) => ({ ...p, [k]: v }));
@@ -807,14 +865,13 @@ export function NotificationPrefs({ onBack }: { onBack: () => void }) {
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Notifications" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <p className="text-[13px] text-ink-soft mt-1 mb-4 leading-relaxed">
           Choose what's worth a nudge. We only notify when something needs your attention.
         </p>
         <div className="rounded-2xl bg-surface border border-hairline divide-y divide-hairline overflow-hidden">
           <Toggle label="New activities" desc="When we find activities to review" value={prefs.activities} onChange={set("activities")} />
           <Toggle label="Possible achievements" desc="When a moment looks like a milestone" value={prefs.achievements} onChange={set("achievements")} />
-          <Toggle label="Photos to review" desc="When photos need a quick check" value={prefs.photos} onChange={set("photos")} />
           <Toggle label="Connection issues" desc="When a source needs reconnecting" value={prefs.connection} onChange={set("connection")} />
         </div>
       </div>
@@ -833,18 +890,18 @@ export function DataPrivacy({
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Data & privacy" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <p className="text-[13px] text-ink-soft mt-1 mb-4 leading-relaxed">
-          Your family's record stays yours. Manage what PROUDLY keeps.
+          Your family's record stays yours. Manage what BragOn keeps.
         </p>
         <div className="rounded-2xl bg-surface border border-hairline divide-y divide-hairline overflow-hidden">
-          <Row icon={<Database size={18} />} label="Manage imported items" onClick={() => showToast("Opened imported items")} />
-          <Row icon={<Users size={18} />} label="Delete a child" onClick={onManageChildren} />
+          <Row icon={<Icon name="database" size={18} />} label="Manage imported items" onClick={() => showToast("Opened imported items")} />
+          <Row icon={<Icon name="sports_soccer" size={18} />} label="Delete a child" onClick={onManageChildren} />
         </div>
 
         <div className="mt-6 rounded-2xl bg-surface border border-hairline divide-y divide-hairline overflow-hidden">
           <Row
-            icon={<Trash2 size={18} />}
+            icon={<Icon name="delete" size={18} />}
             label="Delete account"
             danger
             onClick={() => showToast("Contact support to delete")}

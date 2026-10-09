@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail } from "lucide-react";
 import {
   Screen,
   AppHeader,
@@ -11,6 +10,7 @@ import {
   PasswordField,
   TextLink,
 } from "../components/ui";
+import { Icon } from "../components/Icon";
 
 /* Auth
    ----
@@ -45,7 +45,7 @@ function GhostButton({
   return (
     <button
       onClick={onClick}
-      className="h-[58px] w-full rounded-2xl bg-transparent border border-hairline text-ink font-sans font-[600] text-[15px] tracking-tight flex items-center justify-center gap-3 active:scale-[0.985] active:bg-surface transition-all duration-150"
+      className="h-14 w-full rounded-full bg-transparent border border-hairline text-ink font-sans font-[600] text-[15px] tracking-tight flex items-center justify-center gap-3 active:scale-[0.985] active:bg-surface transition-all duration-150"
     >
       {children}
     </button>
@@ -65,16 +65,11 @@ export function SignIn({
   const [pw, setPw] = useState("");
   return (
     <Screen>
-      <AppHeader title="Sign in" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pt-4 flex flex-col">
-        <div>
-          <h1 className="font-display text-[26px] font-[700] text-ink leading-tight">
-            Welcome back
-          </h1>
-          <p className="text-[15px] text-ink-soft mt-1">
-            One tap with Google or Apple, or use your email.
-          </p>
-        </div>
+      <AppHeader title="Welcome back" onBack={onBack} />
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pt-1 flex flex-col">
+        <p className="text-[15px] text-ink-soft">
+          One tap with Google or Apple, or use your email.
+        </p>
 
         {/* Social first */}
         <div className="mt-6 space-y-3">
@@ -118,7 +113,7 @@ export function SignIn({
 
         <div className="flex-1 min-h-6" />
         <p className="text-center text-[14.5px] text-ink-soft pb-8">
-          New to PROUDLY? <TextLink onClick={onCreate}>Create account</TextLink>
+          New to BragOn? <TextLink onClick={onCreate}>Create account</TextLink>
         </p>
       </div>
     </Screen>
@@ -146,16 +141,11 @@ export function CreateAccount({
 
   return (
     <Screen>
-      <AppHeader title="Create account" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pt-4 flex flex-col">
-        <div>
-          <h1 className="font-display text-[26px] font-[700] text-ink leading-tight">
-            Let's get set up
-          </h1>
-          <p className="text-[15px] text-ink-soft mt-1">
-            One tap with Google or Apple — no password to remember.
-          </p>
-        </div>
+      <AppHeader title="Let's get set up" onBack={onBack} />
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pt-1 flex flex-col">
+        <p className="text-[15px] text-ink-soft">
+          One tap with Google or Apple — no password to remember.
+        </p>
 
         <div className="mt-8 space-y-3">
           <GoogleButton onClick={() => onDone(name)} />
@@ -169,7 +159,7 @@ export function CreateAccount({
         <div className="mt-6">
           {!showEmail ? (
             <GhostButton onClick={() => setShowEmail(true)}>
-              <Mail size={18} className="text-ink-soft" />
+              <Icon name="mail" size={18} className="text-ink-soft" />
               Continue with email
             </GhostButton>
           ) : (

@@ -1,11 +1,3 @@
-import {
-  Check,
-  ChevronRight,
-  GraduationCap,
-  Info,
-  MessageCircleQuestion,
-  Sparkles,
-} from "lucide-react";
 import { useState } from "react";
 import type { Activity, ActivityLevel } from "../data";
 import { ACTIVITY_LEVELS } from "../data";
@@ -18,6 +10,7 @@ import {
 } from "../lib/activityLevels";
 import { LEVEL_BANDS, explainLevel } from "../lib/levelSuggestion";
 import { Sheet } from "./Sheet";
+import { Icon } from "./Icon";
 
 /* Level styling — a progression through the existing palette:
    grey → mint → teal → gold. Matches the "Ongoing" pill treatment already
@@ -125,11 +118,11 @@ export function LevelPickerSheet({
               </span>
               {lvl === suggested && (
                 <span className="inline-flex items-center gap-1 text-[11px] font-[600] text-teal">
-                  <Sparkles size={11} /> PROUDLY suggests
+                  <Icon name="auto_awesome" size={11} /> BragOn suggests
                 </span>
               )}
               <span className="flex-1" />
-              {active && <Check size={16} className="text-teal shrink-0" strokeWidth={3} />}
+              {active && <Icon name="check" size={16} className="text-teal shrink-0" strokeWidth={3} />}
             </button>
           );
         })}
@@ -143,7 +136,7 @@ export function LevelPickerSheet({
           }}
           className="w-full mt-3 h-11 rounded-xl bg-surface border border-hairline text-[13.5px] font-[600] text-ink-soft active:scale-[0.99] transition-transform"
         >
-          Use PROUDLY's suggestion ({suggested})
+          Use BragOn's suggestion ({suggested})
         </button>
       )}
     </Sheet>
@@ -151,18 +144,16 @@ export function LevelPickerSheet({
 }
 
 /* ---------- Next level card ----------
-   Ties the current level, PROUDLY's reasoning and the two ways forward into
+   Ties the current level, BragOn's reasoning and the two ways forward into
    one block on Activity Detail. Deliberately a single card, not a dashboard. */
 export function NextLevelCard({
   activity,
   onChangeLevel,
-  onAskProudly,
-  onConnectCoach,
+  onFindSupport,
 }: {
   activity: Activity;
   onChangeLevel: () => void;
-  onAskProudly: () => void;
-  onConnectCoach: () => void;
+  onFindSupport: () => void;
 }) {
   const { current, suggested, source, overridden } = useActivityLevel(activity);
   const up = nextLevel(current);
@@ -189,14 +180,14 @@ export function NextLevelCard({
             onClick={onChangeLevel}
             className="flex items-center gap-1 shrink-0 h-9 pl-3 pr-2 rounded-full bg-surface border border-hairline text-[12.5px] font-[600] text-teal active:scale-95 transition-transform"
           >
-            Change <ChevronRight size={15} />
+            Change <Icon name="chevron_right" size={15} />
           </button>
         </div>
 
         {/* Where the level came from */}
         {source === "proudly" ? (
           <span className="flex items-center gap-1.5 mt-2 text-[12.5px] font-[600] text-teal">
-            <Sparkles size={12} className="shrink-0" /> Suggested by PROUDLY
+            <Icon name="auto_awesome" size={12} className="shrink-0" /> Suggested by BragOn
           </span>
         ) : (
           <span className="flex items-center gap-1.5 mt-2 text-[12.5px] font-[600] text-ink-soft">
@@ -210,10 +201,10 @@ export function NextLevelCard({
           </span>
         )}
 
-        {/* Parent disagreed with PROUDLY — show the suggestion separately. */}
+        {/* Parent disagreed with BragOn — show the suggestion separately. */}
         {overridden && (
           <span className="inline-flex items-center gap-1.5 mt-2.5 text-[11.5px] font-[600] text-teal bg-mint rounded-full px-2 py-1">
-            <Sparkles size={11} /> PROUDLY suggests {suggested}
+            <Icon name="auto_awesome" size={11} /> BragOn suggests {suggested}
           </span>
         )}
       </div>
@@ -238,20 +229,15 @@ export function NextLevelCard({
           )}
         </div>
 
-        <div className="flex gap-2 mt-3">
-          <button
-            onClick={onAskProudly}
-            className="flex-1 h-11 rounded-xl bg-surface border border-hairline flex items-center justify-center gap-1.5 text-[13.5px] font-[600] text-ink active:scale-[0.99] transition-transform"
-          >
-            <MessageCircleQuestion size={15} /> Ask PROUDLY
-          </button>
-          <button
-            onClick={onConnectCoach}
-            className="flex-1 h-11 rounded-xl bg-teal text-white flex items-center justify-center gap-1.5 text-[13.5px] font-[600] active:scale-[0.99] transition-transform"
-          >
-            <GraduationCap size={15} /> Find a coach
-          </button>
-        </div>
+        {/* One way forward, not two. Asking and finding a coach were always
+            the same intent, and the support sheet now does both. */}
+        <button
+          onClick={onFindSupport}
+          className="brag-shine w-full h-11 mt-3 rounded-full text-white flex items-center justify-center gap-2 text-[14px] font-[600] active:scale-[0.99] transition-transform"
+          style={{ boxShadow: "0 8px 18px -8px rgba(181,83,47,0.7)" }}
+        >
+          <Icon name="auto_awesome" size={18} fill /> Find support
+        </button>
       </div>
     </div>
   );
@@ -260,7 +246,7 @@ export function NextLevelCard({
 /* ---------- Inline level chooser ----------
    The level is editable wherever the parent already is — the activity preview
    sheet and the edit screen — so changing it never means hunting for a screen.
-   Four chips, current one marked, PROUDLY's suggestion flagged. */
+   Four chips, current one marked, BragOn's suggestion flagged. */
 export function LevelChooserRow({
   activity,
   label = "Learning level",
@@ -281,7 +267,7 @@ export function LevelChooserRow({
         </span>
         {source === "proudly" ? (
           <span className="inline-flex items-center gap-1 text-[11px] font-[600] text-teal">
-            <Sparkles size={11} /> Suggested by PROUDLY
+            <Icon name="auto_awesome" size={11} /> Suggested by BragOn
           </span>
         ) : (
           <button
@@ -359,7 +345,7 @@ export function NewActivityLevelField({
   /** What the engine suggests for a brand-new activity. */
   suggested: ActivityLevel;
   onChange: (level: ActivityLevel) => void;
-  /** Hand the level back to PROUDLY. */
+  /** Hand the level back to BragOn. */
   onReset: () => void;
   label?: string;
 }) {
@@ -380,7 +366,7 @@ export function NewActivityLevelField({
           </button>
         ) : (
           <span className="inline-flex items-center gap-1 text-[11px] font-[600] text-teal">
-            <Sparkles size={11} /> Suggested by PROUDLY
+            <Icon name="auto_awesome" size={11} /> Suggested by BragOn
           </span>
         )}
       </div>
@@ -392,7 +378,7 @@ export function NewActivityLevelField({
       />
 
       <p className="mt-2 text-[11.5px] text-ink-soft leading-snug">
-        New activities start low by design. PROUDLY raises the suggestion as
+        New activities start low by design. BragOn raises the suggestion as
         time and achievements build up — you can change it whenever you like.
       </p>
     </div>
@@ -418,7 +404,7 @@ export function LevelInfoButton({
         aria-label={label}
         className="shrink-0 grid place-items-center w-5 h-5 rounded-full text-ink-soft active:scale-90 transition-transform"
       >
-        <Info size={14} />
+        <Icon name="info" size={14} />
       </button>
       <LevelInfoSheet activity={activity} open={open} onClose={() => setOpen(false)} />
     </>
@@ -443,13 +429,13 @@ export function LevelInfoSheet({
         Why {activity.name} is {suggested}
       </h3>
       <p className="text-[12.5px] text-ink-soft px-1 mt-0.5">
-        PROUDLY reads the record for this activity. Nothing here is fixed — you can set the
+        BragOn reads the record for this activity. Nothing here is fixed — you can set the
         level yourself at any time.
       </p>
 
       {source === "parent" && current !== suggested && (
         <p className="mt-3 text-[12.5px] font-[600] text-teal bg-mint rounded-xl px-3 py-2">
-          You have this set to {current}. PROUDLY's own read is {suggested}.
+          You have this set to {current}. BragOn's own read is {suggested}.
         </p>
       )}
 

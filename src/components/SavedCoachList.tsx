@@ -1,7 +1,7 @@
-import { Bookmark, ExternalLink, MapPin, Star } from "lucide-react";
 import { activityById, CATEGORY_COLOR } from "../data";
 import { type SavedCoach, removeSaved } from "../lib/savedCoaches";
 import { showToast } from "./states";
+import { Icon } from "./Icon";
 
 /* One saved coach. Used on Activity Detail and on the Saved coaches screen,
    so the two never drift apart. */
@@ -42,7 +42,7 @@ export function SavedCoachRow({
         </span>
 
         <span className="flex items-center gap-1 shrink-0 bg-gold-soft text-gold rounded-full px-2 py-1">
-          <Star size={12} className="fill-current" />
+          <Icon name="star" size={12} className="fill-current" />
           <span className="text-[12px] font-[700] tabular-nums">{coach.rating.toFixed(1)}</span>
         </span>
 
@@ -54,13 +54,13 @@ export function SavedCoachRow({
           aria-label={`Remove ${coach.name} from saved`}
           className="shrink-0 grid place-items-center w-8 h-8 rounded-full active:scale-90 transition-transform"
         >
-          <Bookmark size={18} className="text-teal fill-current" />
+          <Icon name="bookmark" size={18} className="text-teal fill-current" />
         </button>
       </div>
 
       {coach.location && (
         <p className="flex items-start gap-1.5 text-[12.5px] text-ink-soft mt-2 leading-snug">
-          <MapPin size={13} className="shrink-0 mt-[2px]" />
+          <Icon name="location_on" size={13} className="shrink-0 mt-[2px]" />
           <span className="min-w-0">{coach.location}</span>
         </p>
       )}
@@ -71,7 +71,7 @@ export function SavedCoachRow({
         rel="noopener noreferrer"
         className="mt-3 h-10 w-full rounded-xl bg-canvas border border-hairline flex items-center justify-center gap-1.5 text-[13.5px] font-[600] text-ink active:scale-[0.99] transition-transform"
       >
-        View on Google <ExternalLink size={14} />
+        View on Google <Icon name="open_in_new" size={14} />
       </a>
     </div>
   );

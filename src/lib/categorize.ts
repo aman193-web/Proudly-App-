@@ -78,6 +78,7 @@ export const CATEGORY_KEYWORDS: Record<Category, string[]> = {
   ],
   // Nothing in the table maps here; both stay available for manual entry.
   Outdoors: [],
+  Volunteering: ["volunteer", "volunteering", "shelter", "food bank", "community service"],
   Other: [],
 };
 

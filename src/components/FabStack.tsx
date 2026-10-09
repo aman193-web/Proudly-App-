@@ -1,5 +1,5 @@
-import { Plus } from "lucide-react";
 import { AiCoachMark } from "./AiCoachMark";
+import { Icon } from "./Icon";
 
 /* Floating actions
    ----------------
@@ -8,7 +8,7 @@ import { AiCoachMark } from "./AiCoachMark";
 
        Add (+)            optional, only where the screen has an add action
           ↑  14px
-     Ask PROUDLY          always present, in the original Add FAB position
+     Ask BragOn          always present, in the original Add FAB position
           ↑
      Bottom navigation
 
@@ -35,9 +35,9 @@ export function FabStack({
         <button
           onClick={onAdd}
           aria-label={addLabel}
-          className="w-14 h-14 rounded-full grid place-items-center bg-teal text-white shadow-[0_12px_28px_-8px_rgba(33,124,114,0.7)] active:scale-95 transition-transform"
+          className="w-14 h-14 rounded-full grid place-items-center bg-teal text-white shadow-[0_12px_28px_-8px_rgba(36,100,79,0.7)] active:scale-95 transition-transform"
         >
-          <Plus size={26} />
+          <Icon name="add" size={26} />
         </button>
       )}
 
@@ -49,7 +49,7 @@ export function FabStack({
           aria-hidden
           className="absolute -inset-1.5 rounded-full pointer-events-none"
           style={{
-            background: "radial-gradient(circle, rgba(33,124,114,0.5) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(36,100,79,0.5) 0%, transparent 70%)",
             animation: "proudlyGlow 2.4s ease-in-out infinite",
           }}
         />
@@ -64,7 +64,7 @@ export function FabStack({
         />
         <button
           onClick={onAskProudly}
-          aria-label="Ask PROUDLY"
+          aria-label="Ask BragOn"
           className="absolute inset-0 rounded-full grid place-items-center text-white
             shadow-[0_14px_30px_-8px_rgba(23,60,56,0.55)]
             active:scale-95 transition-transform"
