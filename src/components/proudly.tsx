@@ -453,13 +453,7 @@ export function AchievementRow({
       onClick={onClick}
       className="w-full flex items-center gap-3.5 rounded-2xl bg-surface border border-hairline p-3 text-left active:scale-[0.99] transition-transform"
     >
-      {achievement.image ? (
-        <img loading="lazy" decoding="async"
-          src={achievement.image}
-          alt={achievement.title}
-          className="w-12 h-12 rounded-xl object-cover shrink-0 bg-mint"
-        />
-      ) : activity ? (
+      {activity ? (
         // The row already reads as an achievement, so the tile is more useful
         // saying which activity it belongs to.
         <span
@@ -546,7 +540,6 @@ export function ActivityPreview({
   onEdit: (id: string) => void;
 }) {
   const acts = activity ? achievementsForActivity(activity.id) : [];
-  const memoryCount = activity?.memories.length ?? 0;
   return (
     <Sheet open={!!activity} onClose={onClose}>
       {activity && (
@@ -578,7 +571,6 @@ export function ActivityPreview({
 
           <div className="flex gap-2.5 px-1 mt-4">
             <MiniStat value={String(acts.length)} label="achievements" accent />
-            <MiniStat value={String(memoryCount)} label="memories" />
           </div>
 
           {/* Change the level right here — one tap from anywhere the sheet opens */}
@@ -657,13 +649,6 @@ export function AchievementPreview({
               </p>
             </div>
           </div>
-          {achievement.image && (
-            <img loading="lazy" decoding="async"
-              src={achievement.image}
-              alt={achievement.title}
-              className="w-full h-36 object-cover rounded-2xl mt-4 bg-mint"
-            />
-          )}
           <button
             onClick={() => onView(achievement.id)}
             className="w-full h-12 rounded-xl bg-teal text-white font-[600] text-[15px] mt-4 active:scale-95 transition-transform"

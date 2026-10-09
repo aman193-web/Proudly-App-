@@ -6,12 +6,11 @@ import { MilestoneStar } from "../components/proudly";
 import { NOTIFICATIONS, type NotifKind, type Notification } from "../data";
 import { Icon } from "../components/Icon";
 
-export type NotifTarget = "discovery" | "photos" | "sources";
+export type NotifTarget = "discovery" | "sources";
 
 const TARGET: Record<NotifKind, NotifTarget | null> = {
   activities: "discovery",
   achievement: "discovery",
-  photos: "photos",
   reconnect: "sources",
   sync: null,
 };
@@ -22,12 +21,6 @@ function Glyph({ kind }: { kind: NotifKind }) {
     return (
       <span className={`${base} bg-gold-soft text-gold`}>
         <MilestoneStar size={19} />
-      </span>
-    );
-  if (kind === "photos")
-    return (
-      <span className={`${base} bg-mint text-teal-dark`}>
-        <Icon name="photo_library" size={19} />
       </span>
     );
   if (kind === "reconnect")
@@ -90,7 +83,7 @@ export function Notifications({
           <EmptyState
             icon={<Icon name="notifications_off" size={26} />}
             title="You're all caught up"
-            body="We'll let you know when there's a new activity, achievement, or photo to review."
+            body="We'll let you know when there's a new activity or achievement to review."
             actionLabel="Back to Home"
             onAction={onBack}
           />

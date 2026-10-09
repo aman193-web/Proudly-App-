@@ -49,8 +49,6 @@ import {
 import { Notifications, type NotifTarget } from "./Notifications";
 import { ManualEntry } from "./ManualEntry";
 import { NEW_TO_REVIEW_COUNT, NewToReview } from "./NewToReview";
-import { PhotoImport } from "./PhotoImport";
-import { Portfolio } from "./Portfolio";
 import { BragSheet } from "./BragSheet";
 import {
   AccountSettings,
@@ -84,7 +82,6 @@ import {
   childById,
   durationText,
   fmtMonth,
-  PHOTO_CANDIDATES,
   TODAY,
   type YM,
 } from "../data";
@@ -108,11 +105,9 @@ type Overlay =
   | { kind: "addAchievement"; activityId?: string }
   | { kind: "expand" }
   | { kind: "notifications" }
-  | { kind: "photoImport" }
   | { kind: "manualEntry" }
   | { kind: "newToReview" }
   | { kind: "allAchievements" }
-  | { kind: "photoPortfolio" }
   | { kind: "connectedSources" }
   | { kind: "childManagement" }
   | { kind: "savedCoaches" }
@@ -174,7 +169,6 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
   const handleDeepLink = (t: NotifTarget) => {
     setStack((s) => s.slice(0, -1)); // leave the notifications screen
     if (t === "discovery") setDiscoverOpen(true);
-    else if (t === "photos") push({ kind: "photoImport" });
     else if (t === "sources") push({ kind: "connectedSources" });
   };
 
@@ -187,7 +181,6 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
     else if (s === "notifPrefs") push({ kind: "notifPrefs" });
     else if (s === "data") push({ kind: "dataPrivacy" });
     else if (s === "achievements") push({ kind: "allAchievements" });
-    else if (s === "photos") push({ kind: "photoPortfolio" });
   };
 
   /* Activity context when opened from an activity, the child's wider picture
@@ -206,7 +199,6 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
           onEdit={(id) => push({ kind: "editActivity", id })}
           onOpenAchievement={openAchievement}
           onAddAchievement={(activityId) => push({ kind: "addAchievement", activityId })}
-          onAddPhotos={() => push({ kind: "photoImport" })}
           onConnectCoach={(activityId) => push({ kind: "coachFinder", activityId })}
           onAskProudly={(activityId: string) => openAsk(activityId)}
         />
@@ -255,7 +247,6 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
       {o.kind === "notifications" && (
         <Notifications onBack={pop} onDeepLink={handleDeepLink} />
       )}
-      {o.kind === "photoImport" && <PhotoImport onClose={pop} />}
       {o.kind === "manualEntry" && <ManualEntry onClose={pop} onSaved={pop} />}
       {o.kind === "newToReview" && <NewToReview onBack={pop} />}
       {o.kind === "allAchievements" && (
@@ -263,17 +254,6 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
           childId={childId}
           onSelectChild={setChildId}
           onOpen={openAchievement}
-          onBack={pop}
-        />
-      )}
-      {o.kind === "photoPortfolio" && (
-        <PhotoPortfolio
-          childId={childId}
-          onSelectChild={setChildId}
-          onViewGantt={() => {
-            pop();
-            setTab("activities");
-          }}
           onBack={pop}
         />
       )}
@@ -422,14 +402,7 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
       </AnimatePresence>
 
       {/* Discovery review (lifted so notifications can deep-link to it) */}
-      <DiscoveryReview
-        open={discoverOpen}
-        onClose={() => setDiscoverOpen(false)}
-        onOpenPhotos={() => {
-          setDiscoverOpen(false);
-          push({ kind: "photoImport" });
-        }}
-      />
+      <DiscoveryReview open={discoverOpen} onClose={() => setDiscoverOpen(false)} />
 
       {/* Global success feedback */}
       <ToastHost />
@@ -1058,7 +1031,6 @@ function ActivityDetail({
   onEdit,
   onOpenAchievement,
   onAddAchievement,
-  onAddPhotos,
   onConnectCoach,
   onAskProudly,
 }: {
@@ -1067,7 +1039,6 @@ function ActivityDetail({
   onEdit: (id: string) => void;
   onOpenAchievement: (id: string) => void;
   onAddAchievement: (activityId: string) => void;
-  onAddPhotos: () => void;
   onConnectCoach: (activityId: string) => void;
   onAskProudly: (activityId: string) => void;
 }) {
@@ -1122,7 +1093,6 @@ function ActivityDetail({
           <div className="flex rounded-2xl bg-surface border border-hairline divide-x divide-hairline">
             <Summary value={durationText(activity.start, activity.end).split(" ")[0]} label="years" />
             <Summary value={String(acts.length)} label="achievements" accent />
-            <Summary value={String(activity.memories.length)} label="memories" />
           </div>
         </div>
 
@@ -1190,49 +1160,6 @@ function ActivityDetail({
             <p className="text-[13.5px] text-ink-soft">No achievements yet.</p>
           )}
         </div>
-
-        {/* Photos & Memories — tied to this activity's history */}
-        <div className="px-4 mt-7 flex items-center justify-between">
-          <h3 className="font-display text-[17px] font-[700] text-ink">
-            {activity.name} memories
-          </h3>
-          <button
-            onClick={onAddPhotos}
-            className="flex items-center gap-1 text-[13px] font-[600] text-teal active:opacity-60"
-          >
-            <Icon name="add" size={15} /> Add photos
-          </button>
-        </div>
-        {activity.memories.length > 0 ? (
-          <div className="flex gap-2.5 overflow-x-auto scroll-area px-4 mt-3">
-            {activity.memories.map((m, i) => {
-              // Spread memory dates across the activity span for a believable chronology.
-              const endY = activity.end === "present" ? 2026 : activity.end.y;
-              const y = Math.min(activity.start.y + i, endY);
-              return (
-                <div key={i} className="shrink-0">
-                  <img loading="lazy" decoding="async"
-                    src={m}
-                    alt={`${activity.name} memory`}
-                    className="w-28 h-32 rounded-2xl object-cover bg-mint"
-                  />
-                  <p className="text-[11px] text-ink-soft mt-1 tabular-nums">{y}</p>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="px-4 mt-3">
-            <button
-              onClick={onAddPhotos}
-              className="w-full rounded-2xl border border-dashed border-hairline bg-surface p-5 flex flex-col items-center gap-1.5 text-ink-soft active:scale-[0.99] transition-transform"
-            >
-              <Icon name="photo_library" size={22} />
-              <span className="text-[13.5px] font-[600]">Add photos from Google Photos</span>
-              <span className="text-[11.5px]">Bring this activity's moments to life</span>
-            </button>
-          </div>
-        )}
 
         {/* Notes */}
         {activity.note && (
@@ -1395,11 +1322,6 @@ function AddActivity({
           />
         </Field>
 
-        <button className="w-full rounded-2xl border border-dashed border-hairline bg-surface p-5 flex flex-col items-center gap-1.5 text-ink-soft active:scale-[0.99] transition-transform">
-          <Icon name="photo_library" size={22} />
-          <span className="text-[13.5px] font-[600]">Add photos</span>
-          <span className="text-[11.5px]">Optional</span>
-        </button>
       </div>
 
       <div className="shrink-0 px-6 pt-3 pb-8 border-t border-hairline bg-canvas">
@@ -1661,28 +1583,6 @@ function AllAchievements({
   );
 }
 
-function PhotoPortfolio({
-  childId,
-  onSelectChild,
-  onViewGantt,
-  onBack,
-}: {
-  childId: ChildId;
-  onSelectChild: (id: ChildId) => void;
-  onViewGantt: () => void;
-  onBack: () => void;
-}) {
-  return (
-    <PushedScreen onBack={onBack}>
-      <Portfolio
-        childId={childId}
-        onSelectChild={onSelectChild}
-        onViewGantt={onViewGantt}
-        onPreviewBrag={onBack}
-      />
-    </PushedScreen>
-  );
-}
 
 /* ============================================================= ACHIEVEMENTS */
 function Achievements({
@@ -1823,15 +1723,6 @@ function AchievementDetail({
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Achievement" onBack={onBack} />
       <div className="flex-1 overflow-y-auto scroll-area pb-8">
-        {ach.image ? (
-          <div className="px-4">
-            <img decoding="async"
-              src={ach.image}
-              alt={ach.title}
-              className="w-full h-52 object-cover rounded-3xl bg-mint"
-            />
-          </div>
-        ) : (
           <div className="px-4">
             <div className="w-full h-40 rounded-3xl bg-gold-soft grid place-items-center">
               <span className="text-gold">
@@ -1839,7 +1730,6 @@ function AchievementDetail({
               </span>
             </div>
           </div>
-        )}
 
         <div className="px-4 mt-5">
           <span className="inline-flex items-center gap-1.5 text-[12px] font-[700] text-gold bg-gold-soft px-2.5 py-1 rounded-full">
@@ -1975,11 +1865,6 @@ function AddAchievement({
           />
         </Field>
 
-        <button className="w-full rounded-2xl border border-dashed border-hairline bg-surface p-5 flex flex-col items-center gap-1.5 text-ink-soft active:scale-[0.99] transition-transform">
-          <Icon name="photo_library" size={22} />
-          <span className="text-[13.5px] font-[600]">Add photo or certificate</span>
-          <span className="text-[11.5px]">Optional</span>
-        </button>
       </div>
       <div className="shrink-0 px-6 pt-3 pb-8 border-t border-hairline bg-canvas">
         <PrimaryButton onClick={onBack} disabled={!title || !selectedActivity}>
@@ -2061,9 +1946,9 @@ const DISCOVERY_SEED: DiscoveryItem[] = [
     title: "Regional Tournament — Runner Up",
     category: "Sports & Athletics",
     child: "Reet",
-    source: "Google Photos",
+    source: "Google Calendar",
     date: "Mar 2026",
-    detail: "Detected trophy award photo from Photos album",
+    detail: "Detected from a calendar event titled \"Regional tournament final\"",
     editing: false,
   },
   {
@@ -2130,12 +2015,10 @@ function DiscoveryReview({
   open,
   onClose,
   onEditActivity,
-  onOpenPhotos,
 }: {
   open: boolean;
   onClose: () => void;
   onEditActivity?: (id: string) => void;
-  onOpenPhotos?: () => void;
 }) {
   const [items, setItems] = useState<DiscoveryItem[]>(DISCOVERY_SEED);
 
@@ -2193,41 +2076,6 @@ function DiscoveryReview({
       <p className="text-[13px] text-ink-soft px-1 mb-4">
         Review activities and milestones auto-detected from your linked sources.
       </p>
-
-      {/* Review Photos card */}
-      {onOpenPhotos && (
-        <div className="rounded-2xl bg-surface border border-hairline p-3.5 mb-3">
-          <div className="flex items-center justify-between mb-2.5">
-            <div className="flex items-center gap-2.5">
-              <span className="grid place-items-center w-9 h-9 rounded-xl bg-mint text-teal-dark shrink-0">
-                <Icon name="photo_library" size={17} />
-              </span>
-              <div>
-                <p className="text-[14px] font-[700] text-ink">Review Photos</p>
-                <p className="text-[11.5px] text-ink-soft">
-                  {PHOTO_CANDIDATES.length} photos matched from Google Photos
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={onOpenPhotos}
-              className="px-3 py-1.5 rounded-full bg-teal text-white text-[12.5px] font-[600] active:scale-95 transition-transform shrink-0"
-            >
-              Review
-            </button>
-          </div>
-          <div className="flex gap-1.5 overflow-x-auto scroll-area">
-            {PHOTO_CANDIDATES.map((p) => (
-              <img loading="lazy" decoding="async"
-                key={p.id}
-                src={p.url}
-                alt=""
-                className="w-14 h-14 rounded-xl object-cover bg-mint shrink-0"
-              />
-            ))}
-          </div>
-        </div>
-      )}
 
       {items.length === 0 ? (
         <div className="py-8 text-center bg-canvas rounded-2xl border border-hairline my-2">

@@ -29,6 +29,16 @@ const POPULAR: { label: string; icon: string; category: Category }[] = [
 
 type Win = { id: number; title: string; when: string; activity: string; category: string };
 
+const EMPTY_WIN = { title: "", when: "", activity: "", category: "" };
+
+/** "12 Mar 2026" from an ISO date, for the saved row. */
+const fmtWhen = (iso: string) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? iso
+    : d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+};
+
 export function ManualEntry({
   onClose,
   onSaved,
@@ -41,26 +51,33 @@ export function ManualEntry({
   const [category, setCategory] = useState<string>("");
   const [started, setStarted] = useState("");
   const [cadence, setCadence] = useState(CADENCES[0]);
-  const [wins, setWins] = useState<Win[]>([
-    { id: 1, title: "", when: "", activity: "", category: "" },
-  ]);
+  const [wins, setWins] = useState<Win[]>([]);
+  /* Open to start with: a parent who came here to record a win should not
+     have to find a button first. It closes once the first one is added. */
+  const [winOpen, setWinOpen] = useState(true);
+  const [draft, setDraft] = useState(EMPTY_WIN);
 
   const child = CHILDREN.find((c) => c.id === childId);
   const existing = activitiesFor(childId);
-  const filled = wins.filter((w) => w.title.trim());
-  const canSave = name.trim().length > 0 || filled.length > 0;
+  const pending = draft.title.trim() ? 1 : 0;
+  const filled = wins.length + pending;
+  const canSave = name.trim().length > 0 || filled > 0;
 
-  const setWin = (id: number, patch: Partial<Win>) =>
-    setWins((prev) => prev.map((w) => (w.id === id ? { ...w, ...patch } : w)));
+  const addWin = () => {
+    if (!draft.title.trim()) return;
+    setWins((prev) => [...prev, { ...draft, title: draft.title.trim(), id: Date.now() }]);
+    setDraft(EMPTY_WIN);
+    setWinOpen(false);
+  };
 
   const save = () => {
     if (!canSave) return;
     showToast(
       name.trim()
-        ? filled.length
-          ? `Saved with ${filled.length} accomplishment${filled.length > 1 ? "s" : ""}`
+        ? filled
+          ? `Saved with ${filled} accomplishment${filled > 1 ? "s" : ""}`
           : "Activity saved"
-        : `${filled.length} accomplishment${filled.length > 1 ? "s" : ""} saved`,
+        : `${filled} accomplishment${filled > 1 ? "s" : ""} saved`,
     );
     onSaved();
   };
@@ -212,56 +229,100 @@ export function ManualEntry({
             tint="bg-amber-soft text-amber"
           />
 
+          {/* Saved ones collapse to a row. An open form is one at a time:
+              a parent fills it, adds it, and only then sees the next, which
+              is what stops the screen growing into a wall of empty fields. */}
           {wins.map((w) => (
-            <div key={w.id} className="flex flex-col gap-3.5">
+            <div
+              key={w.id}
+              className="flex items-center gap-3 min-h-[56px] pl-1 pr-1 border-b border-hairline/70"
+            >
+              <Icon name="trophy" size={22} fill className="text-amber" />
+              <span className="flex-1 min-w-0 flex flex-col gap-0.5">
+                <span className="text-[15px] font-[600] text-ink truncate">{w.title}</span>
+                <span className="text-[13px] text-ink-soft truncate">
+                  {[w.when && fmtWhen(w.when), w.activity || w.category]
+                    .filter(Boolean)
+                    .join(" · ") || "No date set"}
+                </span>
+              </span>
+              <button
+                onClick={() => setWins((prev) => prev.filter((x) => x.id !== w.id))}
+                aria-label={`Remove ${w.title}`}
+                className="grid place-items-center w-10 h-10 shrink-0 rounded-full text-ink-soft active:bg-hairline/50 transition-colors"
+              >
+                <Icon name="close" size={20} />
+              </button>
+            </div>
+          ))}
+
+          {winOpen ? (
+            <div className="flex flex-col gap-3.5">
               <Field label="What happened?">
                 <input
-                  value={w.title}
-                  onChange={(e) => setWin(w.id, { title: e.target.value })}
+                  value={draft.title}
+                  onChange={(e) => setDraft({ ...draft, title: e.target.value })}
                   placeholder="e.g. Passed Grade 3 piano exam"
+                  autoFocus
                   className="h-[54px] w-full rounded-xl bg-surface border border-hairline px-3.5 text-[16px] text-ink outline-none focus:border-pine transition-colors"
                 />
               </Field>
               <Field label="When">
                 <input
-                  type="month"
-                  value={w.when}
-                  onChange={(e) => setWin(w.id, { when: e.target.value })}
-                  className="h-[54px] w-full rounded-xl bg-surface border border-hairline px-3 text-[15px] text-ink outline-none focus:border-pine transition-colors"
+                  type="date"
+                  value={draft.when}
+                  onChange={(e) => setDraft({ ...draft, when: e.target.value })}
+                  className="h-[54px] w-full rounded-xl bg-surface border border-hairline px-3.5 text-[15px] text-ink outline-none focus:border-pine transition-colors"
                 />
               </Field>
               <div className="grid grid-cols-2 gap-2.5">
                 <Field label="Activity · optional">
                   <Select
-                    value={w.activity}
-                    onChange={(v) => setWin(w.id, { activity: v })}
+                    value={draft.activity}
+                    onChange={(v) => setDraft({ ...draft, activity: v })}
                     placeholder={name.trim() ? name.trim() : "Select"}
                     options={existing.map((a) => a.name)}
                   />
                 </Field>
                 <Field label="Category · optional">
                   <Select
-                    value={w.category}
-                    onChange={(v) => setWin(w.id, { category: v })}
+                    value={draft.category}
+                    onChange={(v) => setDraft({ ...draft, category: v })}
                     placeholder="Select"
                     options={CATEGORIES}
                   />
                 </Field>
               </div>
+              <div className="flex gap-2.5">
+                <button
+                  onClick={addWin}
+                  disabled={!draft.title.trim()}
+                  className="h-11 px-5 rounded-[22px] bg-amber-soft text-amber-dark font-[600] text-[14px] disabled:opacity-40 active:scale-[0.98] transition-all"
+                >
+                  Add accomplishment
+                </button>
+                {wins.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setDraft(EMPTY_WIN);
+                      setWinOpen(false);
+                    }}
+                    className="h-11 px-4 rounded-[22px] text-ink-soft font-[600] text-[14px] active:bg-hairline/40 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
             </div>
-          ))}
-
-          <button
-            onClick={() =>
-              setWins((prev) => [
-                ...prev,
-                { id: Date.now(), title: "", when: "", activity: "", category: "" },
-              ])
-            }
-            className="self-start flex items-center gap-1.5 h-11 pl-3.5 pr-[18px] rounded-[22px] bg-surface border-[1.5px] border-amber text-amber-dark font-[600] text-[14px] active:scale-[0.98] transition-transform"
-          >
-            <Icon name="add" size={20} /> Add another accomplishment
-          </button>
+          ) : (
+            <button
+              onClick={() => setWinOpen(true)}
+              className="self-start flex items-center gap-1.5 h-11 pl-3.5 pr-[18px] rounded-[22px] bg-surface border-[1.5px] border-amber text-amber-dark font-[600] text-[14px] active:scale-[0.98] transition-transform"
+            >
+              <Icon name="add" size={20} />
+              {wins.length ? "Add another accomplishment" : "Add an accomplishment"}
+            </button>
+          )}
         </div>
       </div>
 

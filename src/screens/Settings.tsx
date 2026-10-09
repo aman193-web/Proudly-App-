@@ -30,7 +30,7 @@ export type SettingsTarget =
   /* The redesign's nav has four tabs, so these two screens are reached from
      Profile instead of from the bar. */
   | "achievements"
-  | "photos";
+;
 
 function SavedCoachesRow({ onClick }: { onClick: () => void }) {
   const count = useSavedCount();
@@ -391,18 +391,6 @@ export function ProfileTab({ onOpen }: { onOpen: (t: SettingsTarget) => void }) 
             Manage
           </button>
         </div>
-        <div className="flex items-center gap-3.5 min-h-[56px] pl-6 pr-4">
-          <Icon name="photo_library" size={22} className="w-10 shrink-0 text-pine" />
-          <span className="flex-1 min-w-0 text-[15px] font-[500] text-ink truncate">
-            {SOURCES.photos.account}
-          </span>
-          <button
-            onClick={() => onOpen("sources")}
-            className="h-10 px-3 rounded-full text-[13px] font-[600] text-rust active:bg-rust-soft transition-colors"
-          >
-            Manage
-          </button>
-        </div>
         <FlatAddRow label="Connect another account" onClick={() => onOpen("sources")} />
       </div>
 
@@ -412,11 +400,6 @@ export function ProfileTab({ onOpen }: { onOpen: (t: SettingsTarget) => void }) 
           icon={<Icon name="trophy" size={22} />}
           label="All accomplishments"
           onClick={() => onOpen("achievements")}
-        />
-        <FlatRow
-          icon={<Icon name="photo_library" size={22} />}
-          label="Photos & memories"
-          onClick={() => onOpen("photos")}
         />
       </div>
 
@@ -590,18 +573,16 @@ function Toggle({
 /* ============================================================= CONNECTED SOURCES */
 export function ConnectedSources({ onBack }: { onBack: () => void }) {
   const [calState, setCalState] = useState<"connected" | "reconnect">("connected");
-  const [photoState, setPhotoState] = useState<"connected" | "reconnect">("reconnect");
   const [autoSync, setAutoSync] = useState(true);
   const [calRange, setCalRange] = useState(DEFAULT_FETCH_RANGE);
-  const [photoRange, setPhotoRange] = useState(DEFAULT_FETCH_RANGE);
 
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Connected sources" onBack={onBack} />
       <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <p className="text-[13px] text-ink-soft mt-1 mb-4 leading-relaxed">
-          BragOn reads Google Calendar and Photos to build the activity journey. They stay
-          together and nothing is posted or shared.
+          BragOn reads your Google Calendar to build the activity journey. Nothing is
+          posted or shared.
         </p>
 
         <div className="space-y-3">
@@ -620,27 +601,6 @@ export function ConnectedSources({ onBack }: { onBack: () => void }) {
             onRangeChange={(r) => {
               setCalRange(r);
               showToast("Calendar history range updated");
-            }}
-          />
-          <SourceCard
-            kind="photos"
-            title="Google Photos"
-            purpose={
-              photoState === "connected"
-                ? `${SOURCES.photos.account} · Select more photos anytime`
-                : "Permission expired — reconnect to keep memories in sync."
-            }
-            state={photoState}
-            onAction={() => {
-              if (photoState === "reconnect") {
-                setPhotoState("connected");
-                showToast("Google Photos reconnected");
-              }
-            }}
-            range={photoRange}
-            onRangeChange={(r) => {
-              setPhotoRange(r);
-              showToast("Photos history range updated");
             }}
           />
         </div>
@@ -894,7 +854,6 @@ export function NotificationPrefs({ onBack }: { onBack: () => void }) {
   const [prefs, setPrefs] = useState({
     activities: true,
     achievements: true,
-    photos: true,
     connection: true,
   });
   const set = (k: keyof typeof prefs) => (v: boolean) => setPrefs((p) => ({ ...p, [k]: v }));
@@ -909,7 +868,6 @@ export function NotificationPrefs({ onBack }: { onBack: () => void }) {
         <div className="rounded-2xl bg-surface border border-hairline divide-y divide-hairline overflow-hidden">
           <Toggle label="New activities" desc="When we find activities to review" value={prefs.activities} onChange={set("activities")} />
           <Toggle label="Possible achievements" desc="When a moment looks like a milestone" value={prefs.achievements} onChange={set("achievements")} />
-          <Toggle label="Photos to review" desc="When photos need a quick check" value={prefs.photos} onChange={set("photos")} />
           <Toggle label="Connection issues" desc="When a source needs reconnecting" value={prefs.connection} onChange={set("connection")} />
         </div>
       </div>

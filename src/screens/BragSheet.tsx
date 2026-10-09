@@ -8,23 +8,17 @@ import {
   achievementsFor,
   achievementsForActivity,
   activitiesFor,
-  activityById,
   childById,
   fmtMonth,
 } from "../data";
 import {
   CAPP_CATEGORY,
   COUNSELOR_QUESTIONS,
-  awardLevel,
   cappDescribe,
   counselorDraft,
   gradeNumber,
   gradeStrip,
   monthsRun,
-  ucDescribe,
-  ucEarned,
-  ucEligibility,
-  workload,
 } from "../lib/bragDrafts";
 import { Icon } from "../components/Icon";
 
@@ -41,9 +35,7 @@ import { Icon } from "../components/Icon";
    The parent edits it in place; "Rewrite" asks for a different phrasing of the
    same facts, and once edited it offers to restore the original instead. */
 
-type Format = "uc" | "capp";
-
-/** Per-field edit state, keyed so UC and Common App drafts never collide. */
+/** Per-field edit state, keyed by what the field belongs to. */
 type FieldState = { text?: string; variant: number };
 
 export function BragSheet({
@@ -53,7 +45,6 @@ export function BragSheet({
   childId: ChildId;
   onSelectChild: (id: ChildId) => void;
 }) {
-  const [format, setFormat] = useState<Format>("uc");
   const [fields, setFields] = useState<Record<string, FieldState>>({});
 
   const child = childId === "all" ? CHILDREN[0] : (childById(childId) ?? CHILDREN[0]);
@@ -123,27 +114,6 @@ export function BragSheet({
           </div>
         )}
 
-        <div className="mt-2 self-start flex gap-[2px] p-[3px] rounded-[10px] bg-[#ecede8]">
-          {(
-            [
-              ["uc", "UC application"],
-              ["capp", "Common App"],
-            ] as [Format, string][]
-          ).map(([k, label]) => (
-            <button
-              key={k}
-              onClick={() => setFormat(k)}
-              aria-pressed={format === k}
-              className={`h-[26px] px-3 rounded-lg text-[12px] font-[600] transition-colors ${
-                format === k
-                  ? "bg-surface text-ink shadow-[0_1px_3px_rgba(0,0,0,0.12)]"
-                  : "text-ink-soft"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* The page */}
@@ -164,21 +134,12 @@ export function BragSheet({
           </span>
         </div>
 
-        {format === "uc" ? (
-          <UCFormat
-            acts={ranked}
-            wins={wins}
-            grade={grade}
-            field={field}
-          />
-        ) : (
-          <CommonAppFormat
-            acts={ranked}
-            grade={grade}
-            field={field}
-            counselor={(i, v) => counselorDraft(i, acts, wins, v)}
-          />
-        )}
+        <CommonAppFormat
+          acts={ranked}
+          grade={grade}
+          field={field}
+          counselor={(i, v) => counselorDraft(i, acts, wins, v)}
+        />
       </div>
 
       <div className="pt-3 px-6">
@@ -265,109 +226,6 @@ function DraftField({
         </button>
       </div>
     </>
-  );
-}
-
-/* ---------- UC application ---------- */
-function UCFormat({
-  acts,
-  wins,
-  grade,
-  field,
-}: {
-  acts: Activity[];
-  wins: Achievement[];
-  grade: number | null;
-  field: (key: string, draft: (v: number) => string) => Field;
-}) {
-  const awards = [...wins].sort(
-    (p, q) => q.date.y * 12 + q.date.m - (p.date.y * 12 + p.date.m),
-  );
-  const total = awards.length + acts.length;
-
-  return (
-    <>
-      <span className="pt-0.5 font-mono-doc text-[9.5px] text-ink-soft">
-        {Math.min(total, 20)} of 20 entries
-      </span>
-
-      <SectionBand title="AWARD OR HONOR" count={awards.length} />
-      {awards.map((w) => {
-        const a = activityById(w.activityId);
-        return (
-          <div key={w.id} className="pt-[9px] pb-2 flex flex-col gap-0.5 border-b border-ink">
-            <div className="flex items-start justify-between gap-2">
-              <span className="font-serif-doc text-[15px] leading-[1.25] font-[700] tracking-[-0.01em] text-ink">
-                {w.title}
-              </span>
-              <div className="pt-0.5">
-                <Grades cells={gradeStrip(grade, w.date, w.date)} />
-              </div>
-            </div>
-            <span className="text-[11.5px] text-ink-soft">
-              {[a?.name, fmtMonth(w.date)].filter(Boolean).join(" · ")}
-            </span>
-            <span className="font-mono-doc text-[9.5px] font-[600] text-[#3d413f]">
-              {awardLevel(w.title)} ·{" "}
-              {a && /Academic|STEM/.test(a.category) ? "Academic" : "Non-academic"}
-            </span>
-            <DraftField
-              label="Eligibility requirements"
-              limit={250}
-              field={field(`uc:${w.id}:elig`, (v) => ucEligibility(w, a, v))}
-            />
-            <DraftField
-              label="What you did to achieve it"
-              limit={250}
-              field={field(`uc:${w.id}:earn`, (v) => ucEarned(w, a, v))}
-            />
-          </div>
-        );
-      })}
-
-      <SectionBand title="EXTRACURRICULAR ACTIVITY" count={acts.length} />
-      {acts.map((a) => {
-        const { hoursPerWeek, weeksPerYear } = workload(a);
-        return (
-          <div key={a.id} className="pt-[9px] pb-2 flex flex-col gap-0.5 border-b border-ink">
-            <div className="flex items-start justify-between gap-2">
-              <span className="font-serif-doc text-[15px] leading-[1.25] font-[700] tracking-[-0.01em] text-ink">
-                {a.name}
-              </span>
-              <div className="pt-0.5">
-                <Grades
-                  cells={gradeStrip(grade, a.start, a.end === "present" ? undefined : a.end)}
-                />
-              </div>
-            </div>
-            <span className="text-[11.5px] text-ink-soft">
-              {fmtMonth(a.start)} – {a.end === "present" ? "present" : fmtMonth(a.end)}
-            </span>
-            <span className="font-mono-doc text-[9.5px] font-[600] text-[#3d413f]">
-              Hours/week {hoursPerWeek} · Weeks/year {weeksPerYear}
-            </span>
-            <DraftField
-              label="Describe the activity"
-              limit={350}
-              field={field(`uc:${a.id}:desc`, (v) =>
-                ucDescribe(a, achievementsForActivity(a.id), v),
-              )}
-            />
-          </div>
-        );
-      })}
-    </>
-  );
-}
-
-function SectionBand({ title, count }: { title: string; count: number }) {
-  return (
-    <div className="mt-2.5 px-2 py-[5px] rounded-[4px] bg-pine-soft flex items-center justify-between">
-      <span className="font-mono-doc text-[8.5px] font-[700] tracking-[0.09em] text-pine-dark">
-        {title}
-      </span>
-      <span className="font-mono-doc text-[8.5px] font-[700] text-pine-dark">{count}</span>
-    </div>
   );
 }
 

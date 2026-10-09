@@ -173,7 +173,6 @@ export type Activity = {
   /** What the app shows and uses. Equals suggestedLevel until a parent changes it. */
   currentLevel: ActivityLevel;
   levelSource: LevelSource;
-  memories: string[];
   history: { date: YM; label: string }[];
 };
 
@@ -190,11 +189,6 @@ export const ACTIVITIES: Activity[] = [
     suggestedLevel: "Champion",
     currentLevel: "Champion",
     levelSource: "proudly",
-    memories: [
-      "https://images.unsplash.com/photo-1577877777751-3f1ec20a0715?w=400&h=400&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1590581296894-3c897baa0e54?w=400&h=400&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1590581296900-2e7f7e86a1cd?w=400&h=400&fit=crop&auto=format",
-    ],
     history: [
       { date: { y: 2019, m: 9 }, label: "Started weekly lessons" },
       { date: { y: 2022, m: 5 }, label: "First spring recital" },
@@ -213,10 +207,6 @@ export const ACTIVITIES: Activity[] = [
     suggestedLevel: "Intermediate",
     currentLevel: "Intermediate",
     levelSource: "proudly",
-    memories: [
-      "https://images.unsplash.com/photo-1622659097509-4d56de14539e?w=400&h=400&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1622659097972-68f1d8c1829f?w=400&h=400&fit=crop&auto=format",
-    ],
     history: [
       { date: { y: 2021, m: 3 }, label: "Joined the junior league" },
       { date: { y: 2023, m: 3 }, label: "Regional tournament — Runner up" },
@@ -235,9 +225,6 @@ export const ACTIVITIES: Activity[] = [
     suggestedLevel: "Intermediate",
     currentLevel: "Intermediate",
     levelSource: "proudly",
-    memories: [
-      "https://images.unsplash.com/photo-1651614158095-b98b6c1da74b?w=400&h=400&fit=crop&auto=format",
-    ],
     history: [
       { date: { y: 2020, m: 1 }, label: "Learn-to-swim programme" },
       { date: { y: 2021, m: 8 }, label: "Regional meet — 2nd place, 50m free" },
@@ -254,9 +241,6 @@ export const ACTIVITIES: Activity[] = [
     suggestedLevel: "Intermediate",
     currentLevel: "Intermediate",
     levelSource: "proudly",
-    memories: [
-      "https://images.unsplash.com/photo-1632433796103-83acf2ae78b6?w=400&h=400&fit=crop&auto=format",
-    ],
     history: [{ date: { y: 2022, m: 9 }, label: "Joined the school choir" }],
   },
   {
@@ -270,10 +254,6 @@ export const ACTIVITIES: Activity[] = [
     suggestedLevel: "Intermediate",
     currentLevel: "Intermediate",
     levelSource: "proudly",
-    memories: [
-      "https://images.unsplash.com/photo-1681312206210-5f52c564d30d?w=400&h=400&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1558905566-ddbeb2fc2c2f?w=400&h=400&fit=crop&auto=format",
-    ],
     history: [
       { date: { y: 2023, m: 1 }, label: "Started ballet" },
       { date: { y: 2025, m: 6 }, label: "Summer showcase" },
@@ -290,9 +270,6 @@ export const ACTIVITIES: Activity[] = [
     suggestedLevel: "Beginner",
     currentLevel: "Beginner",
     levelSource: "proudly",
-    memories: [
-      "https://images.unsplash.com/photo-1512253080918-79cf0c2e0650?w=400&h=400&fit=crop&auto=format",
-    ],
     history: [{ date: { y: 2021, m: 9 }, label: "Joined after-school art club" }],
   },
   {
@@ -307,7 +284,6 @@ export const ACTIVITIES: Activity[] = [
     suggestedLevel: "Intermediate",
     currentLevel: "Intermediate",
     levelSource: "proudly",
-    memories: [],
     history: [
       { date: { y: 2025, m: 2 }, label: "Started weekend shifts at the local pet shop" },
     ],
@@ -323,9 +299,6 @@ export const ACTIVITIES: Activity[] = [
     suggestedLevel: "Intermediate",
     currentLevel: "Beginner",
     levelSource: "parent",
-    memories: [
-      "https://images.unsplash.com/photo-1714646793130-0dc0c5a04f64?w=400&h=400&fit=crop&auto=format",
-    ],
     history: [
       { date: { y: 2023, m: 9 }, label: "Joined chess club" },
       { date: { y: 2025, m: 2 }, label: "Club champion" },
@@ -342,9 +315,6 @@ export const ACTIVITIES: Activity[] = [
     suggestedLevel: "Intermediate",
     currentLevel: "Intermediate",
     levelSource: "proudly",
-    memories: [
-      "https://images.unsplash.com/photo-1742047654060-fcd0b0d06b7a?w=400&h=400&fit=crop&auto=format",
-    ],
     history: [
       { date: { y: 2024, m: 9 }, label: "Joined the robotics team" },
       { date: { y: 2025, m: 11 }, label: "State finals — Design award" },
@@ -362,9 +332,6 @@ export const ACTIVITIES: Activity[] = [
     suggestedLevel: "Intermediate",
     currentLevel: "Intermediate",
     levelSource: "proudly",
-    memories: [
-      "https://images.unsplash.com/photo-1636464808108-644053e72420?w=400&h=400&fit=crop&auto=format",
-    ],
     history: [{ date: { y: 2022, m: 9 }, label: "Started lessons" }],
   },
   {
@@ -378,9 +345,6 @@ export const ACTIVITIES: Activity[] = [
     suggestedLevel: "Intermediate",
     currentLevel: "Intermediate",
     levelSource: "proudly",
-    memories: [
-      "https://images.unsplash.com/photo-1655842556539-db2d2099ded1?w=400&h=400&fit=crop&auto=format",
-    ],
     history: [{ date: { y: 2023, m: 3 }, label: "Started gymnastics" }],
   },
   {
@@ -395,9 +359,6 @@ export const ACTIVITIES: Activity[] = [
     suggestedLevel: "Intermediate",
     currentLevel: "Learning",
     levelSource: "parent",
-    memories: [
-      "https://images.unsplash.com/photo-1536221993589-9edbbca2c7fc?w=400&h=400&fit=crop&auto=format",
-    ],
     history: [{ date: { y: 2021, m: 6 }, label: "First painting classes" }],
   },
 ];
@@ -410,7 +371,6 @@ export type Achievement = {
   title: string;
   date: YM;
   description?: string;
-  image?: string;
 };
 
 export const ACHIEVEMENTS: Achievement[] = [
@@ -422,8 +382,6 @@ export const ACHIEVEMENTS: Achievement[] = [
     date: { y: 2024, m: 5 },
     description:
       "Passed the Royal Conservatory Grade 3 examination with distinction, scoring 92 out of 100.",
-    image:
-      "https://images.unsplash.com/photo-1619159846911-3687cc9e9820?w=800&h=600&fit=crop&auto=format",
   },
   {
     id: "ach-piano-recital",
@@ -432,8 +390,6 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: "Spring Piano Recital",
     date: { y: 2022, m: 5 },
     description: "First solo performance in front of an audience at the community hall.",
-    image:
-      "https://images.unsplash.com/photo-1744829779302-40d24fdf83cc?w=800&h=600&fit=crop&auto=format",
   },
   {
     id: "ach-soccer-regional",
@@ -442,8 +398,6 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: "Regional Tournament — Runner Up",
     date: { y: 2023, m: 3 },
     description: "Team reached the regional final and finished second overall.",
-    image:
-      "https://images.unsplash.com/photo-1637635753233-b45f6539136d?w=800&h=600&fit=crop&auto=format",
   },
   {
     id: "ach-swim-meet",
@@ -468,8 +422,6 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: "State Finals — Design Award",
     date: { y: 2025, m: 11 },
     description: "Recognised for the best engineering design at the state robotics finals.",
-    image:
-      "https://images.unsplash.com/photo-1742767069929-0c663150b164?w=800&h=600&fit=crop&auto=format",
   },
   {
     id: "ach-a-gym",
@@ -484,25 +436,23 @@ export const ACHIEVEMENTS: Achievement[] = [
 /* ---------- Parent / account ---------- */
 export const PARENT = {
   name: "Sarah",
-  email: "parent@gmail.com",
+  email: "sarah.mitchell@gmail.com",
   photo:
     "https://images.unsplash.com/photo-1573497019707-1c04de26e58c?w=200&h=200&fit=crop&auto=format",
 };
 
-/* ---------- Connected sources ---------- */
+/* ---------- Connected sources ----------
+   Calendar only. Photos were cut from the Oct-1 redesign ("Photos removed
+   for the test run"), so there is nothing else to connect. */
 export const SOURCES = {
   calendar: {
-    account: "parent@gmail.com",
-    lastSync: "Today, 9:42 AM",
-  },
-  photos: {
-    account: "parent@gmail.com",
+    account: PARENT.email,
     lastSync: "Today, 9:42 AM",
   },
 };
 
 /* ---------- Notifications ---------- */
-export type NotifKind = "activities" | "achievement" | "photos" | "reconnect" | "sync";
+export type NotifKind = "activities" | "achievement" | "reconnect" | "sync";
 
 export type Notification = {
   id: string;
@@ -525,19 +475,10 @@ export const NOTIFICATIONS: Notification[] = [
     childId: "reet",
   },
   {
-    id: "n-photos",
-    kind: "photos",
-    title: "4 photos need a quick check",
-    body: "We matched them to activities but weren't fully sure.",
-    time: "5h ago",
-    read: false,
-    childId: "reet",
-  },
-  {
     id: "n-achievement",
     kind: "achievement",
     title: "We may have found a new achievement",
-    body: "A trophy photo from March looks like a soccer milestone.",
+    body: "A March calendar event looks like a soccer milestone.",
     time: "Yesterday",
     read: false,
     childId: "reet",
@@ -546,7 +487,7 @@ export const NOTIFICATIONS: Notification[] = [
     id: "n-reconnect",
     kind: "reconnect",
     title: "Reconnect Google Photos",
-    body: "Permission expired. Reconnect to keep memories in sync.",
+    body: "Permission expired. Reconnect to keep the calendar in sync.",
     time: "2 days ago",
     read: true,
   },
@@ -560,84 +501,7 @@ export const NOTIFICATIONS: Notification[] = [
   },
 ];
 
-/* ---------- Photo import candidates ---------- */
-// The post-connection flow: BragOn proposes a child + activity + date for each photo.
-export type PhotoCandidate = {
-  id: string;
-  url: string;
-  childId: string;
-  activityId: string;
-  date: YM;
-  confident: boolean; // false → needs your review
-  achievement?: string; // possible achievement title
-};
 
-export const PHOTO_CANDIDATES: PhotoCandidate[] = [
-  {
-    id: "p1",
-    url: "https://images.unsplash.com/photo-1629977007371-0ba395424741?w=600&h=600&fit=crop&auto=format",
-    childId: "reet",
-    activityId: "soccer",
-    date: { y: 2023, m: 3 },
-    confident: true,
-    achievement: "Regional Tournament — Runner Up",
-  },
-  {
-    id: "p2",
-    url: "https://images.unsplash.com/photo-1680024436315-fb06267264b2?w=600&h=600&fit=crop&auto=format",
-    childId: "reet",
-    activityId: "soccer",
-    date: { y: 2023, m: 3 },
-    confident: true,
-  },
-  {
-    id: "p3",
-    url: "https://images.unsplash.com/photo-1475275166152-f1e8005f9854?w=600&h=600&fit=crop&auto=format",
-    childId: "reet",
-    activityId: "piano",
-    date: { y: 2024, m: 5 },
-    confident: false,
-  },
-  {
-    id: "p4",
-    url: "https://images.unsplash.com/photo-1685339009948-d807094b1457?w=600&h=600&fit=crop&auto=format",
-    childId: "reet",
-    activityId: "ballet",
-    date: { y: 2025, m: 6 },
-    confident: false,
-  },
-];
-
-/* ---------- Memory helpers ---------- */
-// A flattened memory tied back to its activity + child, for the memories views.
-export type Memory = {
-  url: string;
-  activityId: string;
-  activityName: string;
-  childId: string;
-  category: Category;
-  date: YM;
-};
-
-export function memoriesFor(childId: string | "all"): Memory[] {
-  const out: Memory[] = [];
-  for (const a of activitiesFor(childId)) {
-    a.memories.forEach((url, i) => {
-      // Spread memory dates across the activity's span for a believable chronology.
-      const endY = a.end === "present" ? TODAY.y : a.end.y;
-      const y = Math.min(a.start.y + i, endY);
-      out.push({
-        url,
-        activityId: a.id,
-        activityName: a.name,
-        childId: a.childId,
-        category: a.category,
-        date: { y, m: a.start.m },
-      });
-    });
-  }
-  return out.sort((p, q) => dec(q.date) - dec(p.date));
-}
 
 /* ---------- Lookups ---------- */
 export const activitiesFor = (childId: string | "all") =>
