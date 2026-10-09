@@ -496,12 +496,6 @@ function Home({
   const child = childById(childId);
   const first = child?.name ?? "Your child";
 
-  /* The prototype's row meta: category, level, span. */
-  const metaFor = (a: Activity) =>
-    `${a.category} · ${levelStateOf(a).current} · ${a.start.y} – ${
-      a.end === "present" ? "present" : a.end.y
-    }`;
-
   return (
     <div className="flex-1 overflow-y-auto scroll-area flex flex-col pb-28">
       {/* Glassy action bar — sits over the content as it scrolls */}
@@ -598,19 +592,20 @@ function Home({
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-[15px] font-[600] text-ink truncate">{a.name}</span>
-                <span className="block text-[12px] text-ink-soft truncate">{metaFor(a)}</span>
               </span>
             </button>
-            {a.category === "Volunteering" && (
-              <button
-                onClick={() => onLogHours(a)}
-                aria-label={`Log hours for ${a.name}`}
-                className="grid place-items-center w-9 h-9 shrink-0 rounded-full text-pine active:bg-pine-soft transition-colors"
-              >
-                <Icon name="more_time" size={21} />
-              </button>
-            )}
-            <NoteButton id={a.id} title={a.name} seed={a.note} />
+            <div className="w-9 shrink-0 flex flex-col items-center">
+              {a.category === "Volunteering" && (
+                <button
+                  onClick={() => onLogHours(a)}
+                  aria-label={`Log hours for ${a.name}`}
+                  className="grid place-items-center w-9 h-9 rounded-full text-pine active:bg-pine-soft transition-colors"
+                >
+                  <Icon name="more_time" size={21} />
+                </button>
+              )}
+              <NoteButton id={a.id} title={a.name} seed={a.note} />
+            </div>
             {/* The prototype's shimmering "Find support" — the app's coach finder */}
             <button
               onClick={() => onFindSupport(a)}
@@ -856,16 +851,18 @@ function Activities({
                       {levelStateOf(a).current}
                     </span>
                   </button>
-                  {a.category === "Volunteering" && (
-                    <button
-                      onClick={() => onLogHours(a)}
-                      aria-label={`Log hours for ${a.name}`}
-                      className="grid place-items-center w-9 h-9 shrink-0 rounded-full text-pine active:bg-pine-soft transition-colors"
-                    >
-                      <Icon name="more_time" size={21} />
-                    </button>
-                  )}
-                  <NoteButton id={a.id} title={a.name} seed={a.note} />
+                  <div className="w-9 shrink-0 flex flex-col items-center">
+                    {a.category === "Volunteering" && (
+                      <button
+                        onClick={() => onLogHours(a)}
+                        aria-label={`Log hours for ${a.name}`}
+                        className="grid place-items-center w-9 h-9 rounded-full text-pine active:bg-pine-soft transition-colors"
+                      >
+                        <Icon name="more_time" size={21} />
+                      </button>
+                    )}
+                    <NoteButton id={a.id} title={a.name} seed={a.note} />
+                  </div>
                   <button
                     onClick={() => onFindSupport(a)}
                     className="brag-shine shrink-0 h-8 pl-[9px] pr-3 rounded-full text-white font-[600] text-[12px] flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition-transform"

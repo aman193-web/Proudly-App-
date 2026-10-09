@@ -563,7 +563,7 @@ export function BragSheet({
         </button>
         <button
           onClick={() => showToast("Portfolio exported")}
-          className="flex-[1.3] h-[52px] rounded-2xl bg-teal text-white font-[600] text-[15px] flex items-center justify-center gap-2 shadow-[0_10px_24px_-10px_rgba(33,124,114,0.7)] active:scale-[0.98] transition-transform"
+          className="flex-[1.3] h-[52px] rounded-2xl bg-teal text-white font-[600] text-[15px] flex items-center justify-center gap-2 shadow-[0_10px_24px_-10px_rgba(36,100,79,0.7)] active:scale-[0.98] transition-transform"
         >
           <Icon name="download" size={18} /> Export PDF
         </button>

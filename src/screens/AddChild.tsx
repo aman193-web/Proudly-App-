@@ -46,6 +46,7 @@ export function AddChild({
   onContinue: (name: string) => void;
 }) {
   const [kids, setKids] = useState<Kid[]>([]);
+  const [formOpen, setFormOpen] = useState(true);
   const [draft, setDraft] = useState(EMPTY);
   const [croppedUrl, setCroppedUrl] = useState<string | null>(null);
   const [rawSrc, setRawSrc] = useState<string | null>(null);
@@ -153,11 +154,13 @@ export function AddChild({
     ]);
     setDraft(EMPTY);
     setCroppedUrl(null);
+    setFormOpen(false);
   };
 
   const removeKid = (id: number) => {
     setKids((prev) => {
       const next = prev.filter((k) => k.id !== id);
+      if (!next.length) setFormOpen(true);
       return next;
     });
   };
@@ -214,7 +217,8 @@ export function AddChild({
         )}
 
         {/* Inline form for the child being added */}
-                  <motion.div
+        {formOpen ? (
+          <motion.div
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
@@ -325,7 +329,19 @@ export function AddChild({
               Save child
             </button>
           </motion.div>
-
+        ) : (
+          /* With a child saved, the form folds away behind one control —
+             most parents add one and move on. */
+          <button
+            onClick={() => setFormOpen(true)}
+            className="flex items-center gap-3.5 min-h-[56px] text-pine font-[600] text-[16px] text-left"
+          >
+            <span className="grid place-items-center w-10 h-10 shrink-0 rounded-full border-[1.5px] border-dashed border-[#a7c1b9]">
+              <Icon name="add" size={22} />
+            </span>
+            Add another child
+          </button>
+        )}
       </div>
 
       <div className="shrink-0 px-6 pt-3 pb-5">

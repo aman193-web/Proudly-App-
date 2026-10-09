@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Calendar, CalendarDays, UserPlus } from "lucide-react";
 import { Icon } from "../components/Icon";
-import { Screen, AppHeader } from "../components/ui";
+import { AppleGlyph, GoogleGlyph, Screen, AppHeader } from "../components/ui";
 import { PARENT } from "../data";
 
 /* Connect — Oct-1 redesign.
@@ -17,27 +16,29 @@ import { PARENT } from "../data";
 
 export type ConnectChoice = "this-google" | "other-google" | "apple" | "manual";
 
+/* The brand each row connects to, rather than a generic calendar glyph —
+   which account this is is the whole question the screen asks. */
 const OPTIONS: {
   id: Exclude<ConnectChoice, "manual">;
-  icon: typeof Calendar;
+  brand: "google" | "apple";
   title: string;
   sub: string;
 }[] = [
   {
     id: "this-google",
-    icon: Calendar,
+    brand: "google",
     title: `Use ${PARENT.email}`,
     sub: "Your signed-in Google account",
   },
   {
     id: "other-google",
-    icon: UserPlus,
+    brand: "google",
     title: "Connect another Google account",
     sub: "Partner or shared family calendar",
   },
   {
     id: "apple",
-    icon: CalendarDays,
+    brand: "apple",
     title: "Connect Apple Calendar",
     sub: "iCloud calendar on this phone",
   },
@@ -67,7 +68,6 @@ export function ConnectSources({
         <div className="flex flex-col">
           {OPTIONS.map((o) => {
             const on = o.id === choice;
-            const Icon = o.icon;
             return (
               <button
                 key={o.id}
@@ -77,10 +77,10 @@ export function ConnectSources({
               >
                 <span
                   className={`grid place-items-center w-11 h-11 rounded-[14px] shrink-0 transition-colors ${
-                    on ? "bg-pine-soft text-pine" : "bg-[#f3f4f1] text-ink-soft"
+                    on ? "bg-pine-soft" : "bg-[#f3f4f1]"
                   }`}
                 >
-                  <Icon size={24} />
+                  {o.brand === "google" ? <GoogleGlyph size={22} /> : <AppleGlyph size={22} />}
                 </span>
                 <span className="flex-1 min-w-0 flex flex-col gap-0.5">
                   <span className="text-[16px] font-[600] text-ink">{o.title}</span>

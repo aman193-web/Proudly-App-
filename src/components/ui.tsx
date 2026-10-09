@@ -106,7 +106,7 @@ export function PrimaryButton({
       onClick={onClick}
       disabled={disabled}
       className={`h-14 w-full rounded-full bg-teal text-white font-sans font-[600] text-[16px] tracking-tight
-        shadow-[0_10px_24px_-10px_rgba(33,124,114,0.7)]
+        shadow-[0_10px_24px_-10px_rgba(36,100,79,0.7)]
         active:scale-[0.985] transition-all duration-150
         disabled:opacity-40 disabled:shadow-none ${className}`}
     >

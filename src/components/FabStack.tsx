@@ -35,7 +35,7 @@ export function FabStack({
         <button
           onClick={onAdd}
           aria-label={addLabel}
-          className="w-14 h-14 rounded-full grid place-items-center bg-teal text-white shadow-[0_12px_28px_-8px_rgba(33,124,114,0.7)] active:scale-95 transition-transform"
+          className="w-14 h-14 rounded-full grid place-items-center bg-teal text-white shadow-[0_12px_28px_-8px_rgba(36,100,79,0.7)] active:scale-95 transition-transform"
         >
           <Icon name="add" size={26} />
         </button>
@@ -49,7 +49,7 @@ export function FabStack({
           aria-hidden
           className="absolute -inset-1.5 rounded-full pointer-events-none"
           style={{
-            background: "radial-gradient(circle, rgba(33,124,114,0.5) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(36,100,79,0.5) 0%, transparent 70%)",
             animation: "proudlyGlow 2.4s ease-in-out infinite",
           }}
         />

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Icon } from "./Icon";
 import { Sheet } from "./Sheet";
-import { type Activity, type Category, childById } from "../data";
+import { type Activity, childById } from "../data";
 
 /* Find support — Oct-1 redesign.
    -----------------------------
@@ -22,46 +22,56 @@ const KIND_ICON: Record<PickKind, string> = {
   Gear: "shopping_bag",
 };
 
-/* Two or three things worth doing next, per category. */
-const SUGGESTIONS: Partial<Record<Category, [PickKind, string, string][]>> = {
-  "Music & Performance": [
-    ["Coach", "Private teacher, 1.4 mi", "Graded exam prep · from $45/hr"],
-    ["Competition", "Spring recital auditions", "Entries close in 3 weeks"],
-    ["Camp", "Summer music intensive", "Two weeks in July · day camp"],
-  ],
-  "Sports & Athletics": [
-    ["Coach", "Skills coach, 2.1 mi", "Small-group sessions · from $30"],
-    ["Competition", "Regional league trials", "Open for this age group"],
-    ["Camp", "Half-term skills camp", "Three days · all abilities"],
-  ],
-  "Dance & Theater": [
-    ["Coach", "Technique class, 1.8 mi", "Weekly · all levels"],
-    ["Competition", "Youth showcase", "Applications open now"],
-    ["Camp", "Summer stage school", "One week · ages 8–14"],
-  ],
-  "Arts & Crafts": [
-    ["Coach", "Studio class, 0.9 mi", "Portfolio building · weekly"],
-    ["Competition", "District art show", "Submissions open in May"],
-    ["Gear", "Student materials set", "Recommended for this level"],
-  ],
-  "STEM & Robotics": [
-    ["Competition", "Regional robotics meet", "Team entries open"],
+/* The prototype's own suggestion table, keyed by what the activity is. Three
+   per activity, each naming something specific and dated — a generic "find a
+   coach" is what the fallback is for. */
+const SUGGESTIONS: [RegExp, [PickKind, string, string][]][] = [
+  [/art|paint|draw|pottery/i, [
+    ["Coach", "Portfolio mentoring with a working illustrator", "1:1 · online · from $45"],
+    ["Competition", "Regional Young Artists Showcase", "Entries due Dec 12"],
+    ["Camp", "Summer studio intensive", "Jun 22 – Jul 17 · 4 weeks"],
+  ]],
+  [/dance|ballet/i, [
+    ["Coach", "Private ballet technique sessions", "2 studios within 5 mi"],
+    ["Competition", "Spring youth dance championship", "Registration opens Jan 8"],
+    ["Camp", "Summer dance intensive", "July · audition by video"],
+  ]],
+  [/piano|keyboard|violin|guitar|cello|band/i, [
+    ["Coach", "Piano teacher for intermediate students", "3 teachers within 4 mi"],
+    ["Competition", "Young pianists festival", "Winter round · Feb 21"],
+    ["Gear", "Upgrade to a weighted 88-key keyboard", "From $499"],
+  ]],
+  [/choir|chorus|voice|sing/i, [
+    ["Coach", "Vocal coach, musical theatre focus", "1:1 · from $50"],
+    ["Competition", "All-county honor choir auditions", "Auditions Nov 15"],
+    ["Camp", "Summer musical theatre camp", "2 weeks · July"],
+  ]],
+  [/debate|speech|quiz/i, [
+    ["Coach", "Debate coach for novice competitors", "Online · weekly"],
+    ["Competition", "Fall invitational tournament", "Nov 7–8 · 12 mi away"],
+    ["Camp", "Summer debate institute", "3 weeks · residential"],
+  ]],
+  [/soccer|football|basketball|tennis|swim|track/i, [
+    ["Coach", "Small-group skills training", "Saturdays · 3 mi away"],
+    ["Competition", "Club team tryouts", "Winter tryouts Dec 6"],
+    ["Camp", "Summer soccer camp", "Day camp · June"],
+  ]],
+  [/volunteer|shelter|pet shop/i, [
+    ["Camp", "Junior volunteer program at the animal shelter", "Ages 12+ · weekends"],
+    ["Competition", "Community service award nomination", "Nominations due Jan 31"],
+    ["Coach", "Pre-vet mentorship sessions", "Online · monthly"],
+  ]],
+  [/robot|science|code|chess/i, [
+    ["Coach", "Mentor sessions with a team alum", "Online · weekly"],
+    ["Competition", "Regional qualifier", "Team entries open"],
     ["Camp", "Build week", "Five days · bring a laptop"],
-    ["Coach", "Mentor sessions", "Online · weekly"],
-  ],
-  Academics: [
-    ["Coach", "Subject tutor, 1.2 mi", "Weekly · exam focused"],
-    ["Competition", "Regional tournament", "Registration open"],
-  ],
-  Volunteering: [
-    ["Coach", "Volunteer coordinator", "More weekend shifts available"],
-    ["Competition", "Community service award", "Nominations open in spring"],
-  ],
-};
+  ]],
+];
 
 const FALLBACK: [PickKind, string, string][] = [
-  ["Coach", "Local instructors", "Search what's near you"],
-  ["Camp", "Holiday programmes", "Short courses in the area"],
+  ["Coach", "Find a local coach or mentor", "Matched to their level"],
+  ["Competition", "Upcoming local competitions", "Next 3 months"],
+  ["Camp", "Summer programs", "Registration opening soon"],
 ];
 
 export function SupportSheet({
@@ -78,7 +88,7 @@ export function SupportSheet({
   const [chat, setChat] = useState<{ me: boolean; text: string }[]>([]);
 
   const picks = activity
-    ? (SUGGESTIONS[activity.category] ?? FALLBACK)
+    ? (SUGGESTIONS.find(([re]) => re.test(activity.name))?.[1] ?? FALLBACK)
     : FALLBACK;
   const child = activity ? childById(activity.childId) : undefined;
 
@@ -108,10 +118,8 @@ export function SupportSheet({
             </span>
             <h3 className="font-[700] text-[22px] leading-[1.2] tracking-[-0.02em] text-ink">
               {activity.name}
+              {child ? ` for ${child.name}` : ""}
             </h3>
-            <span className="text-[13px] text-ink-soft">
-              Coaches, competitions and camps picked for {child?.name ?? "them"}
-            </span>
           </div>
 
           <div className="mt-1 -mx-4 flex flex-col">

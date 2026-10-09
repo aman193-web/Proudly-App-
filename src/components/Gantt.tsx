@@ -245,7 +245,7 @@ export function GanttChart({
                       ? "linear-gradient(90deg,#217c72,#2f9c8f)"
                       : "#c3d0cb",
                     boxShadow: ongoing
-                      ? "0 4px 10px -4px rgba(33,124,114,0.55)"
+                      ? "0 4px 10px -4px rgba(36,100,79,0.55)"
                       : "inset 0 0 0 1px rgba(23,35,33,0.04)",
                     WebkitMaskImage: mask,
                     maskImage: mask,

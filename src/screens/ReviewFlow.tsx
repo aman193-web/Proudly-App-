@@ -121,6 +121,40 @@ export function ReviewMatched({
             </div>
           );
         })}
+
+        {/* The events the scan could not attribute. They are listed here so
+            the parent can see the whole haul at once, but they cannot be
+            accepted until someone says whose they are — that is step 2, which
+            is what tapping one jumps to. */}
+        {UNNAMED.length > 0 && (
+          <div className="mt-2 pt-3.5 pb-1.5 flex flex-col">
+            <div className="px-6 pb-1.5 flex items-center gap-2.5">
+              <span className="grid place-items-center w-7 h-7 rounded-full bg-[#eceee9] text-ink-soft">
+                <Icon name="help" size={16} />
+              </span>
+              <span className="flex-1 text-[14px] font-[600] text-ink">Other</span>
+              <span className="text-[13px] font-[500] text-ink-soft">
+                0 of {UNNAMED.length}
+              </span>
+            </div>
+            {UNNAMED.map((u) => (
+              <button
+                key={u.id}
+                onClick={onAccept}
+                className="flex items-center gap-4 min-h-[60px] px-6 text-left"
+              >
+                <span className="grid place-items-center w-6 h-6 shrink-0 rounded-md border-2 border-[#c9ccc7]" />
+                <span className="flex-1 min-w-0 flex flex-col gap-0.5">
+                  <span className="text-[16px] font-[500] text-ink">{u.name}</span>
+                  <span className="text-[13px] text-ink-soft">
+                    {u.range} · no name in the event
+                  </span>
+                </span>
+                <Icon name="chevron_right" size={20} className="text-[#9aa09c]" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="shrink-0 px-6 pt-3 pb-5 flex flex-col gap-2">
@@ -229,7 +263,7 @@ export function AllSet({
     <Screen>
       <div className="flex-1 overflow-y-auto scroll-area px-6 pt-12 pb-4 flex flex-col gap-5">
         <span className="grid place-items-center w-16 h-16 rounded-full bg-pine-soft text-pine">
-          <Icon name="check_circle" size={34} />
+          <Icon name="check_circle" size={34} fill />
         </span>
 
         <div className="flex flex-col gap-2">
