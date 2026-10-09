@@ -8,7 +8,7 @@ import {
   ImageUp,
   Loader2,
   Sparkles,
-  Trash2,
+  X,
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
@@ -175,8 +175,11 @@ export function AddChild({
     });
   };
 
+  /* Exactly the prototype's composition: the grade carries a " grade" suffix,
+     the birth date stays in the raw ISO form it was entered as. */
   const metaFor = (k: Kid) =>
-    [k.grade, k.dob ? new Date(k.dob).getFullYear() : null].filter(Boolean).join(" \u00b7 ") || "No grade yet";
+    [k.grade && `${k.grade} grade`, k.dob && `Born ${k.dob}`].filter(Boolean).join(" · ") ||
+    "No grade set";
 
   return (
     <Screen>
@@ -217,7 +220,7 @@ export function AddChild({
                     aria-label={`Remove ${k.first}`}
                     className="grid place-items-center w-11 h-11 rounded-full text-ink-soft active:bg-hairline/50 transition-colors shrink-0"
                   >
-                    <Trash2 size={18} />
+                    <X size={20} />
                   </button>
                 </div>
               );
@@ -258,7 +261,16 @@ export function AddChild({
                 ) : dragging ? (
                   <ImageUp size={24} className="text-pine" />
                 ) : (
-                  <Camera size={24} className="text-pine" />
+                  /* Stands in for Material Symbols' add_a_photo until the icon
+                     set is swapped: camera with a small plus badge. */
+                  <span className="relative grid place-items-center text-pine">
+                    <Camera size={24} />
+                    <Plus
+                      size={11}
+                      strokeWidth={3.5}
+                      className="absolute -top-0.5 -right-1.5"
+                    />
+                  </span>
                 )}
               </button>
               <div>
