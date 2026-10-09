@@ -26,33 +26,62 @@ export function Screen({ children }: { children: ReactNode }) {
   );
 }
 
+/* Screen header — Oct-1 redesign.
+   -------------------------------
+   A bare row (back arrow left, step or action right) with the title below it,
+   large and left-aligned. Replaces the centred 17px title.
+
+   The title stays on this component rather than moving into each screen's
+   body: every screen already routes its title through here, so all 22 call
+   sites pick up the new treatment without being touched. Screens that also
+   carry their own heading drop it instead.
+
+   Horizontal padding stays px-4 rather than the prototype's 24px so the title
+   lines up with body content everywhere; the wider gutter is a separate
+   spacing pass, not something to do one screen at a time. */
 export function AppHeader({
   title,
   onBack,
   trailing,
+  step,
 }: {
   title?: string;
   onBack?: () => void;
   trailing?: ReactNode;
+  /** Right-aligned progress label, e.g. "Step 1 of 3". */
+  step?: string;
 }) {
   return (
-    <div className="shrink-0 pt-12 px-4 pb-2 flex items-center gap-3">
-      {onBack ? <BackButton onClick={onBack} /> : <span className="w-10" />}
-      <h2 className="flex-1 text-center font-display text-[17px] font-[600] text-ink">
-        {title}
-      </h2>
-      {trailing ?? <span className="w-10" />}
+    <div className="shrink-0 pt-12">
+      <div className="h-14 px-3 flex items-center">
+        {onBack ? <BackButton onClick={onBack} /> : <span className="w-12" />}
+        <div className="flex-1" />
+        {step && (
+          <span className="text-[13px] font-[500] text-ink-soft pr-2 whitespace-nowrap">
+            {step}
+          </span>
+        )}
+        {trailing}
+      </div>
+      {title && (
+        <h1 className="px-4 pb-2 font-[700] text-[28px] leading-[1.15] tracking-[-0.02em] text-ink">
+          {title}
+        </h1>
+      )}
     </div>
   );
 }
 
+/* Bare arrow, no circle chrome — the prototype's back control is a 48px tap
+   target that only tints on press. */
 export function BackButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="grid place-items-center w-10 h-10 rounded-full bg-surface border border-hairline text-ink active:scale-95 transition-transform"
+      aria-label="Back"
+      className="grid place-items-center w-12 h-12 rounded-full text-ink active:bg-hairline/50 transition-colors"
     >
-      <ArrowLeft size={19} strokeWidth={2.2} />
+      <ArrowLeft size={22} strokeWidth={2.2} />
     </button>
   );
 }

@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Camera,
+  Plus,
   Check,
   ChevronDown,
   ImageUp,
@@ -11,12 +12,41 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
-import { Screen, AppHeader, PrimaryButton, TextField } from "../components/ui";
-import { StepDots } from "../components/StepDots";
+import { Screen, AppHeader, PrimaryButton } from "../components/ui";
 
-const GRADES = ["Pre-K", "Kindergarten", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7", "Grade 8"];
+const GRADES = ["Pre-K", "K", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th", "11th", "12th"];
 const CIRCLE = 240;
 const MAX_BYTES = 12 * 1024 * 1024;
+
+/* Your kids — step 1 of onboarding.
+   ---------------------------------
+   Rebuilt from the Oct-1 prototype, whose note reads "Add several kids in one
+   pass: name, grade, optional birth date + photo". The old screen collected
+   one child and moved on; a parent with two or three had no way through
+   without repeating the whole flow later.
+
+   Saved kids are plain rows, not cards — the prototype drops boxes around list
+   rows throughout. The photo control and its cropper are the existing ones,
+   kept as-is: the prototype only sketches a placeholder there, and losing a
+   working cropper to match a sketch would be a step backwards. */
+
+type Kid = {
+  id: number;
+  first: string;
+  last: string;
+  grade: string;
+  dob: string;
+  photo: string | null;
+};
+
+const EMPTY = { first: "", last: "", grade: "", dob: "", photo: null as string | null };
+
+/* Cycles the three brand colours so siblings are told apart at a glance. */
+const TINTS = [
+  { soft: "bg-pine-soft", text: "text-pine" },
+  { soft: "bg-amber-soft", text: "text-amber-dark" },
+  { soft: "bg-rust-soft", text: "text-rust" },
+];
 
 export function AddChild({
   onBack,
@@ -25,18 +55,17 @@ export function AddChild({
   onBack: () => void;
   onContinue: (name: string) => void;
 }) {
-  const [name, setName] = useState("");
-  const [nickname, setNickname] = useState("");
-  const [age, setAge] = useState("");
-  const [grade, setGrade] = useState("");
+  const [kids, setKids] = useState<Kid[]>([]);
+  const [draft, setDraft] = useState(EMPTY);
+  const [formOpen, setFormOpen] = useState(true);
   const [croppedUrl, setCroppedUrl] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
   const [rawSrc, setRawSrc] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [reading, setReading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const imgNatRef = useRef<{ w: number; h: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const seq = useRef(0);
 
   const openFilePicker = () => fileRef.current?.click();
 
@@ -81,7 +110,6 @@ export function AddChild({
     e.target.value = "";
   };
 
-  /* Paste an image straight onto the step. */
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {
       const file = Array.from(e.clipboardData?.files ?? [])[0];
@@ -126,244 +154,224 @@ export function AddChild({
     [rawSrc],
   );
 
+  const canSave = draft.first.trim().length > 0;
+
+  const saveChild = () => {
+    if (!canSave) return;
+    setKids((prev) => [
+      ...prev,
+      { ...draft, first: draft.first.trim(), last: draft.last.trim(), photo: croppedUrl, id: ++seq.current },
+    ]);
+    setDraft(EMPTY);
+    setCroppedUrl(null);
+    setFormOpen(false);
+  };
+
+  const removeKid = (id: number) => {
+    setKids((prev) => {
+      const next = prev.filter((k) => k.id !== id);
+      if (next.length === 0) setFormOpen(true);
+      return next;
+    });
+  };
+
+  const metaFor = (k: Kid) =>
+    [k.grade, k.dob ? new Date(k.dob).getFullYear() : null].filter(Boolean).join(" \u00b7 ") || "No grade yet";
+
   return (
     <Screen>
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
 
-      <AppHeader title="Add your child" onBack={onBack} />
-      <div className="flex-1 px-4 pt-3 flex flex-col overflow-y-auto scroll-area">
-        <StepDots total={3} current={0} />
+      <AppHeader title="Your kids" onBack={onBack} step="Step 1 of 3" />
 
-        <h1 className="font-display text-[25px] font-[700] text-ink leading-tight mt-5">
-          Who are we celebrating?
-        </h1>
-        <p className="text-[15px] text-ink-soft mt-1">
-          You can add more children anytime later.
-        </p>
+      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-4 flex flex-col gap-5">
+        {/* Saved kids — rows, no boxes */}
+        {kids.length > 0 && (
+          <div className="flex flex-col">
+            {kids.map((k, i) => {
+              const tint = TINTS[i % TINTS.length];
+              return (
+                <div key={k.id} className="flex items-center gap-3.5 min-h-[60px]">
+                  {k.photo ? (
+                    <img
+                      src={k.photo}
+                      alt=""
+                      decoding="async"
+                      className="w-10 h-10 rounded-full object-cover shrink-0"
+                    />
+                  ) : (
+                    <span
+                      className={`grid place-items-center w-10 h-10 rounded-full shrink-0 font-[700] text-[15px] ${tint.soft} ${tint.text}`}
+                    >
+                      {k.first.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[16px] font-[600] text-ink truncate">
+                      {[k.first, k.last].filter(Boolean).join(" ")}
+                    </p>
+                    <p className="text-[13px] text-ink-soft truncate">{metaFor(k)}</p>
+                  </div>
+                  <button
+                    onClick={() => removeKid(k.id)}
+                    aria-label={`Remove ${k.first}`}
+                    className="grid place-items-center w-11 h-11 rounded-full text-ink-soft active:bg-hairline/50 transition-colors shrink-0"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
-        {/* Photo control — tap, drop or paste */}
-        <div
-          className="flex flex-col items-center mt-7"
-          onDragEnter={(e) => {
-            e.preventDefault();
-            setDragging(true);
-          }}
-          onDragOver={(e) => e.preventDefault()}
-          onDragLeave={(e) => {
-            // Ignore bubbling from children so the ring doesn't flicker.
-            if (e.currentTarget.contains(e.relatedTarget as Node)) return;
-            setDragging(false);
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            setDragging(false);
-            ingest(e.dataTransfer.files?.[0]);
-          }}
-        >
-          <motion.button
-            onClick={openFilePicker}
-            disabled={reading}
-            aria-label={croppedUrl ? "Change your child's photo" : "Add a photo of your child"}
-            animate={{ scale: dragging ? 1.06 : 1 }}
-            transition={{ type: "spring", stiffness: 400, damping: 26 }}
-            className="relative rounded-full active:scale-95 transition-transform outline-none focus-visible:ring-4 focus-visible:ring-teal/25"
+        {/* Inline form for the child being added */}
+        {formOpen ? (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col gap-3.5"
           >
-            <div
-              className={`w-[112px] h-[112px] rounded-full overflow-hidden grid place-items-center transition-colors ${
-                croppedUrl
-                  ? "bg-mint border-2 border-teal/40"
-                  : dragging
-                    ? "bg-mint border-2 border-teal"
-                    : "bg-mint border-2 border-dashed border-teal/35"
-              }`}
-            >
-              {reading ? (
-                <Loader2 size={26} className="text-teal-dark/70 animate-spin" />
-              ) : croppedUrl ? (
-                <motion.img
-                  key={croppedUrl}
-                  src={croppedUrl}
-                  alt="Your child"
-                  initial={{ opacity: 0, scale: 1.08 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                  className="size-full object-cover"
-                />
-              ) : dragging ? (
-                <ImageUp size={30} className="text-teal" strokeWidth={1.8} />
-              ) : (
-                <Camera size={30} className="text-teal-dark/70" strokeWidth={1.8} />
-              )}
+            <div className="flex items-center gap-3.5">
+              <button
+                onClick={openFilePicker}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragging(true);
+                }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragging(false);
+                  ingest(e.dataTransfer.files?.[0]);
+                }}
+                aria-label={croppedUrl ? "Change photo" : "Add a photo"}
+                className={`grid place-items-center w-16 h-16 rounded-full border-[1.5px] border-dashed overflow-hidden shrink-0 transition-colors ${
+                  dragging ? "border-pine bg-pine-soft" : "border-pine/40 bg-surface"
+                }`}
+              >
+                {reading ? (
+                  <Loader2 size={22} className="animate-spin text-pine" />
+                ) : croppedUrl ? (
+                  <img src={croppedUrl} alt="" className="size-full object-cover" />
+                ) : dragging ? (
+                  <ImageUp size={24} className="text-pine" />
+                ) : (
+                  <Camera size={24} className="text-pine" />
+                )}
+              </button>
+              <div>
+                <p className="text-[15px] font-[500] text-ink">
+                  {croppedUrl ? "Photo added" : "Add a photo"}
+                </p>
+                <p className="text-[13px] text-ink-soft">Optional</p>
+              </div>
             </div>
 
-            {!reading && (
-              <span className="absolute -bottom-0.5 -right-0.5 grid place-items-center w-9 h-9 rounded-full bg-teal text-white border-[3px] border-canvas">
-                {croppedUrl ? <Check size={16} strokeWidth={3} /> : <Camera size={16} />}
-              </span>
-            )}
-          </motion.button>
+            {error && <p className="text-[12.5px] text-rust">{error}</p>}
 
-          {/* Helper line / error / post-upload actions */}
-          <div className="mt-4 min-h-[62px] flex flex-col items-center justify-start">
-            <AnimatePresence mode="wait">
-              {error ? (
-                <motion.p
-                  key="err"
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="text-[12.5px] font-[500] text-[#c0504a] bg-[#fbeceb] border border-[#e2b6b0] rounded-full px-3 py-1.5 text-center max-w-[280px]"
-                >
-                  {error}
-                </motion.p>
-              ) : croppedUrl ? (
-                <motion.div
-                  key="actions"
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="flex items-center gap-2"
-                >
-                  <button
-                    onClick={openFilePicker}
-                    className="flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-surface border border-hairline text-[13px] font-[600] text-ink active:scale-95 transition-transform"
+            <div className="grid grid-cols-2 gap-2.5">
+              <Field label="First name">
+                <input
+                  value={draft.first}
+                  onChange={(e) => setDraft({ ...draft, first: e.target.value })}
+                  placeholder="Reet"
+                  className="h-[52px] w-full rounded-xl bg-surface border border-hairline px-3.5 text-[16px] text-ink outline-none focus:border-pine transition-colors"
+                />
+              </Field>
+              <Field label="Last name">
+                <input
+                  value={draft.last}
+                  onChange={(e) => setDraft({ ...draft, last: e.target.value })}
+                  placeholder="Singh"
+                  className="h-[52px] w-full rounded-xl bg-surface border border-hairline px-3.5 text-[16px] text-ink outline-none focus:border-pine transition-colors"
+                />
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              <Field label="Grade">
+                <div className="relative">
+                  <select
+                    value={draft.grade}
+                    onChange={(e) => setDraft({ ...draft, grade: e.target.value })}
+                    className="h-[52px] w-full appearance-none rounded-xl bg-surface border border-hairline pl-3.5 pr-9 text-[16px] text-ink outline-none focus:border-pine transition-colors"
                   >
-                    <Camera size={14} /> Change
-                  </button>
-                  <button
-                    onClick={() => {
-                      setCroppedUrl(null);
-                      setError(null);
-                    }}
-                    className="flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-surface border border-hairline text-[13px] font-[600] text-[#c0504a] active:scale-95 transition-transform"
-                  >
-                    <Trash2 size={14} /> Remove
-                  </button>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="hint"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex flex-col items-center"
-                >
-                  {/* Icon sits inline so it rides the first line instead of
-                      floating beside the wrapped block. */}
-                  <p className="text-[13.5px] leading-[1.4] text-ink-soft text-center text-balance max-w-[254px]">
-                    <Sparkles
-                      size={13}
-                      className="inline align-middle mr-1 -mt-px text-gold"
-                    />
-                    A photo helps BragOn find your child in your memories.
-                  </p>
-                  <p
-                    className={`text-[11.5px] font-[500] tracking-[0.01em] mt-1.5 transition-colors ${
-                      dragging ? "text-teal" : "text-ink-soft/60"
-                    }`}
-                  >
-                    {dragging ? "Drop to upload" : "Tap, drop or paste an image"}
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
+                    <option value="">Select</option>
+                    {GRADES.map((g) => (
+                      <option key={g} value={g}>
+                        {g}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={18}
+                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft"
+                  />
+                </div>
+              </Field>
+              <Field label="Birth date · optional">
+                <input
+                  type="date"
+                  value={draft.dob}
+                  onChange={(e) => setDraft({ ...draft, dob: e.target.value })}
+                  className="h-[52px] w-full rounded-xl bg-surface border border-hairline px-3 text-[15px] text-ink outline-none focus:border-pine transition-colors"
+                />
+              </Field>
+            </div>
 
-        <div className="mt-7 space-y-4">
-          <TextField label="First name" value={name} onChange={setName} placeholder="e.g. Reet" />
-
-          {/* Nickname, optional — what the family actually calls them. */}
-          <div>
-            <TextField
-              label="Nickname"
-              value={nickname}
-              onChange={setNickname}
-              placeholder="Optional"
-            />
-            <p className="text-[12px] text-ink-soft mt-1.5 ml-0.5">
-              Optional · what you'll see around the app
-            </p>
-          </div>
-
-          {/* Grade selector */}
-          <div className="relative">
-            <span className="block text-[13px] font-[500] text-ink-soft mb-1.5 ml-0.5">Grade</span>
             <button
-              onClick={() => setOpen((o) => !o)}
-              className={`h-[52px] w-full rounded-2xl bg-surface px-4 flex items-center justify-between border transition-colors ${
-                open ? "border-teal ring-4 ring-teal/10" : "border-hairline"
-              }`}
+              onClick={saveChild}
+              disabled={!canSave}
+              className="self-start h-11 px-6 rounded-full bg-pine-soft text-pine-dark font-[600] text-[14px] disabled:opacity-40 active:scale-[0.98] transition-all"
             >
-              <span className={`text-[16px] ${grade ? "text-ink" : "text-ink-soft/60"}`}>
-                {grade || "Select grade"}
-              </span>
-              <ChevronDown
-                size={18}
-                className={`text-ink-soft transition-transform ${open ? "rotate-180" : ""}`}
-              />
+              Save child
             </button>
-            {open && (
-              <motion.div
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute z-20 mt-2 inset-x-0 bg-surface rounded-2xl border border-hairline shadow-[0_20px_40px_-16px_rgba(23,35,33,0.28)] p-1.5 max-h-56 overflow-y-auto scroll-area"
-              >
-                {GRADES.map((g) => (
-                  <button
-                    key={g}
-                    onClick={() => {
-                      setGrade(g);
-                      setOpen(false);
-                    }}
-                    className={`w-full text-left px-3 h-10 rounded-xl text-[15px] flex items-center justify-between active:bg-canvas ${
-                      grade === g ? "text-teal font-[600] bg-mint/60" : "text-ink"
-                    }`}
-                  >
-                    {g}
-                    {grade === g && <Check size={16} className="text-teal" />}
-                  </button>
-                ))}
-              </motion.div>
-            )}
-          </div>
+          </motion.div>
+        ) : (
+          <button
+            onClick={() => setFormOpen(true)}
+            className="flex items-center gap-3.5 min-h-[56px] text-pine font-[600] text-[16px] text-left"
+          >
+            <span className="grid place-items-center w-10 h-10 rounded-full border-[1.5px] border-dashed border-pine/40 shrink-0">
+              <Plus size={22} />
+            </span>
+            Add another child
+          </button>
+        )}
+      </div>
 
-          {/* Age, optional. Level suggestions simply skip the age ceiling when
-              it is missing, so there is nothing to block onboarding on. */}
-          <div>
-            <TextField
-              label="Age"
-              type="number"
-              value={age}
-              onChange={(v) => setAge(v.replace(/\D/g, "").slice(0, 2))}
-              placeholder="Optional"
-            />
-            <p className="text-[12px] text-ink-soft mt-1.5 ml-0.5">
-              {age ? `${age} years old · helps us pitch activity levels` : "Optional · helps us pitch activity levels"}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-auto pt-8 pb-6">
-          <PrimaryButton onClick={() => onContinue(name || "Reet")} disabled={!name}>
-            Continue
-          </PrimaryButton>
-        </div>
+      <div className="shrink-0 px-4 pt-3 pb-5">
+        <PrimaryButton
+          onClick={() => onContinue(kids[0]?.first ?? draft.first.trim())}
+          disabled={kids.length === 0}
+        >
+          Continue
+        </PrimaryButton>
       </div>
 
       <AnimatePresence>
-        {rawSrc && imgNatRef.current && (
+        {rawSrc && (
           <CropModal
-            key="crop"
             src={rawSrc}
-            natW={imgNatRef.current.w}
-            natH={imgNatRef.current.h}
-            onConfirm={handleConfirmCrop}
+            natW={imgNatRef.current?.w ?? 1}
+            natH={imgNatRef.current?.h ?? 1}
             onCancel={() => setRawSrc(null)}
+            onConfirm={handleConfirmCrop}
           />
         )}
       </AnimatePresence>
     </Screen>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="flex flex-col gap-1.5 min-w-0">
+      <span className="text-[13px] font-[500] text-ink-soft">{label}</span>
+      {children}
+    </label>
   );
 }
 
@@ -509,3 +517,4 @@ function CropModal({
     </motion.div>
   );
 }
+

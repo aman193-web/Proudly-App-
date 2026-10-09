@@ -10,7 +10,6 @@ import {
   Trophy,
 } from "lucide-react";
 import { Screen, AppHeader, PrimaryButton } from "../components/ui";
-import { StepDots } from "../components/StepDots";
 import { Sheet } from "../components/Sheet";
 import { CategoryIcon } from "../components/CategoryIcon";
 import { CATEGORY_COLOR, CATEGORY_SHORT, type Category } from "../data";
@@ -307,15 +306,16 @@ export function Review({
 
   return (
     <Screen>
-      <AppHeader title="Review" onBack={onBack} trailing={<SkipButton onClick={onDone} />} />
+      <AppHeader
+        title="Here's what we found"
+        onBack={onBack}
+        step="Step 3 of 3"
+        trailing={<SkipButton onClick={onDone} />}
+      />
 
       {/* Fixed intro — kept short so the list gets the height */}
       <div className="shrink-0 px-4 pt-3">
-        <StepDots total={3} current={2} />
-        <h1 className="font-display text-[22px] font-[700] text-ink leading-tight mt-5">
-          Here's what we found
-        </h1>
-        <p className="text-[13.5px] text-ink-soft mt-1 leading-snug">
+        <p className="text-[13.5px] text-ink-soft leading-snug">
           Everything is selected. The ones we're unsure about are listed
           separately — check those before accepting.
         </p>

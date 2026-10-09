@@ -65,16 +65,11 @@ export function SignIn({
   const [pw, setPw] = useState("");
   return (
     <Screen>
-      <AppHeader title="Sign in" onBack={onBack} />
+      <AppHeader title="Welcome back" onBack={onBack} />
       <div className="flex-1 overflow-y-auto scroll-area px-4 pt-4 flex flex-col">
-        <div>
-          <h1 className="font-display text-[26px] font-[700] text-ink leading-tight">
-            Welcome back
-          </h1>
-          <p className="text-[15px] text-ink-soft mt-1">
-            One tap with Google or Apple, or use your email.
-          </p>
-        </div>
+        <p className="text-[15px] text-ink-soft">
+          One tap with Google or Apple, or use your email.
+        </p>
 
         {/* Social first */}
         <div className="mt-6 space-y-3">
@@ -146,16 +141,11 @@ export function CreateAccount({
 
   return (
     <Screen>
-      <AppHeader title="Create account" onBack={onBack} />
+      <AppHeader title="Let's get set up" onBack={onBack} />
       <div className="flex-1 overflow-y-auto scroll-area px-4 pt-4 flex flex-col">
-        <div>
-          <h1 className="font-display text-[26px] font-[700] text-ink leading-tight">
-            Let's get set up
-          </h1>
-          <p className="text-[15px] text-ink-soft mt-1">
-            One tap with Google or Apple — no password to remember.
-          </p>
-        </div>
+        <p className="text-[15px] text-ink-soft">
+          One tap with Google or Apple — no password to remember.
+        </p>
 
         <div className="mt-8 space-y-3">
           <GoogleButton onClick={() => onDone(name)} />

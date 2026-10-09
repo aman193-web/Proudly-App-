@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
 import { Screen, AppHeader, PrimaryButton, TextLink } from "../components/ui";
-import { StepDots } from "../components/StepDots";
 import { SourceCard, type SourceState } from "../components/SourceCard";
 import { DEFAULT_FETCH_RANGE } from "../components/FetchRange";
 
@@ -30,14 +29,9 @@ export function ConnectSources({
 
   return (
     <Screen>
-      <AppHeader title="Connect sources" onBack={onBack} />
+      <AppHeader title="Where should we look?" onBack={onBack} step="Step 2 of 3" />
       <div className="flex-1 px-4 pt-3 flex flex-col overflow-y-auto scroll-area">
-        <StepDots total={3} current={1} />
-
-        <h1 className="font-display text-[25px] font-[700] text-ink leading-tight mt-5">
-          Where should we look?
-        </h1>
-        <p className="text-[15px] text-ink-soft mt-1 pr-2">
+        <p className="text-[15px] text-ink-soft pr-2">
           Connect at least one source so we can start building {childName}'s history.
         </p>
 
