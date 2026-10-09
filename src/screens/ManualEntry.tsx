@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Icon } from "../components/Icon";
 import { Screen } from "../components/ui";
 import { showToast } from "../components/states";
-import { CATEGORIES, CHILDREN, type Category, activitiesFor } from "../data";
+import { CATEGORIES, CHILDREN, type Category, activitiesFor, activityById } from "../data";
 
 /* Manual entry — Oct-1 redesign.
    -----------------------------
@@ -42,19 +42,30 @@ const fmtWhen = (iso: string) => {
 export function ManualEntry({
   onClose,
   onSaved,
+  /* An existing activity turns this into the edit screen. Editing used to
+     have a form of its own; keeping one layout means a field added here is
+     a field you can edit, with no second screen to remember. */
+  editId,
 }: {
   onClose: () => void;
   onSaved: () => void;
+  editId?: string;
 }) {
-  const [childId, setChildId] = useState(CHILDREN[0]?.id ?? "");
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState<string>("");
-  const [started, setStarted] = useState("");
-  const [cadence, setCadence] = useState(CADENCES[0]);
+  const editing = editId ? activityById(editId) : undefined;
+
+  const [childId, setChildId] = useState(editing?.childId ?? CHILDREN[0]?.id ?? "");
+  const [name, setName] = useState(editing?.name ?? "");
+  const [category, setCategory] = useState<string>(editing?.category ?? "");
+  const [started, setStarted] = useState(
+    editing ? `${editing.start.y}-${String(editing.start.m).padStart(2, "0")}` : "",
+  );
+  const [cadence, setCadence] = useState(
+    editing?.sessionsPerWeek && editing.sessionsPerWeek >= 2 ? CADENCES[1] : CADENCES[0],
+  );
   const [wins, setWins] = useState<Win[]>([]);
   /* Open to start with: a parent who came here to record a win should not
      have to find a button first. It closes once the first one is added. */
-  const [winOpen, setWinOpen] = useState(true);
+  const [winOpen, setWinOpen] = useState(!editing);
   const [draft, setDraft] = useState(EMPTY_WIN);
 
   const child = CHILDREN.find((c) => c.id === childId);
@@ -72,6 +83,11 @@ export function ManualEntry({
 
   const save = () => {
     if (!canSave) return;
+    if (editing) {
+      showToast("Activity updated");
+      onSaved();
+      return;
+    }
     showToast(
       name.trim()
         ? filled
@@ -99,14 +115,16 @@ export function ManualEntry({
       <div className="flex-1 overflow-y-auto scroll-area px-6 pt-1 pb-4 flex flex-col gap-[18px]">
         <div className="flex flex-col gap-1">
           <h2 className="font-[700] text-[28px] leading-[1.15] tracking-[-0.02em] text-ink">
-            Add to {child?.name ?? "their"}'s journey
+            {editing ? "Edit activity" : `Add to ${child?.name ?? "their"}'s journey`}
           </h2>
           <span className="text-[14px] text-ink-soft">
-            Activities, accomplishments, or both
+            {editing
+              ? `${child?.name ?? "Their"}'s record — change anything below`
+              : "Activities, accomplishments, or both"}
           </span>
         </div>
 
-        {CHILDREN.length > 1 && (
+        {CHILDREN.length > 1 && !editing && (
           <div className="flex flex-col gap-2">
             <span className="text-[13px] font-[500] text-ink-soft">For</span>
             <div className="flex flex-wrap gap-2">
@@ -162,6 +180,7 @@ export function ManualEntry({
           />
         </Field>
 
+        {!editing && (
         <div className="-mt-1.5 flex flex-col gap-2">
           <span className="text-[12px] font-[500] text-ink-soft">Popular</span>
           <div className="flex flex-wrap gap-2">
@@ -182,6 +201,7 @@ export function ManualEntry({
             })}
           </div>
         </div>
+        )}
 
         <div className="grid grid-cols-2 gap-2.5">
           <Field label="Category">
@@ -332,7 +352,7 @@ export function ManualEntry({
           disabled={!canSave}
           className="h-14 w-full rounded-[28px] bg-pine text-white font-[600] text-[16px] disabled:bg-[#a7c1b9] active:scale-[0.98] transition-all"
         >
-          Save
+          {editing ? "Save changes" : "Save"}
         </button>
       </div>
     </Screen>

@@ -135,7 +135,7 @@ export function NearbySection({
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center gap-2 pt-4 pl-6 pr-4">
+      <div className="flex items-center gap-2 pt-4 px-4">
         <span className="text-[13px] font-[600] tracking-[0.04em] text-ink-soft uppercase whitespace-nowrap">
           Nearby for {childName}
         </span>
@@ -157,7 +157,7 @@ export function NearbySection({
 
       <div className="py-1 flex flex-col">
         {listings.map((l) => (
-          <div key={l.name} className="px-6 py-3 flex flex-col gap-[3px]">
+          <div key={l.name} className="px-4 py-3 flex flex-col gap-[3px]">
             <span className="text-[16px] leading-[1.25] font-[600] text-ink">{l.name}</span>
             <div className="flex flex-wrap items-center gap-1 text-[13px] text-ink-soft">
               <span>{l.rating}</span>

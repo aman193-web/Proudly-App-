@@ -207,8 +207,7 @@ export function MainApp({
           onEdit={(id) => push({ kind: "editActivity", id })}
           onOpenAchievement={openAchievement}
           onAddAchievement={(activityId) => push({ kind: "addAchievement", activityId })}
-          onConnectCoach={(activityId) => push({ kind: "coachFinder", activityId })}
-          onAskProudly={(activityId: string) => openAsk(activityId)}
+          onFindSupport={setSupportFor}
           onLogHours={setHoursFor}
         />
       )}
@@ -222,7 +221,9 @@ export function MainApp({
           onBack={pop}
         />
       )}
-      {o.kind === "editActivity" && <EditActivity id={o.id} onBack={pop} />}
+      {o.kind === "editActivity" && (
+        <ManualEntry editId={o.id} onClose={pop} onSaved={pop} />
+      )}
       {o.kind === "achievementDetail" && (
         <AchievementDetail
           id={o.id}
@@ -485,7 +486,7 @@ function Home({
     <div className="flex-1 overflow-y-auto scroll-area flex flex-col pb-28">
       {/* Glassy action bar — sits over the content as it scrolls */}
       <div
-        className="sticky top-0 z-20 flex items-center gap-2 pl-4 pr-3 pt-[46px] pb-1.5"
+        className="sticky top-0 z-20 flex items-center gap-2 px-4 pt-[46px] pb-1.5"
         style={{
           background: "color-mix(in srgb, var(--color-cream) 55%, transparent)",
           backdropFilter: "blur(20px) saturate(1.5)",
@@ -526,7 +527,7 @@ function Home({
       </div>
 
       {/* Title + sync state + kid chips */}
-      <div className="px-6 pt-2.5 flex flex-col gap-1">
+      <div className="px-4 pt-2.5 flex flex-col gap-1">
         <h2 className="font-[700] text-[32px] leading-[1.1] tracking-[-0.03em] text-ink">
           {first}'s journey
         </h2>
@@ -539,7 +540,7 @@ function Home({
            thing worth doing is adding the first activity by hand. */
         <button
           onClick={onAddActivity}
-          className="mt-4 flex items-center gap-3.5 min-h-16 pl-6 pr-5 text-left border-y transition-colors"
+          className="mt-4 flex items-center gap-3.5 min-h-16 px-4 text-left border-y transition-colors"
           style={{ background: "#f0f4f2", borderColor: "rgba(36,100,79,0.15)" }}
         >
           <Icon name="add_circle" size={24} fill className="text-pine" />
@@ -556,7 +557,7 @@ function Home({
       ) : (
       <button
         onClick={onOpenNotifications}
-        className="mt-4 flex items-center gap-3.5 min-h-16 pl-6 pr-5 text-left border-y transition-colors"
+        className="mt-4 flex items-center gap-3.5 min-h-16 px-4 text-left border-y transition-colors"
         style={{
           background: "#fbf5ea",
           borderColor: "rgba(217,140,18,0.15)",
@@ -575,7 +576,7 @@ function Home({
       )}
 
       {/* Hero numbers */}
-      <div className="mt-[18px] px-6 flex gap-10">
+      <div className="mt-[18px] px-4 flex gap-10">
         <div className="flex flex-col gap-0.5">
           <span className="font-[700] text-[34px] leading-none tracking-[-0.02em] text-pine">
             {acts.length}
@@ -593,7 +594,7 @@ function Home({
       <SectionLabel label="Activities" onAdd={onAddActivity} addLabel="Add activity" />
       <div className="py-1">
         {acts.map((a) => (
-          <div key={a.id} className="flex items-center gap-3 pl-6 pr-4">
+          <div key={a.id} className="flex items-center gap-3 px-4">
             <button
               onClick={() => onTapActivity(a)}
               className="flex-1 flex items-center gap-3 min-h-[66px] min-w-0 text-left"
@@ -605,7 +606,7 @@ function Home({
                 <span className="block text-[15px] font-[600] text-ink truncate">{a.name}</span>
               </span>
             </button>
-            <div className="w-9 shrink-0 flex flex-col items-center">
+            <div className="shrink-0 flex items-center">
               <button
                 onClick={() => onLogHours(a)}
                 aria-label={`Log hours for ${a.name}`}
@@ -630,7 +631,7 @@ function Home({
       <SectionLabel label="Accomplishments" onAdd={onAddAchievement} addLabel="Add accomplishment" />
       <div className="flex flex-col">
         {achs.map((w) => (
-          <div key={w.id} className="flex items-center gap-3.5 min-h-[62px] px-6">
+          <div key={w.id} className="flex items-center gap-3.5 min-h-[62px] px-4">
             <button
               onClick={() => onOpenAchievement(w.id)}
               className="flex-1 min-w-0 flex items-center gap-3.5 text-left"
@@ -664,7 +665,7 @@ function SectionLabel({
   addLabel: string;
 }) {
   return (
-    <div className="flex items-center justify-between pt-4 px-6">
+    <div className="flex items-center justify-between pt-4 px-4">
       <span className="text-[13px] font-[600] tracking-[0.04em] text-ink-soft uppercase whitespace-nowrap">
         {label}
       </span>
@@ -860,7 +861,7 @@ function Activities({
                       {levelStateOf(a).current}
                     </span>
                   </button>
-                  <div className="w-9 shrink-0 flex flex-col items-center">
+                  <div className="shrink-0 flex items-center">
                     <button
                       onClick={() => onLogHours(a)}
                       aria-label={`Log hours for ${a.name}`}
@@ -1081,8 +1082,7 @@ function ActivityDetail({
   onEdit,
   onOpenAchievement,
   onAddAchievement,
-  onConnectCoach,
-  onAskProudly,
+  onFindSupport,
   onLogHours,
 }: {
   id: string;
@@ -1090,8 +1090,7 @@ function ActivityDetail({
   onEdit: (id: string) => void;
   onOpenAchievement: (id: string) => void;
   onAddAchievement: (activityId: string) => void;
-  onConnectCoach: (activityId: string) => void;
-  onAskProudly: (activityId: string) => void;
+  onFindSupport: (a: Activity) => void;
   onLogHours: (a: Activity) => void;
 }) {
   const activity = activityById(id)!;
@@ -1170,8 +1169,7 @@ function ActivityDetail({
           <NextLevelCard
             activity={activity}
             onChangeLevel={() => setLevelSheet(true)}
-            onAskProudly={() => onAskProudly(id)}
-            onConnectCoach={() => onConnectCoach(id)}
+            onFindSupport={() => onFindSupport(activity)}
           />
         </div>
 
@@ -1409,161 +1407,6 @@ function AddActivity({
         open={catSheet}
         onClose={() => setCatSheet(false)}
         value={category ?? "all"}
-        onSelect={(c) => c !== "all" && setCategory(c)}
-      />
-    </div>
-  );
-}
-
-function EditActivity({ id, onBack }: { id: string; onBack: () => void }) {
-  const activity = activityById(id)!;
-  const [name, setName] = useState(activity.name);
-  const [category, setCategory] = useState<Category>(activity.category);
-  const [childId, setChildId] = useState(activity.childId);
-  const [ongoing, setOngoing] = useState(activity.end === "present");
-  const [note, setNote] = useState(activity.note ?? "");
-  const [showDanger, setShowDanger] = useState(false);
-  const [childSheet, setChildSheet] = useState(false);
-  const [catSheet, setCatSheet] = useState(false);
-
-  return (
-    <div className="size-full flex flex-col bg-canvas">
-      <AppHeader title="Edit activity" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
-        <Field label="Activity name">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="h-[52px] w-full rounded-2xl bg-surface px-4 text-[16px] text-ink border border-hairline outline-none focus:border-teal focus:ring-4 focus:ring-teal/10 transition"
-          />
-        </Field>
-
-        <Field label="Child">
-          <PickerRow
-            value={childById(childId)?.name ?? ""}
-            onClick={() => setChildSheet(true)}
-            avatar={childById(childId)?.photo}
-          />
-        </Field>
-
-        <Field label="Category">
-          <PickerRow
-            value={category}
-            dot={CATEGORY_COLOR[category]}
-            onClick={() => setCatSheet(true)}
-          />
-        </Field>
-
-        <div className="mb-4">
-          <LevelChooserRow activity={activity} />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Start date">
-            <div className="h-[52px] rounded-2xl bg-surface px-4 border border-hairline flex items-center gap-2 text-[15px] text-ink">
-              <Calendar size={16} className="text-ink-soft" />
-              {fmtMonth(activity.start)}
-            </div>
-          </Field>
-          <Field label="End date">
-            <div
-              className={`h-[52px] rounded-2xl px-4 border flex items-center gap-2 text-[15px] ${
-                ongoing
-                  ? "bg-canvas border-hairline text-ink-soft/60"
-                  : "bg-surface border-hairline text-ink"
-              }`}
-            >
-              <Calendar size={16} className="text-ink-soft" />
-              {ongoing ? "—" : activity.end === "present" ? "—" : fmtMonth(activity.end)}
-            </div>
-          </Field>
-        </div>
-
-        {/* Ongoing toggle */}
-        <button
-          onClick={() => setOngoing((o) => !o)}
-          className="w-full mt-1 flex items-center justify-between rounded-2xl bg-surface border border-hairline p-4"
-        >
-          <div className="text-left">
-            <p className="text-[15px] font-[600] text-ink">Ongoing</p>
-            <p className="text-[12.5px] text-ink-soft">Still an active activity</p>
-          </div>
-          <span
-            className={`w-12 h-7 rounded-full p-0.5 transition-colors ${
-              ongoing ? "bg-teal" : "bg-hairline"
-            }`}
-          >
-            <motion.span
-              layout
-              className="block w-6 h-6 rounded-full bg-white shadow"
-              style={{ marginLeft: ongoing ? 20 : 0 }}
-            />
-          </span>
-        </button>
-
-        <Field label="Notes" className="mt-4">
-          <textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            rows={3}
-            placeholder="Add a memory or context…"
-            className="w-full rounded-2xl bg-surface px-4 py-3 text-[15px] text-ink border border-hairline outline-none focus:border-teal focus:ring-4 focus:ring-teal/10 transition resize-none placeholder:text-ink-soft/60"
-          />
-        </Field>
-
-        {/* Progressive disclosure: uncommon actions */}
-        <button
-          onClick={() => setShowDanger((s) => !s)}
-          className="mt-2 text-[13px] font-[600] text-ink-soft active:opacity-60"
-        >
-          {showDanger ? "Hide" : "More"} options
-        </button>
-        <AnimatePresence>
-          {showDanger && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="mt-3 space-y-2.5">
-                <button className="w-full flex items-center gap-3 rounded-2xl bg-surface border border-hairline p-4 text-left">
-                  <span className="grid place-items-center w-9 h-9 rounded-xl bg-canvas text-ink-soft">
-                    <BarChart3 size={17} />
-                  </span>
-                  <div>
-                    <p className="text-[14.5px] font-[600] text-ink">Merge duplicate</p>
-                    <p className="text-[12px] text-ink-soft">Combine with another activity</p>
-                  </div>
-                </button>
-                <button className="w-full flex items-center gap-3 rounded-2xl bg-surface border border-[#e2b6b0] p-4 text-left">
-                  <span className="grid place-items-center w-9 h-9 rounded-xl bg-[#fbeceb] text-[#c0504a]">
-                    <Icon name="delete" size={17} />
-                  </span>
-                  <div>
-                    <p className="text-[14.5px] font-[600] text-[#c0504a]">Delete activity</p>
-                    <p className="text-[12px] text-ink-soft">Remove this from the timeline</p>
-                  </div>
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-      <div className="shrink-0 px-6 pt-3 pb-8 border-t border-hairline bg-canvas">
-        <PrimaryButton onClick={onBack}>Save changes</PrimaryButton>
-      </div>
-
-      <ChildSheet
-        open={childSheet}
-        onClose={() => setChildSheet(false)}
-        childId={childId}
-        onSelect={(id) => setChildId(id as string)}
-      />
-      <CategorySheet
-        open={catSheet}
-        onClose={() => setCatSheet(false)}
-        value={category}
         onSelect={(c) => c !== "all" && setCategory(c)}
       />
     </div>

@@ -81,12 +81,12 @@ export function BragSheet({
 
   return (
     <div className="pb-28">
-      <div className="pt-[52px] px-6 pb-1.5 flex flex-col">
+      <div className="pt-[52px] px-6 pb-3 flex flex-col">
         <h2 className="font-[700] text-[30px] leading-[1.1] tracking-[-0.025em] text-ink">
           Brag sheet
         </h2>
         {CHILDREN.length > 1 && (
-          <div className="flex flex-wrap gap-1.5 pt-1.5">
+          <div className="flex flex-wrap gap-1.5 pt-3">
             {CHILDREN.map((k) => {
               const on = k.id === child.id;
               return (

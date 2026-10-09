@@ -222,30 +222,38 @@ export function SupportSheet({
                   >
                     {m.text}
                   </span>
+                  {/* Same shape as Home's nearby listings — a parent reads
+                      one local business the same way wherever it appears. */}
                   {m.coaches?.map((c) => (
                     <a
                       key={c.id}
                       href={c.googleUrl}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="flex items-center gap-3 px-3.5 py-3 rounded-[18px] bg-white/70 border border-white active:scale-[0.99] transition-transform"
+                      className="flex items-start gap-3 px-3.5 py-3 rounded-[18px] bg-white/70 border border-white active:scale-[0.99] transition-transform"
                     >
-                      <Icon name="school" size={24} className="text-pine" />
-                      <span className="flex-1 min-w-0 flex flex-col gap-0.5">
-                        <span className="text-[15px] font-[600] text-ink truncate">
+                      <span className="flex-1 min-w-0 flex flex-col gap-[3px]">
+                        <span className="text-[16px] leading-[1.25] font-[600] text-ink">
                           {c.name}
                         </span>
-                        <span className="flex items-center gap-1 text-[13px] text-ink-soft">
+                        <span className="flex flex-wrap items-center gap-1 text-[13px] text-ink-soft">
                           <span>{c.rating.toFixed(1)}</span>
                           <span className="tracking-[-1px] text-[#e3a21a]">★★★★★</span>
-                          <span className="truncate">
-                            ({c.reviewCount})
-                            {c.distanceMi != null ? ` · ${c.distanceMi.toFixed(1)} mi` : ""}
+                          <span>
+                            ({c.reviewCount}) · {c.activity}
                           </span>
                         </span>
-                        <span className="text-[13px] text-ink-soft truncate">{c.location}</span>
+                        <span className="text-[13px] text-ink-soft">
+                          {[c.distanceMi != null ? `${c.distanceMi.toFixed(1)} mi` : null, c.location]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </span>
+                        <span className="flex gap-1 text-[13px] text-ink-soft">
+                          <span className="font-[600] text-pine">On Google</span>
+                          <span>· opens in a new tab</span>
+                        </span>
                       </span>
-                      <Icon name="open_in_new" size={18} className="text-[#9aa09c]" />
+                      <Icon name="open_in_new" size={18} className="mt-0.5 text-[#9aa09c]" />
                     </a>
                   ))}
                 </div>

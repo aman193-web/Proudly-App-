@@ -149,13 +149,11 @@ export function LevelPickerSheet({
 export function NextLevelCard({
   activity,
   onChangeLevel,
-  onAskProudly,
-  onConnectCoach,
+  onFindSupport,
 }: {
   activity: Activity;
   onChangeLevel: () => void;
-  onAskProudly: () => void;
-  onConnectCoach: () => void;
+  onFindSupport: () => void;
 }) {
   const { current, suggested, source, overridden } = useActivityLevel(activity);
   const up = nextLevel(current);
@@ -231,20 +229,15 @@ export function NextLevelCard({
           )}
         </div>
 
-        <div className="flex gap-2 mt-3">
-          <button
-            onClick={onAskProudly}
-            className="flex-1 h-11 rounded-xl bg-surface border border-hairline flex items-center justify-center gap-1.5 text-[13.5px] font-[600] text-ink active:scale-[0.99] transition-transform"
-          >
-            <Icon name="contact_support" size={15} /> Ask BragOn
-          </button>
-          <button
-            onClick={onConnectCoach}
-            className="flex-1 h-11 rounded-xl bg-teal text-white flex items-center justify-center gap-1.5 text-[13.5px] font-[600] active:scale-[0.99] transition-transform"
-          >
-            <Icon name="school" size={15} /> Find a coach
-          </button>
-        </div>
+        {/* One way forward, not two. Asking and finding a coach were always
+            the same intent, and the support sheet now does both. */}
+        <button
+          onClick={onFindSupport}
+          className="brag-shine w-full h-11 mt-3 rounded-full text-white flex items-center justify-center gap-2 text-[14px] font-[600] active:scale-[0.99] transition-transform"
+          style={{ boxShadow: "0 8px 18px -8px rgba(181,83,47,0.7)" }}
+        >
+          <Icon name="auto_awesome" size={18} fill /> Find support
+        </button>
       </div>
     </div>
   );
