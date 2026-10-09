@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Bell,
+  Calendar,
   ChevronRight,
   Database,
   GraduationCap,
@@ -13,6 +14,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Trash2,
+  Trophy,
   Users,
 } from "lucide-react";
 import { AppHeader, ChildAvatar, PrimaryButton } from "../components/ui";
@@ -39,7 +41,11 @@ export type SettingsTarget =
   | "levelsHelp"
   | "account"
   | "notifPrefs"
-  | "data";
+  | "data"
+  /* The redesign's nav has four tabs, so these two screens are reached from
+     Profile instead of from the bar. */
+  | "achievements"
+  | "photos";
 
 function SavedCoachesRow({ onClick }: { onClick: () => void }) {
   const count = useSavedCount();
@@ -347,65 +353,169 @@ export function SavedCoaches({ onBack }: { onBack: () => void }) {
 }
 
 /* ============================================================= PROFILE TAB */
+/* Profile — Oct-1 redesign.
+   -------------------------
+   The prototype drops the card groups for flat rows under uppercase section
+   labels: kids first, then the connected accounts, each list ending in a pine
+   "add" row. It only covers those two sections; the app's other settings
+   (notifications, account, data, help) stay, restyled onto the same pattern
+   rather than left in boxes that no other screen uses any more. */
 export function ProfileTab({ onOpen }: { onOpen: (t: SettingsTarget) => void }) {
+  const savedCoaches = useSavedCount();
+
   return (
-    <div className="pt-14 pb-28">
-      <div className="px-4 flex items-center gap-4">
-        <ChildAvatar src={PARENT.photo} name={PARENT.name} size={60} ring="#217c72" />
-        <div className="min-w-0">
-          <h1 className="font-display text-[22px] font-[700] text-ink leading-tight truncate">
-            {PARENT.name}
-          </h1>
-          <p className="text-[13.5px] text-ink-soft mt-0.5">
-            Parent · {CHILDREN.length} children
-          </p>
-        </div>
+    <div className="pb-28">
+      <div className="pt-[56px] px-6 pb-2">
+        <h2 className="font-[700] text-[30px] leading-[1.1] tracking-[-0.025em] text-ink">
+          Profile
+        </h2>
+        <p className="text-[14px] text-ink-soft mt-1">
+          {PARENT.name} · {PARENT.email}
+        </p>
       </div>
 
-      <Group title="Family">
-        <Row
-          icon={<Users size={18} />}
-          label="Children"
-          value={`${CHILDREN.length}`}
-          onClick={() => onOpen("children")}
-        />
-        <Row
-          icon={<Images size={18} />}
-          label="Connected sources"
-          value="Calendar · Photos"
-          onClick={() => onOpen("sources")}
-        />
-        <SavedCoachesRow onClick={() => onOpen("savedCoaches")} />
-      </Group>
+      <SectionHeading>Kids</SectionHeading>
+      <div className="py-1">
+        {CHILDREN.map((k) => (
+          <div key={k.id} className="flex items-center gap-3.5 min-h-[60px] px-6">
+            <ChildAvatar src={k.photo} name={k.name} size={40} />
+            <div className="min-w-0 flex flex-col gap-0.5">
+              <span className="text-[16px] font-[600] text-ink truncate">{k.name}</span>
+              <span className="text-[13px] text-ink-soft truncate">
+                {[k.grade, k.dob && `${ageFromDob(k.dob)} years old`]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </span>
+            </div>
+          </div>
+        ))}
+        <FlatAddRow label="Add a child" onClick={() => onOpen("children")} />
+      </div>
 
-      <Group title="Preferences">
-        <Row
-          icon={<Bell size={18} />}
+      <SectionHeading>Connected calendars</SectionHeading>
+      <div className="py-1">
+        <div className="flex items-center gap-3.5 min-h-[56px] pl-6 pr-4">
+          <Calendar size={22} className="w-10 shrink-0 text-pine" />
+          <span className="flex-1 min-w-0 text-[15px] font-[500] text-ink truncate">
+            {SOURCES.calendar.account}
+          </span>
+          <button
+            onClick={() => onOpen("sources")}
+            className="h-10 px-3 rounded-full text-[13px] font-[600] text-rust active:bg-rust-soft transition-colors"
+          >
+            Manage
+          </button>
+        </div>
+        <div className="flex items-center gap-3.5 min-h-[56px] pl-6 pr-4">
+          <Images size={22} className="w-10 shrink-0 text-pine" />
+          <span className="flex-1 min-w-0 text-[15px] font-[500] text-ink truncate">
+            {SOURCES.photos.account}
+          </span>
+          <button
+            onClick={() => onOpen("sources")}
+            className="h-10 px-3 rounded-full text-[13px] font-[600] text-rust active:bg-rust-soft transition-colors"
+          >
+            Manage
+          </button>
+        </div>
+        <FlatAddRow label="Connect another account" onClick={() => onOpen("sources")} />
+      </div>
+
+      <SectionHeading>Their record</SectionHeading>
+      <div className="py-1">
+        <FlatRow
+          icon={<Trophy size={22} />}
+          label="All accomplishments"
+          onClick={() => onOpen("achievements")}
+        />
+        <FlatRow
+          icon={<Images size={22} />}
+          label="Photos & memories"
+          onClick={() => onOpen("photos")}
+        />
+      </div>
+
+      <SectionHeading>Settings</SectionHeading>
+      <div className="py-1">
+        <FlatRow
+          icon={<GraduationCap size={22} />}
+          label="Saved coaches"
+          value={savedCoaches ? String(savedCoaches) : "None yet"}
+          onClick={() => onOpen("savedCoaches")}
+        />
+        <FlatRow
+          icon={<Bell size={22} />}
           label="Notifications"
           onClick={() => onOpen("notifPrefs")}
         />
-        <Row
-          icon={<ShieldCheck size={18} />}
+        <FlatRow
+          icon={<ShieldCheck size={22} />}
           label="Account"
           onClick={() => onOpen("account")}
         />
-        <Row
-          icon={<Database size={18} />}
+        <FlatRow
+          icon={<Database size={22} />}
           label="Data & privacy"
           onClick={() => onOpen("data")}
         />
-      </Group>
-
-      <Group title="Help">
-        <Row
-          icon={<Info size={18} />}
+        <FlatRow
+          icon={<Info size={22} />}
           label="How learning levels work"
           onClick={() => onOpen("levelsHelp")}
         />
-      </Group>
+      </div>
 
       <p className="text-center text-[11.5px] text-ink-soft/70 mt-8">BragOn · v1.0</p>
     </div>
+  );
+}
+
+/** Uppercase section label, the prototype's only grouping device. */
+function SectionHeading({ children }: { children: ReactNode }) {
+  return (
+    <div className="pt-[22px] px-6 pb-1">
+      <span className="text-[13px] font-[600] tracking-[0.04em] text-ink-soft uppercase whitespace-nowrap">
+        {children}
+      </span>
+    </div>
+  );
+}
+
+/** Boxless settings row — icon in a fixed 40px slot so labels line up. */
+function FlatRow({
+  icon,
+  label,
+  value,
+  onClick,
+}: {
+  icon: ReactNode;
+  label: string;
+  value?: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3.5 min-h-[56px] pl-6 pr-5 text-left active:bg-surface/70 transition-colors"
+    >
+      <span className="grid place-items-center w-10 shrink-0 text-ink-soft">{icon}</span>
+      <span className="flex-1 min-w-0 text-[15px] font-[500] text-ink truncate">{label}</span>
+      {value && <span className="text-[13px] text-ink-soft shrink-0">{value}</span>}
+      <ChevronRight size={18} className="text-ink-soft/70 shrink-0" />
+    </button>
+  );
+}
+
+/** The pine "add" row that closes each list in the prototype. */
+function FlatAddRow({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3.5 min-h-[56px] px-6 text-left text-pine text-[15px] font-[600] active:bg-pine-soft/50 transition-colors"
+    >
+      <Plus size={22} className="w-10 shrink-0" />
+      {label}
+    </button>
   );
 }
 

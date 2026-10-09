@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
 @import 'tailwindcss';
 
 @theme {
@@ -13,6 +15,10 @@
   --font-display: 'Figtree', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
   --font-figtree: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  /* The brag sheet is a printed document, so it sets its own type: a
+     serif for entry titles and a mono for the form's micro-labels. */
+  --font-serif-doc: 'Fraunces', Georgia, serif;
+  --font-mono-doc: 'JetBrains Mono', ui-monospace, Menlo, monospace;
 
   /* Canonical palette. Tints are the prototype's color-mix() values
      resolved to hex: --ps is pine 13% on white, --pd pine 78% on black,

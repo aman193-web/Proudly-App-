@@ -15,6 +15,7 @@ import {
   Pencil,
   Plus,
   RefreshCw,
+  Sparkles,
   SlidersHorizontal,
   Trash2,
   Trophy,
@@ -23,7 +24,7 @@ import {
 } from "lucide-react";
 import { dec } from "../data";
 import { ChildAvatar } from "../components/ui";
-import { AppHeader, PrimaryButton } from "../components/ui";
+import { AppHeader, BackButton, PrimaryButton } from "../components/ui";
 import { Mark } from "../components/Logo";
 import { GanttChart, GanttLegend, type Range } from "../components/Gantt";
 import { Sheet } from "../components/Sheet";
@@ -42,6 +43,8 @@ import {
   FilterButton,
   MilestoneStar,
 } from "../components/proudly";
+import { CategoryIcon } from "../components/CategoryIcon";
+import { NoteButton } from "../components/NoteButton";
 import { ActivityListView } from "../components/ActivityViews";
 import { levelStateOf } from "../lib/activityLevels";
 import {
@@ -62,7 +65,8 @@ import {
 } from "../lib/askProudly";
 import { Notifications, type NotifTarget } from "./Notifications";
 import { PhotoImport } from "./PhotoImport";
-import { Portfolio, BragSheet } from "./Portfolio";
+import { Portfolio } from "./Portfolio";
+import { BragSheet } from "./BragSheet";
 import {
   AccountSettings,
   ChildManagement,
@@ -82,6 +86,7 @@ import {
   type Achievement,
   type Activity,
   type ActivityLevel,
+  CHILDREN,
   ageFromDob,
   type Category,
   achievementById,
@@ -119,7 +124,8 @@ type Overlay =
   | { kind: "expand" }
   | { kind: "notifications" }
   | { kind: "photoImport" }
-  | { kind: "bragSheet" }
+  | { kind: "allAchievements" }
+  | { kind: "photoPortfolio" }
   | { kind: "connectedSources" }
   | { kind: "childManagement" }
   | { kind: "savedCoaches" }
@@ -189,6 +195,8 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
     else if (s === "account") push({ kind: "account" });
     else if (s === "notifPrefs") push({ kind: "notifPrefs" });
     else if (s === "data") push({ kind: "dataPrivacy" });
+    else if (s === "achievements") push({ kind: "allAchievements" });
+    else if (s === "photos") push({ kind: "photoPortfolio" });
   };
 
   /* Activity context when opened from an activity, the child's wider picture
@@ -257,7 +265,25 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
         <Notifications onBack={pop} onDeepLink={handleDeepLink} />
       )}
       {o.kind === "photoImport" && <PhotoImport onClose={pop} />}
-      {o.kind === "bragSheet" && <BragSheet childId={childId} onBack={pop} />}
+      {o.kind === "allAchievements" && (
+        <AllAchievements
+          childId={childId}
+          onSelectChild={setChildId}
+          onOpen={openAchievement}
+          onBack={pop}
+        />
+      )}
+      {o.kind === "photoPortfolio" && (
+        <PhotoPortfolio
+          childId={childId}
+          onSelectChild={setChildId}
+          onViewGantt={() => {
+            pop();
+            setTab("activities");
+          }}
+          onBack={pop}
+        />
+      )}
       {o.kind === "connectedSources" && <ConnectedSources onBack={pop} />}
       {o.kind === "savedCoaches" && <SavedCoaches onBack={pop} />}
       {o.kind === "levelsHelp" && <LevelsHelp onBack={pop} />}
@@ -310,8 +336,8 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
                 onOpenAchievement={openAchievement}
                 onOpenDiscover={() => setDiscoverOpen(true)}
                 onOpenNotifications={() => push({ kind: "notifications" })}
-                onAddChild={() => push({ kind: "editChild" })}
-                onOpenBrag={() => push({ kind: "bragSheet" })}
+                onAddActivity={() => push({ kind: "addActivity" })}
+                onAddAchievement={() => push({ kind: "addAchievement" })}
                 onFindCoach={(activityId) => push({ kind: "coachFinder", activityId })}
               />
             )}
@@ -319,19 +345,7 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
               <Activities
                 childId={childId}
                 onSelectChild={setChildId}
-                range={range}
-                setRange={setRange}
-                category={category}
-                setCategory={setCategory}
-                levelFilter={levelFilter}
-                setLevelFilter={setLevelFilter}
-                jump={jump}
-                onJumpToday={jumpToday}
                 onTapActivity={setPreviewActivity}
-                onTapAchievement={setPreviewAchievement}
-                onExpand={() => push({ kind: "expand" })}
-                onAddActivity={(start) => push({ kind: "addActivity", start })}
-                onAskProudly={(activityId) => openAsk(activityId)}
                 onFindCoach={(activityId) => push({ kind: "coachFinder", activityId })}
               />
             )}
@@ -343,22 +357,15 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
               />
             )}
             {tab === "portfolio" && (
-              <Portfolio
-                childId={childId}
-                onSelectChild={setChildId}
-                onViewGantt={() => setTab("activities")}
-                onPreviewBrag={() => push({ kind: "bragSheet" })}
-              />
+              <BragSheet childId={childId} onSelectChild={setChildId} />
             )}
             {tab === "profile" && <ProfileTab onOpen={openSetting} />}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Bottom nav */}
-      <nav className="shrink-0 bg-surface z-20">
-        <BottomBar activeTab={tab} onSelectTab={setTab} />
-      </nav>
+      {/* Floating glass nav — overlays the scrolling tab body. */}
+      <BottomBar activeTab={tab} onSelectTab={setTab} />
 
       {/* Preview sheets */}
       <ActivityPreview
@@ -441,7 +448,16 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
   );
 }
 
-/* ============================================================= HOME */
+/* ============================================================= HOME *//* Home — Oct-1 redesign.
+   ----------------------
+   Rebuilt from the prototype: a glassy sticky action bar, then "<Kid>'s
+   journey" with the sync state under it, a pending-review row, two hero
+   numbers, and flat lists of activities and accomplishments. The old card
+   stacks are gone — the prototype drops boxes around list rows throughout.
+
+   Note for the client: child switching here is horizontal chips, which is
+   what the prototype shows. That reverses the compact dropdown asked for
+   earlier; the dropdown still exists and is used on the other tabs. */
 function Home({
   childId,
   onSelectChild,
@@ -449,8 +465,8 @@ function Home({
   onOpenAchievement,
   onOpenDiscover,
   onOpenNotifications,
-  onAddChild,
-  onOpenBrag,
+  onAddActivity,
+  onAddAchievement,
   onFindCoach,
 }: {
   childId: ChildId;
@@ -459,142 +475,184 @@ function Home({
   onOpenAchievement: (id: string) => void;
   onOpenDiscover: () => void;
   onOpenNotifications: () => void;
-  onAddChild: () => void;
-  onOpenBrag: () => void;
+  onAddActivity: () => void;
+  onAddAchievement: () => void;
   onFindCoach: (activityId: string) => void;
 }) {
   const acts = activitiesFor(childId);
   const achs = achievementsFor(childId);
-  const [childSheet, setChildSheet] = useState(false);
+  const child = childById(childId);
+  const first = child?.name ?? "Your child";
 
-  // Journey preview: four rows, still-running first then longest-running.
-  // Six was too many to scan, and start-year order buried the active ones.
-  const preview = [...acts]
-    .sort((x, y) => {
-      const ongoing = Number(y.end === "present") - Number(x.end === "present");
-      return ongoing !== 0 ? ongoing : x.start.y - y.start.y;
-    })
-    .slice(0, 4);
-  const recent = [...achs]
-    .sort((a, b) => dec(b.date) - dec(a.date))
-    .slice(0, 2);
+  /* The prototype's row meta: category, level, span. */
+  const metaFor = (a: Activity) =>
+    `${a.category} · ${levelStateOf(a).current} · ${a.start.y} – ${
+      a.end === "present" ? "present" : a.end.y
+    }`;
 
   return (
-    <div className="pt-14 pb-28">
-      {/* Header */}
-      <div className="px-4 pt-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Mark size={26} />
-          <span className="font-display font-[700] text-[15px] tracking-[0.12em] text-ink">
-            BragOn
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
+    <div className="flex-1 overflow-y-auto scroll-area flex flex-col pb-28">
+      {/* Glassy action bar — sits over the content as it scrolls */}
+      <div
+        className="sticky top-0 z-20 flex items-center gap-2 pl-4 pr-3 pt-[46px] pb-1.5"
+        style={{
+          background: "color-mix(in srgb, var(--color-cream) 55%, transparent)",
+          backdropFilter: "blur(20px) saturate(1.5)",
+          WebkitBackdropFilter: "blur(20px) saturate(1.5)",
+        }}
+      >
+        <div className="flex-1" />
+        {[
+          { icon: <RefreshCw size={22} />, label: "Sync calendars", onClick: onOpenDiscover },
+          {
+            icon: <Bell size={22} />,
+            label: `Activities to review (${DISCOVERY_SEED.length})`,
+            onClick: onOpenNotifications,
+            badge: DISCOVERY_SEED.length,
+          },
+          { icon: <Plus size={22} />, label: "Add activity", onClick: onAddActivity },
+        ].map((b) => (
           <button
-            onClick={onOpenBrag}
-            className="grid place-items-center w-10 h-10 rounded-full bg-surface border border-hairline shadow-xs active:scale-95 transition-transform"
-            aria-label="Brag Sheet"
+            key={b.label}
+            onClick={b.onClick}
+            aria-label={b.label}
+            className="relative grid place-items-center w-12 h-12 rounded-full border border-white/90 bg-white/60 text-ink shadow-[0_6px_16px_-10px_rgba(20,50,44,0.3)] active:scale-95 transition-transform shrink-0"
           >
-            <FileText size={17} className="text-ink" />
+            {b.icon}
+            {!!b.badge && (
+              <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-[5px] rounded-full bg-amber border-2 border-cream text-white text-[11px] font-[700] leading-[14px] text-center">
+                {b.badge}
+              </span>
+            )}
           </button>
-          <button
-            onClick={onOpenNotifications}
-            className="relative grid place-items-center w-10 h-10 rounded-full bg-surface border border-hairline shadow-xs active:scale-95 transition-transform"
-          >
-            <Bell size={18} className="text-ink" />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-gold border-2 border-surface" />
-          </button>
-          {/* Same compact dropdown the Activities screen uses, sitting to the
-              right of the bell in place of the old horizontal selector bar. */}
-          <ChildChip childId={childId} onOpen={() => setChildSheet(true)} />
-        </div>
-      </div>
-
-      {/* New discoveries */}
-      <div className="px-4 mt-4">
-        <button
-          onClick={onOpenDiscover}
-          className="w-full rounded-2xl bg-teal text-white px-3.5 py-3 flex items-center gap-3 text-left active:scale-[0.99] transition-transform relative overflow-hidden"
-        >
-          <div className="absolute -right-6 -top-8 w-28 h-28 rounded-full bg-white/10" />
-          <span className="grid place-items-center w-10 h-10 rounded-xl bg-white/15 shrink-0">
-            <Images size={19} />
-          </span>
-          <div className="flex-1 min-w-0 relative">
-            <p className="text-[14.5px] font-[700] leading-tight">4 new moments found</p>
-            {/* nowrap + truncate so this stays a single line at any width */}
-            <p className="text-[12px] text-mint/90 mt-0.5 whitespace-nowrap truncate">
-              3 activities · 1 possible achievement
-            </p>
-          </div>
-          <span className="text-[12.5px] font-[700] bg-white/20 rounded-full px-2.5 py-1 relative shrink-0">
-            Review
-          </span>
-        </button>
-      </div>
-
-      {/* Activity journey preview */}
-      <SectionHead
-        title="Activity journey"
-        actionLabel="View full journey"
-        onAction={() => onGoTab("activities")}
-      />
-      <div className="px-4">
-        <div className="w-full rounded-[22px] bg-surface border border-hairline px-4 pt-1 pb-3">
-          <div className="divide-y divide-hairline/70">
-            {preview.map((a) => (
-              <JourneyPreviewRow
-                key={a.id}
-                activity={a}
-                all={acts}
-                onOpen={() => onGoTab("activities")}
-                onFindCoach={() => onFindCoach(a.id)}
-              />
-            ))}
-          </div>
-          <button
-            onClick={() => onGoTab("activities")}
-            className="w-full flex items-center justify-center gap-1.5 pt-3.5 text-[13px] font-[600] text-teal active:opacity-60 transition-opacity"
-          >
-            {acts.length > preview.length
-              ? `View all ${acts.length} activities`
-              : "View full activity journey"}{" "}
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Recent achievements */}
-      <SectionHead
-        title="Recent achievements"
-        actionLabel="View all"
-        onAction={() => onGoTab("achievements")}
-      />
-      <div className="px-4 space-y-2.5">
-        {recent.map((a) => (
-          <AchievementRow
-            key={a.id}
-            achievement={a}
-            showChild={childId === "all"}
-            onClick={() => onOpenAchievement(a.id)}
-          />
         ))}
-        {recent.length === 0 && (
-          <p className="text-[13px] text-ink-soft text-center py-4">
-            Achievements will appear here as they're added.
-          </p>
-        )}
       </div>
 
-      {/* All Kids belongs here — Home is the family view. Adding a child moved
-          into the sheet when the selector bar's own add button went away. */}
-      <ChildSheet
-        open={childSheet}
-        onClose={() => setChildSheet(false)}
-        childId={childId}
-        onSelect={onSelectChild}
-        onAddChild={onAddChild}
-      />
+      {/* Title + sync state + kid chips */}
+      <div className="px-6 pt-2.5 flex flex-col gap-1">
+        <h2 className="font-[700] text-[32px] leading-[1.1] tracking-[-0.03em] text-ink">
+          {first}'s journey
+        </h2>
+        <span className="text-[14px] text-ink-soft">Synced 2h ago</span>
+        {CHILDREN.length > 1 && <KidChips childId={childId} onSelect={onSelectChild} />}
+      </div>
+
+      {/* Pending review */}
+      <button
+        onClick={onOpenDiscover}
+        className="mt-4 flex items-center gap-3.5 min-h-16 pl-6 pr-5 text-left border-y transition-colors"
+        style={{
+          background: "#fbf5ea",
+          borderColor: "rgba(217,140,18,0.15)",
+        }}
+      >
+        <Calendar size={24} className="text-amber shrink-0" />
+        <span className="flex-1 min-w-0">
+          <span className="block text-[15px] font-[600] text-ink">
+            {DISCOVERY_SEED.length} new {DISCOVERY_SEED.length === 1 ? "activity" : "activities"} to
+            review
+          </span>
+          <span className="block text-[13px] text-ink-soft">Found in your calendars</span>
+        </span>
+        <span className="text-[14px] font-[700] text-amber whitespace-nowrap">Review</span>
+      </button>
+
+      {/* Hero numbers */}
+      <div className="mt-[18px] px-6 flex gap-10">
+        <div className="flex flex-col gap-0.5">
+          <span className="font-[700] text-[34px] leading-none tracking-[-0.02em] text-pine">
+            {acts.length}
+          </span>
+          <span className="text-[13px] font-[500] text-ink-soft">Activities</span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-[700] text-[34px] leading-none tracking-[-0.02em] text-amber">
+            {achs.length}
+          </span>
+          <span className="text-[13px] font-[500] text-ink-soft">Accomplishments</span>
+        </div>
+      </div>
+
+      <SectionLabel label="Activities" onAdd={onAddActivity} addLabel="Add activity" />
+      <div className="py-1">
+        {acts.map((a) => (
+          <div key={a.id} className="flex items-center gap-3 pl-6 pr-4">
+            <button
+              onClick={() => onGoTab("activities")}
+              className="flex-1 flex items-center gap-3 min-h-[66px] min-w-0 text-left"
+            >
+              <span className="grid place-items-center w-[42px] h-[42px] rounded-full bg-pine-soft shrink-0">
+                <CategoryIcon category={a.category} size={22} color="#24644f" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[15px] font-[600] text-ink truncate">{a.name}</span>
+                <span className="block text-[12px] text-ink-soft truncate">{metaFor(a)}</span>
+              </span>
+            </button>
+            <NoteButton id={a.id} title={a.name} seed={a.note} />
+            {/* The prototype's shimmering "Find support" — the app's coach finder */}
+            <button
+              onClick={() => onFindCoach(a.id)}
+              className="shrink-0 h-[38px] pl-[11px] pr-3.5 rounded-full text-white font-[600] text-[13px] flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition-transform"
+              style={{
+                background:
+                  "linear-gradient(110deg, var(--color-pine) 0%, #6d5b40 40%, var(--color-rust) 60%, var(--color-pine) 100%)",
+                backgroundSize: "250% 100%",
+                boxShadow: "0 8px 18px -8px rgba(36,100,79,0.6)",
+              }}
+            >
+              <Sparkles size={18} /> Find support
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <SectionLabel label="Accomplishments" onAdd={onAddAchievement} addLabel="Add accomplishment" />
+      <div className="flex flex-col">
+        {achs.map((w) => (
+          <div key={w.id} className="flex items-center gap-3.5 min-h-[62px] px-6">
+            <button
+              onClick={() => onOpenAchievement(w.id)}
+              className="flex-1 min-w-0 flex items-center gap-3.5 text-left"
+            >
+              <Trophy size={24} className="text-amber w-[42px] shrink-0" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[15px] font-[600] text-ink truncate">{w.title}</span>
+                <span className="block text-[12px] text-ink-soft truncate">
+                  {[activityById(w.activityId)?.name, fmtMonth(w.date)].filter(Boolean).join(" · ")}
+                </span>
+              </span>
+            </button>
+            <NoteButton id={w.id} title={w.title} seed={w.description} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Uppercase section label with a quiet add control, per the prototype. */
+function SectionLabel({
+  label,
+  onAdd,
+  addLabel,
+}: {
+  label: string;
+  onAdd: () => void;
+  addLabel: string;
+}) {
+  return (
+    <div className="flex items-center justify-between pt-4 px-6">
+      <span className="text-[13px] font-[600] tracking-[0.04em] text-ink-soft uppercase whitespace-nowrap">
+        {label}
+      </span>
+      <button
+        onClick={onAdd}
+        aria-label={addLabel}
+        className="grid place-items-center w-9 h-9 -mr-2 rounded-full text-pine active:bg-pine-soft transition-colors"
+      >
+        <Plus size={20} />
+      </button>
     </div>
   );
 }
@@ -703,218 +761,185 @@ function SectionHead({
 }
 
 /* ============================================================= ACTIVITIES */
+/* Activity journey — Oct-1 redesign.
+   -----------------------------------
+   The prototype replaces the Gantt-first screen with a flat ranked list:
+   longest-running activity first, each row carrying its level, its span, its
+   accomplishment count and a bar showing how long it has run relative to the
+   longest. No cards, no boxes — the divider is the only structure.
+
+   The prototype carries no filter and no chart on this screen, so neither is
+   here. Both still exist — the Gantt as the full-screen "expand" route — but
+   they have no entry point on this tab any more. */
 function Activities({
   childId,
   onSelectChild,
-  range,
-  setRange,
-  category,
-  setCategory,
-  levelFilter,
-  setLevelFilter,
-  jump,
-  onJumpToday,
   onTapActivity,
-  onTapAchievement,
-  onExpand,
-  onAddActivity,
-  onAskProudly,
   onFindCoach,
 }: {
   childId: ChildId;
   onSelectChild: (id: ChildId) => void;
-  range: Range;
-  setRange: (r: Range) => void;
-  category: Category | "all";
-  setCategory: (c: Category | "all") => void;
-  levelFilter: ActivityLevel | "all";
-  setLevelFilter: (l: ActivityLevel | "all") => void;
-  jump: { token: number; target?: number };
-  onJumpToday: () => void;
   onTapActivity: (a: Activity) => void;
-  onTapAchievement: (a: Achievement) => void;
-  onExpand: () => void;
-  onAddActivity: (start?: YM) => void;
-  onAskProudly: (activityId: string) => void;
   onFindCoach: (activityId: string) => void;
 }) {
-  const [childSheet, setChildSheet] = useState(false);
-  const [catSheet, setCatSheet] = useState(false);
-  const [view, setView] = useState<ActivityView>("gantt");
-
   // Deliberate loading treatment when switching whose journey we're viewing.
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   useEffect(() => {
     setLoading(true);
-    setError(false);
     const t = setTimeout(() => setLoading(false), 650);
     return () => clearTimeout(t);
   }, [childId]);
 
-  const allActs = activitiesFor(childId);
-  const acts = allActs.filter(
-    (a) =>
-      (category === "all" || a.category === category) &&
-      (levelFilter === "all" || levelStateOf(a).current === levelFilter),
-  );
-  const filtered = category !== "all" || levelFilter !== "all";
+  const acts = activitiesFor(childId);
+  const allActs = acts;
   const achs = achievementsFor(childId);
   const name = childId === "all" ? "Everyone" : childById(childId)!.name;
-  const yearsSpan = acts.length
-    ? new Date().getFullYear() - Math.min(...acts.map((a) => a.start.y)) + 1
-    : 0;
+
+  /* Months run, floored at one so a brand-new activity still draws a sliver
+     of bar. The longest sets the scale for every other row. */
+  const months = (a: Activity) => {
+    const e = a.end === "present" ? TODAY : a.end;
+    return Math.max(1, (e.y - a.start.y) * 12 + (e.m - a.start.m) + 1);
+  };
+  const longest = Math.max(1, ...acts.map(months));
+  const ranked = [...acts].sort((p, q) => months(q) - months(p));
 
   return (
-    <div className="pt-14 pb-28">
-      {/* Header */}
-      <div className="px-4 flex items-start justify-between">
-        <div>
-          <h1 className="font-display text-[24px] font-[700] text-ink leading-tight">
-            {childId === "all" ? "Activities" : `${name}'s activities`}
-          </h1>
-          <p className="text-[13px] text-ink-soft mt-1">
-            {allActs.length} activities · {yearsSpan} years
-          </p>
-        </div>
-        <div className="pt-0.5">
-          <ChildChip childId={childId} onOpen={() => setChildSheet(true)} />
-        </div>
+    <div className="pb-28">
+      {/* Title block */}
+      <div className="pt-[56px] px-6 pb-2 flex flex-col gap-1">
+        <h2 className="font-[700] text-[30px] leading-[1.1] tracking-[-0.025em] text-ink">
+          Activity journey
+        </h2>
+        <span className="text-[14px] text-ink-soft">
+          {name} · {allActs.length} activities · {achs.length} accomplishments
+        </span>
+        {CHILDREN.length > 1 && <KidChips childId={childId} onSelect={onSelectChild} />}
       </div>
 
-      {/* Active filter chips */}
-      {filtered && (
-        <div className="px-4 mt-3 flex flex-wrap gap-2">
-          {category !== "all" && (
-            <button
-              onClick={() => setCategory("all")}
-              className="inline-flex items-center gap-1.5 pl-2.5 pr-2 py-1 rounded-full bg-mint text-teal-dark text-[12.5px] font-[600]"
-            >
-              <span
-                className="w-2 h-2 rounded-full"
-                style={{ background: CATEGORY_COLOR[category as Category] }}
-              />
-              {category}
-              <X size={13} className="ml-0.5" />
-            </button>
-          )}
-          {levelFilter !== "all" && (
-            <button
-              onClick={() => setLevelFilter("all")}
-              className="inline-flex items-center gap-1.5 pl-2.5 pr-2 py-1 rounded-full bg-mint text-teal-dark text-[12.5px] font-[600]"
-            >
-              {levelFilter}
-              <X size={13} className="ml-0.5" />
-            </button>
-          )}
+      {loading ? (
+        <div className="px-6 pt-2">
+          <GanttSkeleton height={380} />
         </div>
-      )}
-
-      {/* View toggle + filter, then range dropdown + Today on the right */}
-      <div className="px-4 mt-3.5">
-        <ActivityControls
-          view={view}
-          onViewChange={setView}
-          range={range}
-          onRangeChange={setRange}
-          onJumpToday={onJumpToday}
-          filterActive={filtered}
-          onFilter={() => setCatSheet(true)}
-        />
-      </div>
-
-      {/* Chart / list / calendar */}
-      <div className="px-4 mt-3.5">
-        {loading ? (
-          <GanttSkeleton height={430} />
-        ) : error ? (
-          <GanttError
-            name={name}
-            onRetry={() => {
-              setLoading(true);
-              setError(false);
-              setTimeout(() => setLoading(false), 650);
-            }}
-          />
-        ) : allActs.length === 0 ? (
-          // No activity history at all for this child
-          <EmptyGantt name={name} onSync={() => setError(true)} onAdd={onAddActivity} />
-        ) : acts.length === 0 ? (
-          // History exists, but the current filter has no results
-          <div className="rounded-[22px] bg-surface border border-hairline">
-            <EmptyState
-              icon={<SlidersHorizontal size={24} />}
-              title="No activities match these filters"
-              body={`${name} has other activities tracked. Clear the filters to see the full journey.`}
-              actionLabel="Clear filters"
-              onAction={() => {
-                setCategory("all");
-                setLevelFilter("all");
-              }}
-            />
-          </div>
-        ) : view === "list" ? (
-          <ActivityListView
-            activities={acts}
-            range={range}
-            onTapActivity={onTapActivity}
-            onAskProudly={(a) => onAskProudly(a.id)}
-            onFindCoach={(a) => onFindCoach(a.id)}
-          />
-        ) : (
-          <>
-            <GanttChart
-              activities={acts}
-              achievements={achs}
-              range={range}
-              height={430}
-              jumpToken={jump.token}
-              jumpTarget={jump.target}
-              onTapActivity={onTapActivity}
-              onTapAchievement={onTapAchievement}
-              onFindCoach={(a) => onFindCoach(a.id)}
-            />
-            <div className="mt-3 flex items-center justify-between">
-              <GanttLegend />
-              <button
-                onClick={onExpand}
-                className="flex items-center gap-1.5 text-[12.5px] font-[600] text-teal active:opacity-60"
+      ) : ranked.length === 0 ? (
+        <div className="px-6 pt-2">
+          <EmptyGantt name={name} onSync={() => {}} onAdd={() => {}} />
+        </div>
+      ) : (
+        <div className="pt-1 flex flex-col">
+          {ranked.map((a) => {
+            const wins = achievementsForActivity(a.id).length;
+            const live = a.end === "present";
+            const pct = Math.round((months(a) / longest) * 100);
+            return (
+              <div
+                key={a.id}
+                className="flex flex-col gap-2.5 px-6 py-[18px] border-b border-[#e7e4dc]"
               >
-                <Maximize2 size={15} /> Expand
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+                <div className="flex items-start gap-3">
+                  <button
+                    onClick={() => onTapActivity(a)}
+                    className="flex-1 min-w-0 flex flex-wrap items-center gap-2 text-left"
+                  >
+                    <span className="text-[17px] leading-[1.3] font-[600] text-ink">
+                      {a.name}
+                    </span>
+                    <span className="h-6 px-2.5 rounded-xl bg-pine-soft text-pine-dark text-[12px] font-[600] leading-6 whitespace-nowrap">
+                      {levelStateOf(a).current}
+                    </span>
+                  </button>
+                  <NoteButton id={a.id} title={a.name} seed={a.note} />
+                  <button
+                    onClick={() => onFindCoach(a.id)}
+                    className="shrink-0 h-8 pl-[9px] pr-3 rounded-full text-white font-[600] text-[12px] flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition-transform"
+                    style={{
+                      background:
+                        "linear-gradient(110deg, var(--color-pine) 0%, #6d5b3f 40%, var(--color-rust) 60%, var(--color-pine) 100%)",
+                      backgroundSize: "250% 100%",
+                      boxShadow: "0 6px 14px -8px rgba(181,83,47,0.7)",
+                    }}
+                  >
+                    <Sparkles size={16} /> Find support
+                  </button>
+                </div>
 
-      {!loading && !error && acts.length > 0 && (
-        <p className="px-4 mt-5 text-[12px] text-ink-soft leading-relaxed">
-          {view === "gantt" ? (
-            <>
-              The name under each activity is its level. Tap any bar for details, or a{" "}
-              <span className="text-gold font-[600]">gold marker</span> to revisit an achievement.
-            </>
-          ) : (
-            <>Tap any activity to see its details, photos and achievements.</>
-          )}
-        </p>
+                <div className="flex items-center gap-2 text-[13px] text-ink-soft">
+                  <span>
+                    {a.start.y} – {a.end === "present" ? "Present" : a.end.y} ·{" "}
+                    {durationText(a.start, a.end)}
+                  </span>
+                  {live && <span className="w-1.5 h-1.5 rounded-full bg-pine" />}
+                  {wins > 0 && (
+                    <span className="flex items-center gap-1 font-[600] text-amber-dark">
+                      <Trophy size={16} className="text-amber" />
+                      {wins}
+                    </span>
+                  )}
+                </div>
+
+                {a.note && (
+                  <span className="block italic text-[12px] leading-[1.35] text-[#6a6f6c] truncate">
+                    {a.note}
+                  </span>
+                )}
+
+                <div className="h-1.5 rounded-full bg-pine-soft overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-pine transition-[width] duration-[600ms] ease-out"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
+    </div>
+  );
+}
 
-      <ChildSheet
-        open={childSheet}
-        onClose={() => setChildSheet(false)}
-        childId={childId}
-        onSelect={onSelectChild}
-      />
-      <CategorySheet
-        open={catSheet}
-        onClose={() => setCatSheet(false)}
-        value={category}
-        onSelect={setCategory}
-        level={levelFilter}
-        onSelectLevel={setLevelFilter}
-        resultCount={acts.length}
-      />
+/* Each child gets a tint, used for their initial wherever they are listed. */
+const KID_TINT = [
+  { soft: "bg-pine-soft", ink: "text-pine" },
+  { soft: "bg-rust-soft", ink: "text-rust" },
+  { soft: "bg-amber-soft", ink: "text-amber-dark" },
+];
+export const kidTint = (id: string) =>
+  KID_TINT[Math.max(0, CHILDREN.findIndex((c) => c.id === id)) % KID_TINT.length];
+
+/** The prototype's horizontal child switcher — shared by Home and Timeline. */
+function KidChips({
+  childId,
+  onSelect,
+}: {
+  childId: ChildId;
+  onSelect: (id: ChildId) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5 pt-2">
+      {CHILDREN.map((k) => {
+        const on = k.id === childId;
+        const tint = kidTint(k.id);
+        return (
+          <button
+            key={k.id}
+            onClick={() => onSelect(k.id)}
+            aria-pressed={on}
+            className={`flex items-center gap-1.5 h-7 pl-[3px] pr-[11px] rounded-full border transition-colors ${
+              on ? "border-pine bg-pine-soft text-pine" : "border-hairline bg-surface text-[#3d413f]"
+            }`}
+          >
+            <span
+              className={`grid place-items-center w-[22px] h-[22px] rounded-full text-[10.5px] font-[700] ${
+                on ? "bg-pine text-white" : `${tint.soft} ${tint.ink}`
+              }`}
+            >
+              {k.name[0]}
+            </span>
+            <span className="text-[12.5px] font-[600]">{k.name}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -1598,6 +1623,69 @@ function PickerRow({
   );
 }
 
+/* Overlay wrappers
+   ----------------
+   The redesign's nav carries four tabs, so the accomplishments list and the
+   photo portfolio are pushed as screens from Profile instead. Both are the
+   existing tab screens, unchanged, under a back row. */
+function PushedScreen({
+  onBack,
+  children,
+}: {
+  onBack: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="absolute inset-0 z-30 bg-canvas flex flex-col">
+      <div className="shrink-0 h-14 mt-10 px-2 flex items-center">
+        <BackButton onClick={onBack} />
+      </div>
+      <div className="flex-1 overflow-y-auto scroll-area -mt-14">{children}</div>
+    </div>
+  );
+}
+
+function AllAchievements({
+  childId,
+  onSelectChild,
+  onOpen,
+  onBack,
+}: {
+  childId: ChildId;
+  onSelectChild: (id: ChildId) => void;
+  onOpen: (id: string) => void;
+  onBack: () => void;
+}) {
+  return (
+    <PushedScreen onBack={onBack}>
+      <Achievements childId={childId} onSelectChild={onSelectChild} onOpen={onOpen} />
+    </PushedScreen>
+  );
+}
+
+function PhotoPortfolio({
+  childId,
+  onSelectChild,
+  onViewGantt,
+  onBack,
+}: {
+  childId: ChildId;
+  onSelectChild: (id: ChildId) => void;
+  onViewGantt: () => void;
+  onBack: () => void;
+}) {
+  return (
+    <PushedScreen onBack={onBack}>
+      <Portfolio
+        childId={childId}
+        onSelectChild={onSelectChild}
+        onViewGantt={onViewGantt}
+        onPreviewBrag={onBack}
+      />
+    </PushedScreen>
+  );
+}
+
 /* ============================================================= ACHIEVEMENTS */
 function Achievements({
   childId,
@@ -1954,6 +2042,92 @@ type DiscoveryItem = {
   editing: boolean;
 };
 
+
+/* The sync queue's seed. Hoisted so Home can show a true count on its
+   review row instead of a number baked into the copy. */
+const DISCOVERY_SEED: DiscoveryItem[] = [
+  {
+    id: "soccer",
+    kind: "activity" as const,
+    title: "Soccer",
+    category: "Sports & Athletics",
+    child: "Reet",
+    source: "Google Calendar",
+    date: "Sep 2025 – Present",
+    detail: "Detected 14 recurring practice events & matches",
+    editing: false,
+  },
+  {
+    id: "ach-robotics",
+    kind: "achievement" as const,
+    title: "Regional Tournament — Runner Up",
+    category: "Sports & Athletics",
+    child: "Reet",
+    source: "Google Photos",
+    date: "Mar 2026",
+    detail: "Detected trophy award photo from Photos album",
+    editing: false,
+  },
+  {
+    id: "piano-dupe",
+    kind: "duplicate" as const,
+    title: "Piano Practice (Duplicate)",
+    category: "Music & Performance",
+    child: "Reet",
+    source: "Google Calendar",
+    date: "Ongoing",
+    detail: "Matches existing 'Piano' activity in profile",
+    editing: false,
+  },
+  {
+    id: "a-gym-new",
+    kind: "activity" as const,
+    title: "Gymnastics Meet",
+    category: "Sports & Athletics",
+    child: "Aanya",
+    source: "Google Calendar",
+    date: "Nov 2025",
+    detail: "Detected weekend competition event",
+    editing: false,
+  },
+  /* Unattributed finds: the event was read, but nothing in it says whose it
+     is, so there is no child to add it to yet. These carry Assign instead of
+     Add — see the action row below. */
+  {
+    id: "other-saturday",
+    kind: "activity" as const,
+    title: "Saturday Morning Club",
+    category: "Other",
+    child: null,
+    source: "Google Calendar",
+    date: "Jan 2026 – Present",
+    detail: "12 recurring events · no child named in the invite",
+    editing: false,
+  },
+  {
+    id: "other-centre",
+    kind: "activity" as const,
+    title: "Community Centre Session",
+    category: "Other",
+    child: null,
+    source: "Google Calendar",
+    date: "Sep 2025 – Present",
+    detail: "Recurring Thursday event on a shared calendar",
+    editing: false,
+  },
+  {
+    id: "other-workshop",
+    kind: "activity" as const,
+    title: "Weekend Workshop",
+    category: "Other",
+    child: null,
+    source: "Google Calendar",
+    date: "Feb 2026",
+    detail: "One-off event · could belong to either child",
+    editing: false,
+  },
+];
+
 function DiscoveryReview({
   open,
   onClose,
@@ -1965,88 +2139,7 @@ function DiscoveryReview({
   onEditActivity?: (id: string) => void;
   onOpenPhotos?: () => void;
 }) {
-  const [items, setItems] = useState<DiscoveryItem[]>([
-    {
-      id: "soccer",
-      kind: "activity" as const,
-      title: "Soccer",
-      category: "Sports & Athletics",
-      child: "Reet",
-      source: "Google Calendar",
-      date: "Sep 2025 – Present",
-      detail: "Detected 14 recurring practice events & matches",
-      editing: false,
-    },
-    {
-      id: "ach-robotics",
-      kind: "achievement" as const,
-      title: "Regional Tournament — Runner Up",
-      category: "Sports & Athletics",
-      child: "Reet",
-      source: "Google Photos",
-      date: "Mar 2026",
-      detail: "Detected trophy award photo from Photos album",
-      editing: false,
-    },
-    {
-      id: "piano-dupe",
-      kind: "duplicate" as const,
-      title: "Piano Practice (Duplicate)",
-      category: "Music & Performance",
-      child: "Reet",
-      source: "Google Calendar",
-      date: "Ongoing",
-      detail: "Matches existing 'Piano' activity in profile",
-      editing: false,
-    },
-    {
-      id: "a-gym-new",
-      kind: "activity" as const,
-      title: "Gymnastics Meet",
-      category: "Sports & Athletics",
-      child: "Aanya",
-      source: "Google Calendar",
-      date: "Nov 2025",
-      detail: "Detected weekend competition event",
-      editing: false,
-    },
-    /* Unattributed finds: the event was read, but nothing in it says whose it
-       is, so there is no child to add it to yet. These carry Assign instead of
-       Add — see the action row below. */
-    {
-      id: "other-saturday",
-      kind: "activity" as const,
-      title: "Saturday Morning Club",
-      category: "Other",
-      child: null,
-      source: "Google Calendar",
-      date: "Jan 2026 – Present",
-      detail: "12 recurring events · no child named in the invite",
-      editing: false,
-    },
-    {
-      id: "other-centre",
-      kind: "activity" as const,
-      title: "Community Centre Session",
-      category: "Other",
-      child: null,
-      source: "Google Calendar",
-      date: "Sep 2025 – Present",
-      detail: "Recurring Thursday event on a shared calendar",
-      editing: false,
-    },
-    {
-      id: "other-workshop",
-      kind: "activity" as const,
-      title: "Weekend Workshop",
-      category: "Other",
-      child: null,
-      source: "Google Calendar",
-      date: "Feb 2026",
-      detail: "One-off event · could belong to either child",
-      editing: false,
-    },
-  ]);
+  const [items, setItems] = useState<DiscoveryItem[]>(DISCOVERY_SEED);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
@@ -2303,3 +2396,4 @@ function DiscoveryReview({
     </>
   );
 }
+

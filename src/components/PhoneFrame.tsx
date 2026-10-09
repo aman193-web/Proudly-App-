@@ -1,10 +1,14 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Wifi } from "lucide-react";
 
-/* iPhone 16 Pro logical geometry, in points. The screen box is the app's
-   viewport; everything else is hardware drawn around it. */
-const SCREEN_W = 402;
-const SCREEN_H = 874;
+/* Screen geometry, in points. The screen box is the app's viewport;
+   everything else is hardware drawn around it.
+
+   380x816 is the client prototype's own viewport. Every spacing, type size
+   and gutter in the Oct-1 redesign was set against it, so matching it is what
+   makes those numbers land where they do in the prototype. */
+const SCREEN_W = 380;
+const SCREEN_H = 816;
 const BEZEL = 11;
 const DEVICE_W = SCREEN_W + BEZEL * 2;
 const DEVICE_H = SCREEN_H + BEZEL * 2;
@@ -84,51 +88,48 @@ function Battery() {
   );
 }
 
-/** iOS status bar. Sits above app content, the way system chrome does. */
+/* iOS status bar. Sits above app content, the way system chrome does.
+
+   STATUS_H is the prototype's own 40px band: screens clear it with their own
+   top padding, so changing it here moves every screen's first row together. */
+export const STATUS_H = 40;
+
 function StatusBar({ time }: { time: string }) {
   return (
     <div
-      className="absolute inset-x-0 top-0 z-[100] flex items-start justify-between px-[30px] pt-[15px] text-ink pointer-events-none select-none"
-      style={{ height: 48 }}
+      className="absolute inset-x-0 top-0 z-[100] flex items-center justify-between pl-[30px] pr-[26px] text-ink pointer-events-none select-none"
+      style={{ height: STATUS_H }}
     >
-      <span className="text-[16px] font-[600] tracking-[-0.01em] leading-none tabular-nums mt-[1px]">
+      <span className="text-[14px] font-[600] tracking-[-0.01em] leading-none tabular-nums">
         {time}
       </span>
-      <span className="flex items-center gap-[6px]">
+      <span className="flex items-center gap-[5px]">
         <SignalBars />
-        <Wifi size={16} strokeWidth={2.4} />
+        <Wifi size={15} strokeWidth={2.4} />
         <Battery />
       </span>
     </div>
   );
 }
 
-function DynamicIsland() {
+function NotchDot() {
   return (
     <div
       className="absolute left-1/2 -translate-x-1/2 z-[110] rounded-full bg-black pointer-events-none"
-      style={{ top: 10, width: 125, height: 36 }}
+      style={{ top: 9, width: 22, height: 22 }}
     >
-      {/* Front camera lens */}
-      <span
-        className="absolute rounded-full"
-        style={{
-          right: 10,
-          top: 10,
-          width: 16,
-          height: 16,
-          background: "radial-gradient(circle at 35% 35%, #2b3550 0%, #0b0d14 62%)",
-        }}
-      />
     </div>
   );
 }
 
+/* The 22px band the prototype reserves at the foot of every screen. */
+export const INDICATOR_H = 22;
+
 function HomeIndicator() {
   return (
     <div
-      className="absolute left-1/2 -translate-x-1/2 z-[100] rounded-full bg-ink/85 pointer-events-none"
-      style={{ bottom: 8, width: 139, height: 5 }}
+      className="absolute left-1/2 -translate-x-1/2 z-[100] rounded-full bg-ink pointer-events-none"
+      style={{ bottom: 9, width: 110, height: 4 }}
     />
   );
 }
@@ -221,7 +222,7 @@ export function PhoneFrame({ children }: { children: ReactNode }) {
             <div className="relative size-full">
               {children}
               <StatusBar time={time} />
-              <DynamicIsland />
+              <NotchDot />
               <HomeIndicator />
             </div>
           </div>
