@@ -130,7 +130,7 @@ export function LevelsHelp({ onBack }: { onBack: () => void }) {
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Learning levels" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-10">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-10">
         <p className="text-[14.5px] text-ink leading-relaxed mt-1">
           Every activity sits at one of four levels. BragOn suggests one from what's recorded,
           and you can change it whenever you disagree.
@@ -320,7 +320,7 @@ export function SavedCoaches({ onBack }: { onBack: () => void }) {
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Saved coaches" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         {saved.length === 0 ? (
           <div className="rounded-[22px] bg-surface border border-hairline mt-2">
             <EmptyState
@@ -503,7 +503,7 @@ export function ConnectedSources({ onBack }: { onBack: () => void }) {
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Connected sources" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <p className="text-[13px] text-ink-soft mt-1 mb-4 leading-relaxed">
           BragOn reads Google Calendar and Photos to build the activity journey. They stay
           together and nothing is posted or shared.
@@ -603,7 +603,7 @@ export function ChildManagement({
           </button>
         }
       />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <div className="space-y-2.5 mt-1">
           {CHILDREN.map((c) => (
             <button
@@ -654,7 +654,7 @@ export function EditChild({
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title={existing ? "Edit child" : "Add child"} onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         {/* Reference photo */}
         <div className="flex flex-col items-center mt-2 mb-5">
           <div className="relative">
@@ -740,7 +740,7 @@ export function EditChild({
           </>
         )}
       </div>
-      <div className="shrink-0 px-4 pt-3 pb-8 border-t border-hairline bg-canvas">
+      <div className="shrink-0 px-6 pt-3 pb-8 border-t border-hairline bg-canvas">
         <PrimaryButton onClick={save} disabled={!name || !grade}>
           {existing ? "Save changes" : "Add child"}
         </PrimaryButton>
@@ -769,7 +769,7 @@ export function AccountSettings({
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Account" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <div className="flex items-center gap-4 mt-2 mb-2">
           <ChildAvatar src={PARENT.photo} name={PARENT.name} size={56} ring="#217c72" />
           <div>
@@ -807,7 +807,7 @@ export function NotificationPrefs({ onBack }: { onBack: () => void }) {
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Notifications" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <p className="text-[13px] text-ink-soft mt-1 mb-4 leading-relaxed">
           Choose what's worth a nudge. We only notify when something needs your attention.
         </p>
@@ -833,7 +833,7 @@ export function DataPrivacy({
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Data & privacy" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <p className="text-[13px] text-ink-soft mt-1 mb-4 leading-relaxed">
           Your family's record stays yours. Manage what BragOn keeps.
         </p>

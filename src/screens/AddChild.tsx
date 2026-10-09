@@ -184,7 +184,7 @@ export function AddChild({
 
       <AppHeader title="Your kids" onBack={onBack} step="Step 1 of 3" />
 
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-4 flex flex-col gap-5">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-4 flex flex-col gap-5">
         {/* Saved kids — rows, no boxes */}
         {kids.length > 0 && (
           <div className="flex flex-col">
@@ -296,7 +296,7 @@ export function AddChild({
                   <select
                     value={draft.grade}
                     onChange={(e) => setDraft({ ...draft, grade: e.target.value })}
-                    className="h-[52px] w-full appearance-none rounded-xl bg-surface border border-hairline pl-3.5 pr-9 text-[16px] text-ink outline-none focus:border-pine transition-colors"
+                    className="h-[52px] w-full appearance-none rounded-xl bg-surface border border-hairline pl-2.5 pr-9 text-[16px] text-ink outline-none focus:border-pine transition-colors"
                   >
                     <option value="">Select</option>
                     {GRADES.map((g) => (
@@ -316,7 +316,7 @@ export function AddChild({
                   type="date"
                   value={draft.dob}
                   onChange={(e) => setDraft({ ...draft, dob: e.target.value })}
-                  className="h-[52px] w-full rounded-xl bg-surface border border-hairline px-3 text-[15px] text-ink outline-none focus:border-pine transition-colors"
+                  className="h-[52px] w-full rounded-xl bg-surface border border-hairline px-2.5 text-[15px] text-ink outline-none focus:border-pine transition-colors"
                 />
               </Field>
             </div>
@@ -342,7 +342,7 @@ export function AddChild({
         )}
       </div>
 
-      <div className="shrink-0 px-4 pt-3 pb-5">
+      <div className="shrink-0 px-6 pt-3 pb-5">
         <PrimaryButton
           onClick={() => onContinue(kids[0]?.first ?? draft.first.trim())}
           disabled={kids.length === 0}

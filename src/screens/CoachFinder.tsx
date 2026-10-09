@@ -94,7 +94,7 @@ export function CoachFinder({ activity, onBack }: { activity: Activity; onBack: 
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Find a coach" onBack={onBack} />
 
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         {/* Context */}
         <div className="flex items-center gap-2">
           <span

@@ -314,7 +314,7 @@ export function Review({
       />
 
       {/* Fixed intro — kept short so the list gets the height */}
-      <div className="shrink-0 px-4 pt-3">
+      <div className="shrink-0 px-6 pt-1">
         <p className="text-[13.5px] text-ink-soft leading-snug">
           Everything is selected. The ones we're unsure about are listed
           separately — check those before accepting.
@@ -336,7 +336,7 @@ export function Review({
       </div>
 
       {/* The list is the only thing that scrolls */}
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pt-4 pb-5">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pt-4 pb-5">
         <SectionHead
           label="Confirmed activities"
           count={CONFIRMED.length}
@@ -418,7 +418,7 @@ export function Review({
       </div>
 
       {/* Primary action */}
-      <div className="shrink-0 px-4 pt-2.5 pb-7 border-t border-hairline bg-canvas">
+      <div className="shrink-0 px-6 pt-2.5 pb-7 border-t border-hairline bg-canvas">
         <PrimaryButton onClick={onDone} disabled={counts.none}>
           Accept activities &amp; achievements
         </PrimaryButton>

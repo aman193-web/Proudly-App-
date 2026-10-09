@@ -30,7 +30,7 @@ export function ConnectSources({
   return (
     <Screen>
       <AppHeader title="Where should we look?" onBack={onBack} step="Step 2 of 3" />
-      <div className="flex-1 px-4 pt-3 flex flex-col overflow-y-auto scroll-area">
+      <div className="flex-1 px-6 pt-1 flex flex-col overflow-y-auto scroll-area">
         <p className="text-[15px] text-ink-soft pr-2">
           Connect at least one source so we can start building {childName}'s history.
         </p>

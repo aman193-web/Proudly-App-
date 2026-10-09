@@ -66,7 +66,7 @@ export function SignIn({
   return (
     <Screen>
       <AppHeader title="Welcome back" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pt-4 flex flex-col">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pt-1 flex flex-col">
         <p className="text-[15px] text-ink-soft">
           One tap with Google or Apple, or use your email.
         </p>
@@ -142,7 +142,7 @@ export function CreateAccount({
   return (
     <Screen>
       <AppHeader title="Let's get set up" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pt-4 flex flex-col">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pt-1 flex flex-col">
         <p className="text-[15px] text-ink-soft">
           One tap with Google or Apple — no password to remember.
         </p>

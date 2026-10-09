@@ -1277,7 +1277,7 @@ function AddActivity({
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Add activity" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <div className="flex justify-center mt-2 mb-6">
           <span className="grid place-items-center w-16 h-16 rounded-3xl bg-mint text-teal-dark">
             <BarChart3 size={30} />
@@ -1379,7 +1379,7 @@ function AddActivity({
         </button>
       </div>
 
-      <div className="shrink-0 px-4 pt-3 pb-8 border-t border-hairline bg-canvas">
+      <div className="shrink-0 px-6 pt-3 pb-8 border-t border-hairline bg-canvas">
         <PrimaryButton onClick={save} disabled={!name || !category}>
           Add activity
         </PrimaryButton>
@@ -1415,7 +1415,7 @@ function EditActivity({ id, onBack }: { id: string; onBack: () => void }) {
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Edit activity" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <Field label="Activity name">
           <input
             value={name}
@@ -1536,7 +1536,7 @@ function EditActivity({ id, onBack }: { id: string; onBack: () => void }) {
           )}
         </AnimatePresence>
       </div>
-      <div className="shrink-0 px-4 pt-3 pb-8 border-t border-hairline bg-canvas">
+      <div className="shrink-0 px-6 pt-3 pb-8 border-t border-hairline bg-canvas">
         <PrimaryButton onClick={onBack}>Save changes</PrimaryButton>
       </div>
 
@@ -1839,7 +1839,7 @@ function AddAchievement({
   return (
     <div className="size-full flex flex-col bg-canvas">
       <AppHeader title="Add achievement" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <div className="flex justify-center mt-2 mb-6">
           <span className="grid place-items-center w-16 h-16 rounded-3xl bg-gold-soft text-gold">
             <MilestoneStar size={30} />
@@ -1895,7 +1895,7 @@ function AddAchievement({
           <span className="text-[11.5px]">Optional</span>
         </button>
       </div>
-      <div className="shrink-0 px-4 pt-3 pb-8 border-t border-hairline bg-canvas">
+      <div className="shrink-0 px-6 pt-3 pb-8 border-t border-hairline bg-canvas">
         <PrimaryButton onClick={onBack} disabled={!title || !selectedActivity}>
           Add achievement
         </PrimaryButton>

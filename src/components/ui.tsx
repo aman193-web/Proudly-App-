@@ -36,9 +36,12 @@ export function Screen({ children }: { children: ReactNode }) {
    sites pick up the new treatment without being touched. Screens that also
    carry their own heading drop it instead.
 
-   Horizontal padding stays px-4 rather than the prototype's 24px so the title
-   lines up with body content everywhere; the wider gutter is a separate
-   spacing pass, not something to do one screen at a time. */
+   Spacing is the prototype's: a 56px row padded 8px, the step label 16px off
+   the right edge, and a 24px gutter on the title. Screen bodies use the same
+   24px so titles and content share an edge — SCREEN_X below is that gutter. */
+
+/** The prototype's horizontal gutter. Shared so titles and bodies cannot drift. */
+export const SCREEN_X = "px-6";
 export function AppHeader({
   title,
   onBack,
@@ -53,18 +56,18 @@ export function AppHeader({
 }) {
   return (
     <div className="shrink-0 pt-12">
-      <div className="h-14 px-3 flex items-center">
+      <div className="h-14 px-2 flex items-center">
         {onBack ? <BackButton onClick={onBack} /> : <span className="w-12" />}
         <div className="flex-1" />
         {step && (
-          <span className="text-[13px] font-[500] text-ink-soft pr-2 whitespace-nowrap">
+          <span className="text-[13px] font-[500] text-ink-soft pr-4 whitespace-nowrap">
             {step}
           </span>
         )}
         {trailing}
       </div>
       {title && (
-        <h1 className="px-4 pb-2 font-[700] text-[28px] leading-[1.15] tracking-[-0.02em] text-ink">
+        <h1 className="px-6 pt-1 pb-2 font-[700] text-[28px] leading-[1.15] tracking-[-0.02em] text-ink">
           {title}
         </h1>
       )}

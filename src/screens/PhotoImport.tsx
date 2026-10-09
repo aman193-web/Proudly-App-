@@ -100,7 +100,7 @@ function Select({
           We picked recent shots that look like activity moments. Tap to include or leave out.
         </p>
       </div>
-      <div className="flex-1 overflow-y-auto scroll-area px-4 mt-4">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 mt-4">
         <div className="grid grid-cols-3 gap-2">
           {drafts.map((d) => (
             <button
@@ -125,7 +125,7 @@ function Select({
           ))}
         </div>
       </div>
-      <div className="shrink-0 px-4 pt-3 pb-8 border-t border-hairline bg-canvas">
+      <div className="shrink-0 px-6 pt-3 pb-8 border-t border-hairline bg-canvas">
         <PrimaryButton onClick={onContinue} disabled={count === 0}>
           Continue with {count} photo{count === 1 ? "" : "s"}
         </PrimaryButton>
@@ -240,7 +240,7 @@ function Review({
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto scroll-area px-4 mt-4 space-y-2.5 pb-4">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 mt-4 space-y-2.5 pb-4">
         {drafts.map((d) => {
           const child = childById(d.childId);
           const activity = activityById(d.activityId);
@@ -328,7 +328,7 @@ function Review({
         })}
       </div>
 
-      <div className="shrink-0 px-4 pt-3 pb-8 border-t border-hairline bg-canvas">
+      <div className="shrink-0 px-6 pt-3 pb-8 border-t border-hairline bg-canvas">
         <PrimaryButton onClick={onDone}>
           Add {drafts.length} photo{drafts.length === 1 ? "" : "s"} to timeline
         </PrimaryButton>

@@ -495,7 +495,7 @@ export function BragSheet({
       />
 
       {/* Document preview */}
-      <div className="flex-1 overflow-y-auto scroll-area px-4 py-3">
+      <div className="flex-1 overflow-y-auto scroll-area px-6 py-3">
         <div className="mx-auto bg-white rounded-lg shadow-[0_8px_30px_-12px_rgba(23,35,33,0.3)] p-6 max-w-[340px]">
           {/* letterhead */}
           <div className="flex items-center justify-between border-b border-hairline pb-4">
@@ -564,7 +564,7 @@ export function BragSheet({
       </div>
 
       {/* Export controls — kept separate from the document */}
-      <div className="shrink-0 px-4 pt-3 pb-8 border-t border-hairline bg-surface flex gap-2.5">
+      <div className="shrink-0 px-6 pt-3 pb-8 border-t border-hairline bg-surface flex gap-2.5">
         <button
           onClick={() => showToast("Shared")}
           className="flex-1 h-[52px] rounded-2xl bg-surface border border-hairline text-ink font-[600] text-[15px] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
