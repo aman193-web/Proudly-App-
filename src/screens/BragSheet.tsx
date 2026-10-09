@@ -203,6 +203,7 @@ function DraftField({
       </span>
       <textarea
         value={field.text}
+        placeholder={`${label} — up to ${limit} characters`}
         onChange={(e) => field.set(e.target.value.slice(0, limit))}
         rows={Math.max(1, Math.ceil(field.text.length / 44))}
         className="mt-1 -mx-1.5 px-1.5 py-1 rounded-md bg-transparent border border-transparent text-[13px] leading-[1.5] text-ink resize-none outline-none overflow-hidden hover:border-hairline focus:border-pine focus:bg-[#fbfbf9] transition-colors"

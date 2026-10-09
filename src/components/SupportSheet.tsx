@@ -341,6 +341,7 @@ export function HoursSheet({
                 type="number"
                 min={0}
                 step={0.5}
+                placeholder="e.g. 2"
                 value={n}
                 onChange={(e) => setN(e.target.value)}
                 className="h-[52px] rounded-xl bg-surface border border-hairline px-3.5 text-[16px] text-ink outline-none focus:border-pine transition-colors"

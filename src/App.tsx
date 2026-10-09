@@ -67,7 +67,10 @@ export default function App() {
           <ConnectSources
             key="connect"
             onBack={() => go("addChild")}
-            onContinue={() => go("processing")}
+            onContinue={() => {
+              setSkippedSync(false);
+              go("processing");
+            }}
             onManual={() => {
               setSkippedSync(true);
               go("app");
@@ -107,7 +110,12 @@ export default function App() {
           />
         )}
         {route === "app" && (
-          <MainApp key="app" firstRun={skippedSync} onSignOut={() => go("welcome")} />
+          <MainApp
+            key="app"
+            firstRun={skippedSync}
+            onConnectCalendar={() => go("connect")}
+            onSignOut={() => go("welcome")}
+          />
         )}
       </AnimatePresence>
     </PhoneShell>

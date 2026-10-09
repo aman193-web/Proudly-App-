@@ -18,8 +18,6 @@ import {
   type ActivityView,
   CategorySheet,
   type ChildId,
-  ChildChip,
-  ChildSheet,
   EmptyGantt,
   FilterButton,
   MilestoneStar,
@@ -124,8 +122,11 @@ type StackEntry = Overlay & { _id: number };
 export function MainApp({
   onSignOut,
   firstRun = false,
+  onConnectCalendar,
 }: {
   onSignOut: () => void;
+  /** Runs the calendar connect flow from the first-run card. */
+  onConnectCalendar: () => void;
   /** Set when the parent skipped the calendar scan during onboarding. */
   firstRun?: boolean;
 }) {
@@ -337,6 +338,7 @@ export function MainApp({
                 onOpenNotifications={() => push({ kind: "newToReview" })}
                 onAddActivity={() => push({ kind: "manualEntry" })}
                 onAddAchievement={() => push({ kind: "addAchievement" })}
+                onConnectCalendar={onConnectCalendar}
                 onFindSupport={setSupportFor}
                 onLogHours={setHoursFor}
               />
@@ -461,6 +463,7 @@ function Home({
   onOpenNotifications,
   onAddActivity,
   onAddAchievement,
+  onConnectCalendar,
   onFindSupport,
   onLogHours,
 }: {
@@ -473,6 +476,7 @@ function Home({
   onOpenNotifications: () => void;
   onAddActivity: () => void;
   onAddAchievement: () => void;
+  onConnectCalendar: () => void;
   onFindSupport: (a: Activity) => void;
   onLogHours: (a: Activity) => void;
 }) {
@@ -504,9 +508,9 @@ function Home({
           },
           {
             icon: <Icon name="notifications" size={24} />,
-            label: `Activities to review (${NEW_TO_REVIEW_COUNT})`,
+            label: `Activities to review (${firstRun ? 0 : NEW_TO_REVIEW_COUNT})`,
             onClick: onOpenNotifications,
-            badge: NEW_TO_REVIEW_COUNT,
+            badge: firstRun ? 0 : NEW_TO_REVIEW_COUNT,
           },
           { icon: <Icon name="add" size={24} />, label: "Add activity", onClick: onAddActivity },
         ].map((b) => (
@@ -531,30 +535,43 @@ function Home({
         <h2 className="font-[700] text-[32px] leading-[1.1] tracking-[-0.03em] text-ink">
           {first}'s journey
         </h2>
-        <span className="text-[14px] text-ink-soft">{syncLabel}</span>
+        <span className="text-[14px] text-ink-soft">
+          {firstRun ? "No calendar connected" : syncLabel}
+        </span>
         {CHILDREN.length > 1 && <KidChips childId={childId} onSelect={onSelectChild} />}
       </div>
 
       {firstRun ? (
-        /* Nothing was scanned, so there is no queue to review — the one
-           thing worth doing is adding the first activity by hand. */
-        <button
-          onClick={onAddActivity}
-          className="mt-4 flex items-center gap-3.5 min-h-16 px-4 text-left border-y transition-colors"
-          style={{ background: "#f0f4f2", borderColor: "rgba(36,100,79,0.15)" }}
-        >
-          <Icon name="add_circle" size={24} fill className="text-pine" />
-          <span className="flex-1 min-w-0">
-            <span className="block text-[15px] font-[600] text-ink">
-              Add your first activity
+        /* Nothing was scanned and nothing was entered, so there is no record
+           to lay out. The screen is the two ways to start one. */
+        <div className="px-4 pt-6 flex flex-col gap-4">
+          <div className="rounded-3xl bg-surface border border-hairline px-5 py-6 flex flex-col items-center text-center">
+            <span className="grid place-items-center w-16 h-16 rounded-full bg-pine-soft text-pine">
+              <Icon name="timeline" size={32} />
             </span>
-            <span className="block text-[13px] text-ink-soft">
-              Nothing synced — start {first}'s journey by hand
-            </span>
-          </span>
-          <span className="text-[14px] font-[700] text-pine whitespace-nowrap">Add</span>
-        </button>
+            <h3 className="font-[700] text-[22px] leading-[1.2] tracking-[-0.02em] text-ink mt-4">
+              {first}'s journey starts here
+            </h3>
+            <p className="text-[14px] leading-[1.45] text-ink-soft mt-1.5">
+              Nothing is tracked yet. Add an activity yourself, or let BragOn read
+              it from a calendar.
+            </p>
+            <button
+              onClick={onAddActivity}
+              className="h-12 w-full mt-5 rounded-full bg-pine text-white font-[600] text-[15px] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+            >
+              <Icon name="add" size={20} /> Add your first activity
+            </button>
+            <button
+              onClick={onConnectCalendar}
+              className="h-12 w-full mt-2 rounded-full bg-surface border-[1.5px] border-pine text-pine font-[600] text-[15px] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+            >
+              <Icon name="calendar_month" size={20} /> Connect a calendar
+            </button>
+          </div>
+        </div>
       ) : (
+        <>
       <button
         onClick={onOpenNotifications}
         className="mt-4 flex items-center gap-3.5 min-h-16 px-4 text-left border-y transition-colors"
@@ -573,7 +590,6 @@ function Home({
         </span>
         <span className="text-[14px] font-[700] text-amber whitespace-nowrap">Review</span>
       </button>
-      )}
 
       {/* Hero numbers */}
       <div className="mt-[18px] px-4 flex gap-10">
@@ -650,6 +666,8 @@ function Home({
       </div>
 
       <NearbySection childName={first} topActivity={acts[0]} />
+        </>
+      )}
     </div>
   );
 }
@@ -1020,7 +1038,6 @@ function ExpandedGantt({
   onFindCoach: (activityId: string) => void;
   onClose: () => void;
 }) {
-  const [childSheet, setChildSheet] = useState(false);
   const [catSheet, setCatSheet] = useState(false);
   const allActs = activitiesFor(childId);
   const acts = category === "all" ? allActs : allActs.filter((a) => a.category === category);
@@ -1035,11 +1052,15 @@ function ExpandedGantt({
         >
           <Icon name="close" size={19} strokeWidth={2.2} />
         </button>
-        <ChildChip childId={childId} onOpen={() => setChildSheet(true)} />
         <div className="ml-auto">
           <FilterButton active={category !== "all"} onClick={() => setCatSheet(true)} />
         </div>
       </div>
+      {CHILDREN.length > 1 && (
+        <div className="shrink-0 px-4 pb-1">
+          <KidChips childId={childId} onSelect={onSelectChild} />
+        </div>
+      )}
       <div className="px-4 pb-2">
         <ActivityControls range={range} onRangeChange={setRange} onJumpToday={onJumpToday} />
       </div>
@@ -1059,12 +1080,6 @@ function ExpandedGantt({
       <div className="px-4 pb-6">
         <GanttLegend />
       </div>
-      <ChildSheet
-        open={childSheet}
-        onClose={() => setChildSheet(false)}
-        childId={childId}
-        onSelect={onSelectChild}
-      />
       <CategorySheet
         open={catSheet}
         onClose={() => setCatSheet(false)}
@@ -1265,7 +1280,6 @@ function AddActivity({
   const [category, setCategory] = useState<Category | null>(null);
   const [ongoing, setOngoing] = useState(true);
   const [note, setNote] = useState("");
-  const [childSheet, setChildSheet] = useState(false);
   const [catSheet, setCatSheet] = useState(false);
   /** null until the parent picks, so the suggestion keeps tracking the form. */
   const [pickedLevel, setPickedLevel] = useState<ActivityLevel | null>(null);
@@ -1312,11 +1326,7 @@ function AddActivity({
         </Field>
 
         <Field label="Child">
-          <PickerRow
-            value={childById(selectedChild)?.name ?? ""}
-            avatar={childById(selectedChild)?.photo}
-            onClick={() => setChildSheet(true)}
-          />
+          <KidChips childId={selectedChild} onSelect={setSelectedChild} />
         </Field>
 
         <Field label="Category">
@@ -1397,12 +1407,6 @@ function AddActivity({
         </PrimaryButton>
       </div>
 
-      <ChildSheet
-        open={childSheet}
-        onClose={() => setChildSheet(false)}
-        childId={selectedChild}
-        onSelect={(id) => setSelectedChild(id as string)}
-      />
       <CategorySheet
         open={catSheet}
         onClose={() => setCatSheet(false)}
@@ -1506,7 +1510,6 @@ function Achievements({
   onSelectChild: (id: ChildId) => void;
   onOpen: (id: string) => void;
 }) {
-  const [childSheet, setChildSheet] = useState(false);
   const [filter, setFilter] = useState<string>("all"); // all | year:2024 | cat:Sports | act:piano
   const achs = achievementsFor(childId);
 
@@ -1544,17 +1547,15 @@ function Achievements({
   ];
 
   return (
-    <div className="pt-14 pb-28">
-      <div className="px-4 flex items-start justify-between">
-        <div>
-          <h1 className="font-display text-[24px] font-[700] text-ink leading-tight">
-            Achievements
-          </h1>
-          <p className="text-[13px] text-ink-soft mt-1">
-            {achs.length} proud moments, in one place
-          </p>
-        </div>
-        <ChildChip childId={childId} onOpen={() => setChildSheet(true)} />
+    <div className="pb-28">
+      <div className="pt-[56px] px-4 pb-2 flex flex-col gap-1">
+        <h2 className="font-[700] text-[30px] leading-[1.1] tracking-[-0.025em] text-ink">
+          Accomplishments
+        </h2>
+        <span className="text-[14px] text-ink-soft">
+          {achs.length} proud moments, in one place
+        </span>
+        {CHILDREN.length > 1 && <KidChips childId={childId} onSelect={onSelectChild} />}
       </div>
 
       {/* Filter chips */}
@@ -1607,12 +1608,6 @@ function Achievements({
         )}
       </div>
 
-      <ChildSheet
-        open={childSheet}
-        onClose={() => setChildSheet(false)}
-        childId={childId}
-        onSelect={onSelectChild}
-      />
     </div>
   );
 }
@@ -1720,7 +1715,6 @@ function AddAchievement({
   const [selectedActivity, setSelectedActivity] = useState(activityId ?? "");
   const [desc, setDesc] = useState("");
   const [actSheet, setActSheet] = useState(false);
-  const [childSheet, setChildSheet] = useState(false);
   const childActs = activitiesFor(selectedChild);
   const activity = selectedActivity ? activityById(selectedActivity) : null;
 
@@ -1745,11 +1739,7 @@ function AddAchievement({
         </Field>
 
         <Field label="Child">
-          <PickerRow
-            value={childById(selectedChild)?.name ?? ""}
-            avatar={childById(selectedChild)?.photo}
-            onClick={() => setChildSheet(true)}
-          />
+          <KidChips childId={selectedChild} onSelect={setSelectedChild} />
         </Field>
 
         <Field label="Related activity">
@@ -1808,15 +1798,6 @@ function AddAchievement({
         </div>
       </Sheet>
 
-      <ChildSheet
-        open={childSheet}
-        onClose={() => setChildSheet(false)}
-        childId={selectedChild}
-        onSelect={(id) => {
-          setSelectedChild(id as string);
-          setSelectedActivity("");
-        }}
-      />
     </div>
   );
 }
@@ -2020,6 +2001,7 @@ function DiscoveryReview({
                       </label>
                       <input
                         value={editTitle}
+                        placeholder="Name this activity"
                         onChange={(e) => setEditTitle(e.target.value)}
                         className="w-full h-10 rounded-xl bg-canvas border border-hairline px-3 text-[14px] text-ink font-[600] outline-none focus:border-teal"
                       />
@@ -2144,13 +2126,6 @@ function DiscoveryReview({
     {/* Sibling of the review sheet, not nested inside it — a Sheet is
         absolutely positioned, so nesting would anchor this one to the review
         panel instead of the screen. Rendering it after also puts it on top. */}
-    <ChildSheet
-      open={assignFor !== null}
-      onClose={() => setAssignFor(null)}
-      childId=""
-      onSelect={assignTo}
-      title="Assign to which child?"
-    />
     </>
   );
 }
