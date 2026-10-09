@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { PartyPopper, Trophy } from "lucide-react";
 import { Screen, PrimaryButton, StatItem } from "../components/ui";
 import { LevelBadge } from "../components/level";
 import {
@@ -10,6 +9,7 @@ import {
   fmtMonth,
   PHOTO_CANDIDATES,
 } from "../data";
+import { Icon } from "../components/Icon";
 
 const RANGE_START = 2019;
 const RANGE_END = 2026;
@@ -37,7 +37,7 @@ export function Aha({
           transition={{ type: "spring", stiffness: 400, damping: 18 }}
           className="shrink-0 self-start grid place-items-center w-14 h-14 rounded-2xl bg-gold-soft text-gold mb-5"
         >
-          <PartyPopper size={26} />
+          <Icon name="celebration" size={26} />
         </motion.div>
 
         <motion.h1
@@ -83,7 +83,7 @@ export function Aha({
                     <img loading="lazy" decoding="async" src={p.url} alt={act?.name ?? ""} className="size-full object-cover" />
                     {p.achievement && (
                       <div className="absolute top-1.5 left-1.5 grid place-items-center w-5 h-5 rounded-full bg-gold shadow-sm">
-                        <Trophy size={10} className="text-white" />
+                        <Icon name="trophy" size={10} className="text-white" />
                       </div>
                     )}
                   </div>
@@ -167,7 +167,7 @@ export function Aha({
                 className="flex items-center gap-3.5 rounded-2xl bg-surface border border-hairline p-3.5"
               >
                 <span className="grid place-items-center w-10 h-10 rounded-xl bg-gold-soft text-gold shrink-0">
-                  <Trophy size={19} />
+                  <Icon name="trophy" size={19} />
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-[14.5px] font-[600] text-ink leading-tight truncate">

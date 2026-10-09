@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { ArrowLeft, CheckCircle2, RefreshCw, X } from "lucide-react";
 import { showToast } from "../components/states";
 import { CHILDREN } from "../data";
+import { Icon } from "../components/Icon";
 
 /* New to review — Oct-1 redesign.
    ------------------------------
@@ -62,14 +62,14 @@ export function NewToReview({ onBack }: { onBack: () => void }) {
             aria-label="Back"
             className="grid place-items-center w-12 h-12 rounded-full text-ink active:bg-hairline/50 transition-colors"
           >
-            <ArrowLeft size={24} />
+            <Icon name="arrow_back" size={24} />
           </button>
           <div className="flex-1" />
           <button
             onClick={sync}
             className="h-10 mr-2 pl-2.5 pr-3.5 rounded-full flex items-center gap-1.5 text-pine font-[600] text-[14px] active:bg-pine-soft transition-colors"
           >
-            <RefreshCw size={20} className={syncing ? "animate-spin" : undefined} />
+            <Icon name="sync" size={20} className={syncing ? "animate-spin" : undefined} />
             {syncing ? "Syncing" : "Sync"}
           </button>
         </div>
@@ -99,7 +99,7 @@ export function NewToReview({ onBack }: { onBack: () => void }) {
                 aria-label={`Not an activity: ${e.title}`}
                 className="grid place-items-center w-10 h-10 shrink-0 rounded-full text-[#8a908c] active:bg-black/5 transition-colors"
               >
-                <X size={20} />
+                <Icon name="close" size={20} />
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -136,7 +136,7 @@ export function NewToReview({ onBack }: { onBack: () => void }) {
 
         {!queue.length && (
           <div className="px-6 py-10 flex flex-col items-center gap-2.5 text-ink-soft">
-            <CheckCircle2 size={40} className="text-pine" />
+            <Icon name="check_circle" size={40} className="text-pine" />
             <span className="text-[14px]">All caught up. Tap sync to check again.</span>
           </div>
         )}

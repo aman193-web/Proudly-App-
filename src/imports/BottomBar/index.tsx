@@ -1,4 +1,4 @@
-import { FileText, Home as HomeIcon, User, Waypoints } from "lucide-react";
+import { Icon } from "../../components/Icon";
 
 export type TabKey = "home" | "activities" | "achievements" | "portfolio" | "profile";
 
@@ -22,15 +22,11 @@ export default function BottomBar({
   /* Four tabs, as in the prototype. The achievements list and the photo
      portfolio are still in the app — they are reached from Home and from
      Profile rather than from here. */
-  const items: {
-    id: TabKey;
-    label: string;
-    icon: typeof HomeIcon;
-  }[] = [
-    { id: "home", label: "Home", icon: HomeIcon },
-    { id: "activities", label: "Timeline", icon: Waypoints },
-    { id: "portfolio", label: "Brag sheet", icon: FileText },
-    { id: "profile", label: "Profile", icon: User },
+  const items: { id: TabKey; label: string; icon: string }[] = [
+    { id: "home", label: "Home", icon: "home" },
+    { id: "activities", label: "Timeline", icon: "timeline" },
+    { id: "portfolio", label: "Brag sheet", icon: "description" },
+    { id: "profile", label: "Profile", icon: "person" },
   ];
 
   return (
@@ -46,7 +42,6 @@ export default function BottomBar({
     >
       {items.map((item) => {
         const isActive = currentTab === item.id;
-        const Icon = item.icon;
         return (
           <button
             key={item.id}
@@ -61,7 +56,7 @@ export default function BottomBar({
                 isActive ? "bg-pine-soft" : "bg-transparent"
               }`}
             >
-              <Icon size={24} strokeWidth={isActive ? 2.2 : 1.9} />
+              <Icon name={item.icon} size={24} fill={isActive} />
             </span>
             <span className="text-[10.5px] font-[600] tracking-tight truncate max-w-full">
               {item.label}

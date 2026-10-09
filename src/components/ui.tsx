@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, Eye, EyeOff } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { PhoneFrame } from "./PhoneFrame";
+import { Icon } from "./Icon";
 
 /* ---------- Phone shell ----------
    The app is a phone design, so it renders inside a hardware frame with the
@@ -84,7 +84,7 @@ export function BackButton({ onClick }: { onClick: () => void }) {
       aria-label="Back"
       className="grid place-items-center w-12 h-12 rounded-full text-ink active:bg-hairline/50 transition-colors"
     >
-      <ArrowLeft size={22} strokeWidth={2.2} />
+      <Icon name="arrow_back" size={22} strokeWidth={2.2} />
     </button>
   );
 }
@@ -227,7 +227,7 @@ export function PasswordField({
           onClick={() => setShow((s) => !s)}
           className="grid place-items-center w-9 h-9 rounded-xl text-ink-soft active:bg-canvas"
         >
-          {show ? <EyeOff size={18} /> : <Eye size={18} />}
+          {show ? <Icon name="visibility_off" size={18} /> : <Icon name="visibility" size={18} />}
         </button>
       </div>
     </label>
@@ -351,7 +351,7 @@ export function CheckBadge({ size = 20, tone = "teal" }: { size?: number; tone?:
         background: tone === "teal" ? "#217c72" : "#b8893b",
       }}
     >
-      <Check size={size * 0.62} strokeWidth={3} />
+      <Icon name="check" size={size * 0.62} strokeWidth={3} />
     </motion.span>
   );
 }

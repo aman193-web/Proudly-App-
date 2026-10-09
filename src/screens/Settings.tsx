@@ -1,22 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Bell,
-  Calendar,
-  ChevronRight,
-  Database,
-  GraduationCap,
-  Images,
-  Info,
-  LogOut,
-  Pencil,
-  Plus,
-  RefreshCw,
-  ShieldCheck,
-  Trash2,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { Calendar } from "lucide-react";
+import { Icon } from "../components/Icon";
 import { AppHeader, ChildAvatar, PrimaryButton } from "../components/ui";
 import { SourceCard } from "../components/SourceCard";
 import { DEFAULT_FETCH_RANGE } from "../components/FetchRange";
@@ -51,7 +36,7 @@ function SavedCoachesRow({ onClick }: { onClick: () => void }) {
   const count = useSavedCount();
   return (
     <Row
-      icon={<GraduationCap size={18} />}
+      icon={<Icon name="school" size={18} />}
       label="Saved coaches"
       value={count ? String(count) : "None yet"}
       onClick={onClick}
@@ -306,7 +291,7 @@ export function LevelsHelp({ onBack }: { onBack: () => void }) {
           <p className="text-[13px] text-ink leading-relaxed">
             <strong className="font-[700]">You always have the final say.</strong> Changing a
             level never erases BragOn's suggestion — both are kept, so you can go back to it.
-            Tap the <Info size={12} className="inline align-[-1px]" /> beside any level to see
+            Tap the <Icon name="info" size={12} className="inline align-[-1px]" /> beside any level to see
             what counted for that activity.
           </p>
         </div>
@@ -330,7 +315,7 @@ export function SavedCoaches({ onBack }: { onBack: () => void }) {
         {saved.length === 0 ? (
           <div className="rounded-[22px] bg-surface border border-hairline mt-2">
             <EmptyState
-              icon={<GraduationCap size={24} />}
+              icon={<Icon name="school" size={24} />}
               title="No saved coaches yet"
               body="When you find a coach worth remembering, tap the bookmark to keep it here."
             />
@@ -407,7 +392,7 @@ export function ProfileTab({ onOpen }: { onOpen: (t: SettingsTarget) => void }) 
           </button>
         </div>
         <div className="flex items-center gap-3.5 min-h-[56px] pl-6 pr-4">
-          <Images size={22} className="w-10 shrink-0 text-pine" />
+          <Icon name="photo_library" size={22} className="w-10 shrink-0 text-pine" />
           <span className="flex-1 min-w-0 text-[15px] font-[500] text-ink truncate">
             {SOURCES.photos.account}
           </span>
@@ -424,12 +409,12 @@ export function ProfileTab({ onOpen }: { onOpen: (t: SettingsTarget) => void }) 
       <SectionHeading>Their record</SectionHeading>
       <div className="py-1">
         <FlatRow
-          icon={<Trophy size={22} />}
+          icon={<Icon name="trophy" size={22} />}
           label="All accomplishments"
           onClick={() => onOpen("achievements")}
         />
         <FlatRow
-          icon={<Images size={22} />}
+          icon={<Icon name="photo_library" size={22} />}
           label="Photos & memories"
           onClick={() => onOpen("photos")}
         />
@@ -438,28 +423,28 @@ export function ProfileTab({ onOpen }: { onOpen: (t: SettingsTarget) => void }) 
       <SectionHeading>Settings</SectionHeading>
       <div className="py-1">
         <FlatRow
-          icon={<GraduationCap size={22} />}
+          icon={<Icon name="school" size={22} />}
           label="Saved coaches"
           value={savedCoaches ? String(savedCoaches) : "None yet"}
           onClick={() => onOpen("savedCoaches")}
         />
         <FlatRow
-          icon={<Bell size={22} />}
+          icon={<Icon name="notifications" size={22} />}
           label="Notifications"
           onClick={() => onOpen("notifPrefs")}
         />
         <FlatRow
-          icon={<ShieldCheck size={22} />}
+          icon={<Icon name="shield" size={22} />}
           label="Account"
           onClick={() => onOpen("account")}
         />
         <FlatRow
-          icon={<Database size={22} />}
+          icon={<Icon name="database" size={22} />}
           label="Data & privacy"
           onClick={() => onOpen("data")}
         />
         <FlatRow
-          icon={<Info size={22} />}
+          icon={<Icon name="info" size={22} />}
           label="How learning levels work"
           onClick={() => onOpen("levelsHelp")}
         />
@@ -501,7 +486,7 @@ function FlatRow({
       <span className="grid place-items-center w-10 shrink-0 text-ink-soft">{icon}</span>
       <span className="flex-1 min-w-0 text-[15px] font-[500] text-ink truncate">{label}</span>
       {value && <span className="text-[13px] text-ink-soft shrink-0">{value}</span>}
-      <ChevronRight size={18} className="text-ink-soft/70 shrink-0" />
+      <Icon name="chevron_right" size={18} className="text-ink-soft/70 shrink-0" />
     </button>
   );
 }
@@ -513,7 +498,7 @@ function FlatAddRow({ label, onClick }: { label: string; onClick: () => void }) 
       onClick={onClick}
       className="w-full flex items-center gap-3.5 min-h-[56px] px-6 text-left text-pine text-[15px] font-[600] active:bg-pine-soft/50 transition-colors"
     >
-      <Plus size={22} className="w-10 shrink-0" />
+      <Icon name="add" size={22} className="w-10 shrink-0" />
       {label}
     </button>
   );
@@ -562,7 +547,7 @@ function Row({
         {label}
       </span>
       {value && <span className="text-[13px] text-ink-soft">{value}</span>}
-      {onClick && <ChevronRight size={17} className="text-ink-soft/70" />}
+      {onClick && <Icon name="chevron_right" size={17} className="text-ink-soft/70" />}
     </button>
   );
 }
@@ -676,7 +661,7 @@ export function ConnectedSources({ onBack }: { onBack: () => void }) {
             className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-canvas transition-colors"
           >
             <span className="grid place-items-center w-9 h-9 rounded-xl bg-mint text-teal-dark shrink-0">
-              <RefreshCw size={17} />
+              <Icon name="sync" size={17} />
             </span>
             <div className="flex-1">
               <p className="text-[15px] font-[600] text-ink">Sync now</p>
@@ -709,7 +694,7 @@ export function ChildManagement({
             onClick={onAddChild}
             className="grid place-items-center w-10 h-10 rounded-full bg-surface border border-hairline text-teal active:scale-95 transition-transform"
           >
-            <Plus size={19} />
+            <Icon name="add" size={19} />
           </button>
         }
       />
@@ -726,7 +711,7 @@ export function ChildManagement({
                 <p className="text-[16px] font-[700] text-ink">{c.name}</p>
                 <p className="text-[13px] text-ink-soft">{c.grade}</p>
               </div>
-              <Pencil size={17} className="text-ink-soft" />
+              <Icon name="edit" size={17} className="text-ink-soft" />
             </button>
           ))}
         </div>
@@ -735,7 +720,7 @@ export function ChildManagement({
           onClick={onAddChild}
           className="w-full mt-3 rounded-2xl border border-dashed border-teal/40 text-teal p-4 flex items-center justify-center gap-2 text-[14.5px] font-[600] active:scale-[0.99] transition-transform"
         >
-          <Plus size={18} /> Add child
+          <Icon name="add" size={18} /> Add child
         </button>
       </div>
     </div>
@@ -770,7 +755,7 @@ export function EditChild({
           <div className="relative">
             <ChildAvatar src={existing?.photo} name={name || "?"} size={92} ring="#217c72" />
             <span className="absolute bottom-0 right-0 grid place-items-center w-8 h-8 rounded-full bg-teal text-white border-2 border-canvas">
-              <Pencil size={14} />
+              <Icon name="edit" size={14} />
             </span>
           </div>
           <p className="text-[12.5px] text-ink-soft mt-2.5">Reference photo helps match memories</p>
@@ -833,7 +818,7 @@ export function EditChild({
                     className="w-full mt-3 flex items-center gap-3 rounded-2xl bg-[#fbeceb] border border-[#e2b6b0] p-4 text-left"
                   >
                     <span className="grid place-items-center w-9 h-9 rounded-xl bg-white text-[#c0504a]">
-                      <Trash2 size={17} />
+                      <Icon name="delete" size={17} />
                     </span>
                     <div>
                       <p className="text-[14.5px] font-[600] text-[#c0504a]">
@@ -889,15 +874,15 @@ export function AccountSettings({
         </div>
 
         <div className="mt-6 rounded-2xl bg-surface border border-hairline divide-y divide-hairline overflow-hidden">
-          <Row icon={<Pencil size={18} />} label="Edit profile" onClick={() => showToast("Profile saved")} />
-          <Row icon={<ShieldCheck size={18} />} label="Change password" onClick={() => {}} />
+          <Row icon={<Icon name="edit" size={18} />} label="Edit profile" onClick={() => showToast("Profile saved")} />
+          <Row icon={<Icon name="shield" size={18} />} label="Change password" onClick={() => {}} />
         </div>
 
         <button
           onClick={onSignOut}
           className="w-full mt-6 flex items-center justify-center gap-2 rounded-2xl bg-surface border border-hairline p-4 text-[15px] font-[600] text-[#c0504a] active:scale-[0.99] transition-transform"
         >
-          <LogOut size={18} /> Sign out
+          <Icon name="logout" size={18} /> Sign out
         </button>
       </div>
     </div>
@@ -948,13 +933,13 @@ export function DataPrivacy({
           Your family's record stays yours. Manage what BragOn keeps.
         </p>
         <div className="rounded-2xl bg-surface border border-hairline divide-y divide-hairline overflow-hidden">
-          <Row icon={<Database size={18} />} label="Manage imported items" onClick={() => showToast("Opened imported items")} />
-          <Row icon={<Users size={18} />} label="Delete a child" onClick={onManageChildren} />
+          <Row icon={<Icon name="database" size={18} />} label="Manage imported items" onClick={() => showToast("Opened imported items")} />
+          <Row icon={<Icon name="sports_soccer" size={18} />} label="Delete a child" onClick={onManageChildren} />
         </div>
 
         <div className="mt-6 rounded-2xl bg-surface border border-hairline divide-y divide-hairline overflow-hidden">
           <Row
-            icon={<Trash2 size={18} />}
+            icon={<Icon name="delete" size={18} />}
             label="Delete account"
             danger
             onClick={() => showToast("Contact support to delete")}

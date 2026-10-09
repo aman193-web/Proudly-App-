@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronRight, Sparkles } from "lucide-react";
 import { AppHeader, ChildAvatar, PrimaryButton } from "../components/ui";
 import { Sheet } from "../components/Sheet";
 import { ChildSheet, MilestoneStar } from "../components/proudly";
@@ -14,6 +13,7 @@ import {
   PHOTO_CANDIDATES,
   type PhotoCandidate,
 } from "../data";
+import { Icon } from "../components/Icon";
 
 type Step = "select" | "processing" | "review";
 
@@ -119,7 +119,7 @@ function Select({
                   d.include ? "bg-teal text-white" : "bg-white/30"
                 }`}
               >
-                {d.include && <Check size={14} strokeWidth={3} />}
+                {d.include && <Icon name="check" size={14} strokeWidth={3} />}
               </span>
             </button>
           ))}
@@ -165,7 +165,7 @@ function Processing({ onDone }: { onDone: () => void }) {
         animate={{ scale: [1, 1.06, 1] }}
         transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
       >
-        <Sparkles size={28} />
+        <Icon name="auto_awesome" size={28} />
       </motion.span>
       <div className="w-full max-w-[260px] space-y-3">
         {stages.map((s, idx) => {
@@ -179,7 +179,7 @@ function Processing({ onDone }: { onDone: () => void }) {
                 }`}
               >
                 {done ? (
-                  <Check size={12} strokeWidth={3} />
+                  <Icon name="check" size={12} strokeWidth={3} />
                 ) : active ? (
                   <motion.span
                     className="w-2 h-2 rounded-full bg-teal"
@@ -261,7 +261,7 @@ function Review({
                   <div className="flex items-center gap-1.5">
                     {d.confident ? (
                       <span className="inline-flex items-center gap-1 text-[11px] font-[700] text-teal bg-mint px-2 py-0.5 rounded-full">
-                        <Check size={11} strokeWidth={3} /> Matched
+                        <Icon name="check" size={11} strokeWidth={3} /> Matched
                       </span>
                     ) : (
                       <span className="text-[11px] font-[700] text-[#a3762a] bg-gold-soft px-2 py-0.5 rounded-full">
@@ -290,7 +290,7 @@ function Review({
                         style={{ background: CATEGORY_COLOR[activity!.category] }}
                       />
                       {activity?.name}
-                      <ChevronRight size={13} className="text-ink-soft" />
+                      <Icon name="chevron_right" size={13} className="text-ink-soft" />
                     </button>
                   </div>
                 </div>

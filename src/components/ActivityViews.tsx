@@ -1,14 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  GraduationCap,
-  MessageCircleQuestion,
-  Plus,
-  SlidersHorizontal,
-} from "lucide-react";
 import { EmptyState } from "./states";
 import { MilestoneStar, rangeYears, withinRange } from "./proudly";
 import { LevelBadge } from "./level";
@@ -25,6 +16,7 @@ import {
   TODAY,
   type YM,
 } from "../data";
+import { Icon } from "./Icon";
 
 const MONTH_LABELS = [
   "Jan",
@@ -109,7 +101,7 @@ export function ActivityListView({
     return (
       <div className="rounded-[22px] bg-surface border border-hairline">
         <EmptyState
-          icon={<SlidersHorizontal size={24} />}
+          icon={<Icon name="tune" size={24} />}
           title="Nothing in this range"
           body="Widen the range to see more of the journey."
         />
@@ -239,17 +231,17 @@ function ActivityListRow({
           </span>
         </span>
 
-        <ChevronRight size={18} className="text-ink-soft shrink-0" />
+        <Icon name="chevron_right" size={18} className="text-ink-soft shrink-0" />
       </button>
 
       <div className="flex items-center gap-2 px-3 pb-3">
         <RowAction
-          icon={<MessageCircleQuestion size={14} />}
+          icon={<Icon name="contact_support" size={14} />}
           label="Ask BragOn"
           onClick={onAskProudly}
         />
         <RowAction
-          icon={<GraduationCap size={14} />}
+          icon={<Icon name="school" size={14} />}
           label="Find a coach"
           onClick={onFindCoach}
           primary
@@ -331,7 +323,7 @@ export function ActivityCalendarView({
     return (
       <div className="rounded-[22px] bg-surface border border-hairline">
         <EmptyState
-          icon={<CalendarDays size={24} />}
+          icon={<Icon name="event" size={24} />}
           title="Nothing to show yet"
           body="Once activities are tracked they will appear on the calendar."
         />
@@ -369,7 +361,7 @@ export function ActivityCalendarView({
             aria-label="Previous month"
             className="grid place-items-center w-9 h-9 rounded-full border border-hairline bg-canvas text-ink active:scale-95 transition-transform disabled:opacity-30"
           >
-            <ChevronLeft size={17} />
+            <Icon name="chevron_left" size={17} />
           </button>
           <div className="text-center">
             <p className="font-display text-[16px] font-[700] text-ink leading-tight">
@@ -390,7 +382,7 @@ export function ActivityCalendarView({
             aria-label="Next month"
             className="grid place-items-center w-9 h-9 rounded-full border border-hairline bg-canvas text-ink active:scale-95 transition-transform disabled:opacity-30"
           >
-            <ChevronRight size={17} />
+            <Icon name="chevron_right" size={17} />
           </button>
         </div>
 
@@ -470,7 +462,7 @@ export function ActivityCalendarView({
                           style={{ background: isSelected ? "#ffffff" : CATEGORY_COLOR[c] }}
                         />
                       ))
-                    : isFreeDay && <Plus size={9} className="text-ink-soft/40" />}
+                    : isFreeDay && <Icon name="add" size={9} className="text-ink-soft/40" />}
                 </span>
               </button>
             );
@@ -500,7 +492,7 @@ export function ActivityCalendarView({
                   </span>
                   <span className="block text-[11.5px] text-gold font-[600]">Achievement</span>
                 </span>
-                <ChevronRight size={16} className="text-ink-soft shrink-0" />
+                <Icon name="chevron_right" size={16} className="text-ink-soft shrink-0" />
               </button>
             ))}
           </div>
@@ -551,7 +543,7 @@ export function ActivityCalendarView({
                     </span>
                     <span className="block text-[11.5px] text-ink-soft">{a.category}</span>
                   </span>
-                  <ChevronRight size={16} className="text-ink-soft shrink-0" />
+                  <Icon name="chevron_right" size={16} className="text-ink-soft shrink-0" />
                 </button>
               );
             })}

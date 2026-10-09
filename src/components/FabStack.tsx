@@ -1,5 +1,5 @@
-import { Plus } from "lucide-react";
 import { AiCoachMark } from "./AiCoachMark";
+import { Icon } from "./Icon";
 
 /* Floating actions
    ----------------
@@ -37,7 +37,7 @@ export function FabStack({
           aria-label={addLabel}
           className="w-14 h-14 rounded-full grid place-items-center bg-teal text-white shadow-[0_12px_28px_-8px_rgba(33,124,114,0.7)] active:scale-95 transition-transform"
         >
-          <Plus size={26} />
+          <Icon name="add" size={26} />
         </button>
       )}
 

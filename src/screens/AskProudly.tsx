@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUp, GraduationCap, Lightbulb, X } from "lucide-react";
 import { AiCoachMark } from "../components/AiCoachMark";
 import {
   type AskContext,
@@ -10,6 +9,7 @@ import {
   newMessage,
   suggestedPrompts,
 } from "../lib/askProudly";
+import { Icon } from "../components/Icon";
 
 /* Ask BragOn sheet
    -----------------
@@ -180,7 +180,7 @@ function Panel({
             aria-label="Close Ask BragOn"
             className="grid place-items-center w-9 h-9 rounded-full bg-surface border border-hairline text-ink shrink-0 active:scale-95 transition-transform"
           >
-            <X size={17} />
+            <Icon name="close" size={17} />
           </button>
         </div>
 
@@ -215,7 +215,7 @@ function Panel({
                   className="w-full flex items-center gap-3 text-left rounded-2xl bg-mint/45 px-3 py-2.5 active:bg-mint transition-colors"
                 >
                   <span className="grid place-items-center w-9 h-9 rounded-xl bg-surface text-teal shrink-0">
-                    <Lightbulb size={17} />
+                    <Icon name="lightbulb" size={17} />
                   </span>
                   <span className="text-[13.5px] text-ink leading-snug">{p}</span>
                 </motion.button>
@@ -259,7 +259,7 @@ function Panel({
                       onClick={() => onFindCoach(m.action!.activityId)}
                       className="mt-2 h-10 rounded-xl bg-teal text-white px-3.5 inline-flex items-center gap-1.5 text-[13px] font-[600] active:scale-[0.99] transition-transform"
                     >
-                      <GraduationCap size={15} /> {m.action.label}
+                      <Icon name="school" size={15} /> {m.action.label}
                     </button>
                   )}
                 </div>
@@ -316,7 +316,7 @@ function Panel({
             aria-label="Send"
             className="w-12 h-12 shrink-0 grid place-items-center rounded-2xl bg-teal text-white active:scale-95 transition-transform disabled:opacity-40"
           >
-            <ArrowUp size={20} strokeWidth={2.5} />
+            <Icon name="arrow_upward" size={20} strokeWidth={2.5} />
           </button>
         </div>
         <p className="text-[11px] text-ink-soft/70 text-center mt-2.5">

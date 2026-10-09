@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Wifi } from "lucide-react";
+import { Icon } from "./Icon";
 
 /* Screen geometry, in points. The screen box is the app's viewport;
    everything else is hardware drawn around it.
@@ -105,7 +105,7 @@ function StatusBar({ time }: { time: string }) {
       </span>
       <span className="flex items-center gap-[5px]">
         <SignalBars />
-        <Wifi size={15} strokeWidth={2.4} />
+        <Icon name="wifi" size={15} strokeWidth={2.4} />
         <Battery />
       </span>
     </div>

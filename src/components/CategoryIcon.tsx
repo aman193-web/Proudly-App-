@@ -1,13 +1,4 @@
-import {
-  BookOpen,
-  Drama,
-  FlaskConical,
-  Music,
-  Palette,
-  Shapes,
-  Trees,
-  Volleyball,
-} from "lucide-react";
+import { Icon } from "./Icon";
 import { type Category, CATEGORY_COLOR } from "../data";
 
 /* Category icons
@@ -17,17 +8,18 @@ import { type Category, CATEGORY_COLOR } from "../data";
    Tighter spots (the Gantt label, preview sheets, calendar cells, filter
    chips) keep the plain colour dot.
 
-   The icon carries the same category colour the dot did, so the colour
-   language across the app is unchanged. */
-const CATEGORY_ICON: Record<Category, typeof Music> = {
-  "Sports & Athletics": Volleyball,
-  "Music & Performance": Music,
-  "Dance & Theater": Drama,
-  Academics: BookOpen,
-  "Arts & Crafts": Palette,
-  "STEM & Robotics": FlaskConical,
-  Outdoors: Trees,
-  Other: Shapes,
+   Names are the prototype's own Material Symbols, matched category for
+   category; Outdoors has no counterpart there, so it takes `park`. */
+const CATEGORY_ICON: Record<Category, string> = {
+  "Sports & Athletics": "sports_soccer",
+  "Music & Performance": "music_note",
+  "Dance & Theater": "theater_comedy",
+  Academics: "menu_book",
+  "Arts & Crafts": "palette",
+  "STEM & Robotics": "precision_manufacturing",
+  Outdoors: "park",
+  Volunteering: "volunteer_activism",
+  Other: "star",
 };
 
 export function CategoryIcon({
@@ -40,6 +32,11 @@ export function CategoryIcon({
   /** Defaults to the category colour. */
   color?: string;
 }) {
-  const Icon = CATEGORY_ICON[category];
-  return <Icon size={size} color={color ?? CATEGORY_COLOR[category]} strokeWidth={2} aria-hidden />;
+  return (
+    <Icon
+      name={CATEGORY_ICON[category]}
+      size={size}
+      style={{ color: color ?? CATEGORY_COLOR[category] }}
+    />
+  );
 }

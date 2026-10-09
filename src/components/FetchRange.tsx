@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ChevronDown, History } from "lucide-react";
 import { Sheet } from "./Sheet";
+import { Icon } from "./Icon";
 
 /* How far back a connected source is scanned.
    ------------------------------------------
@@ -52,7 +52,7 @@ export function FetchRangeControl({
     <>
       <div className="flex items-center justify-between gap-2">
         <span className="inline-flex items-center gap-1.5 text-[12.5px] text-ink-soft">
-          <History size={13} /> Fetch history
+          <Icon name="history" size={13} /> Fetch history
         </span>
         <button
           onClick={() => setOpen(true)}
@@ -60,7 +60,7 @@ export function FetchRangeControl({
           className="inline-flex items-center gap-1 h-7 pl-3 pr-2 rounded-full bg-canvas border border-hairline text-[12.5px] font-[600] text-ink active:scale-95 transition-transform"
         >
           {current.label}
-          <ChevronDown size={14} className="text-ink-soft" />
+          <Icon name="keyboard_arrow_down" size={14} className="text-ink-soft" />
         </button>
       </div>
 

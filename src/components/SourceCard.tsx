@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
-import { AlertTriangle, Check, Loader2, RefreshCw } from "lucide-react";
 import googleCalIcon from "@/imports/image.png";
 import googlePhotosIcon from "@/imports/image-1.png";
 import { FetchRangeControl } from "./FetchRange";
+import { Icon } from "./Icon";
 
 export type SourceState =
   | "not_connected"
@@ -91,12 +91,12 @@ function StatusPill({ state }: { state: SourceState }) {
     >
       {state === "connected" && (
         <span className="grid place-items-center w-4 h-4 rounded-full bg-teal text-white">
-          <Check size={10} strokeWidth={3.5} />
+          <Icon name="check" size={10} strokeWidth={3.5} />
         </span>
       )}
-      {state === "connecting" && <Loader2 size={13} className="animate-spin" />}
-      {state === "denied" && <AlertTriangle size={13} />}
-      {state === "reconnect" && <RefreshCw size={12} />}
+      {state === "connecting" && <Icon name="progress_activity" size={13} className="animate-spin" />}
+      {state === "denied" && <Icon name="warning" size={13} />}
+      {state === "reconnect" && <Icon name="sync" size={12} />}
       {meta.label}
     </span>
   );

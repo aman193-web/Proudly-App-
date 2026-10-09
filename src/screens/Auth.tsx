@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail } from "lucide-react";
 import {
   Screen,
   AppHeader,
@@ -11,6 +10,7 @@ import {
   PasswordField,
   TextLink,
 } from "../components/ui";
+import { Icon } from "../components/Icon";
 
 /* Auth
    ----
@@ -159,7 +159,7 @@ export function CreateAccount({
         <div className="mt-6">
           {!showEmail ? (
             <GhostButton onClick={() => setShowEmail(true)}>
-              <Mail size={18} className="text-ink-soft" />
+              <Icon name="mail" size={18} className="text-ink-soft" />
               Continue with email
             </GhostButton>
           ) : (

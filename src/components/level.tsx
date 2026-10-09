@@ -1,11 +1,3 @@
-import {
-  Check,
-  ChevronRight,
-  GraduationCap,
-  Info,
-  MessageCircleQuestion,
-  Sparkles,
-} from "lucide-react";
 import { useState } from "react";
 import type { Activity, ActivityLevel } from "../data";
 import { ACTIVITY_LEVELS } from "../data";
@@ -18,6 +10,7 @@ import {
 } from "../lib/activityLevels";
 import { LEVEL_BANDS, explainLevel } from "../lib/levelSuggestion";
 import { Sheet } from "./Sheet";
+import { Icon } from "./Icon";
 
 /* Level styling — a progression through the existing palette:
    grey → mint → teal → gold. Matches the "Ongoing" pill treatment already
@@ -125,11 +118,11 @@ export function LevelPickerSheet({
               </span>
               {lvl === suggested && (
                 <span className="inline-flex items-center gap-1 text-[11px] font-[600] text-teal">
-                  <Sparkles size={11} /> BragOn suggests
+                  <Icon name="auto_awesome" size={11} /> BragOn suggests
                 </span>
               )}
               <span className="flex-1" />
-              {active && <Check size={16} className="text-teal shrink-0" strokeWidth={3} />}
+              {active && <Icon name="check" size={16} className="text-teal shrink-0" strokeWidth={3} />}
             </button>
           );
         })}
@@ -189,14 +182,14 @@ export function NextLevelCard({
             onClick={onChangeLevel}
             className="flex items-center gap-1 shrink-0 h-9 pl-3 pr-2 rounded-full bg-surface border border-hairline text-[12.5px] font-[600] text-teal active:scale-95 transition-transform"
           >
-            Change <ChevronRight size={15} />
+            Change <Icon name="chevron_right" size={15} />
           </button>
         </div>
 
         {/* Where the level came from */}
         {source === "proudly" ? (
           <span className="flex items-center gap-1.5 mt-2 text-[12.5px] font-[600] text-teal">
-            <Sparkles size={12} className="shrink-0" /> Suggested by BragOn
+            <Icon name="auto_awesome" size={12} className="shrink-0" /> Suggested by BragOn
           </span>
         ) : (
           <span className="flex items-center gap-1.5 mt-2 text-[12.5px] font-[600] text-ink-soft">
@@ -213,7 +206,7 @@ export function NextLevelCard({
         {/* Parent disagreed with BragOn — show the suggestion separately. */}
         {overridden && (
           <span className="inline-flex items-center gap-1.5 mt-2.5 text-[11.5px] font-[600] text-teal bg-mint rounded-full px-2 py-1">
-            <Sparkles size={11} /> BragOn suggests {suggested}
+            <Icon name="auto_awesome" size={11} /> BragOn suggests {suggested}
           </span>
         )}
       </div>
@@ -243,13 +236,13 @@ export function NextLevelCard({
             onClick={onAskProudly}
             className="flex-1 h-11 rounded-xl bg-surface border border-hairline flex items-center justify-center gap-1.5 text-[13.5px] font-[600] text-ink active:scale-[0.99] transition-transform"
           >
-            <MessageCircleQuestion size={15} /> Ask BragOn
+            <Icon name="contact_support" size={15} /> Ask BragOn
           </button>
           <button
             onClick={onConnectCoach}
             className="flex-1 h-11 rounded-xl bg-teal text-white flex items-center justify-center gap-1.5 text-[13.5px] font-[600] active:scale-[0.99] transition-transform"
           >
-            <GraduationCap size={15} /> Find a coach
+            <Icon name="school" size={15} /> Find a coach
           </button>
         </div>
       </div>
@@ -281,7 +274,7 @@ export function LevelChooserRow({
         </span>
         {source === "proudly" ? (
           <span className="inline-flex items-center gap-1 text-[11px] font-[600] text-teal">
-            <Sparkles size={11} /> Suggested by BragOn
+            <Icon name="auto_awesome" size={11} /> Suggested by BragOn
           </span>
         ) : (
           <button
@@ -380,7 +373,7 @@ export function NewActivityLevelField({
           </button>
         ) : (
           <span className="inline-flex items-center gap-1 text-[11px] font-[600] text-teal">
-            <Sparkles size={11} /> Suggested by BragOn
+            <Icon name="auto_awesome" size={11} /> Suggested by BragOn
           </span>
         )}
       </div>
@@ -418,7 +411,7 @@ export function LevelInfoButton({
         aria-label={label}
         className="shrink-0 grid place-items-center w-5 h-5 rounded-full text-ink-soft active:scale-90 transition-transform"
       >
-        <Info size={14} />
+        <Icon name="info" size={14} />
       </button>
       <LevelInfoSheet activity={activity} open={open} onClose={() => setOpen(false)} />
     </>

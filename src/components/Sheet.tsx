@@ -16,7 +16,8 @@ export function Sheet({
       {open && (
         <>
           <motion.div
-            className="absolute inset-0 z-40 bg-ink/35"
+            className="absolute inset-0 z-40"
+            style={{ background: "rgba(18,22,20,0.28)", backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -24,7 +25,12 @@ export function Sheet({
             onClick={onClose}
           />
           <motion.div
-            className="absolute inset-x-0 bottom-0 z-50 rounded-t-[28px] bg-surface pb-8 pt-2.5 px-4 shadow-[0_-16px_40px_-12px_rgba(23,35,33,0.28)]"
+            className="absolute inset-x-0 bottom-0 z-50 max-h-[88%] overflow-y-auto scroll-area rounded-t-[30px] border-t border-white/95 pb-8 pt-2.5 px-4 shadow-[0_-10px_40px_-10px_rgba(20,50,44,0.25)]"
+            style={{
+              background: "rgba(255,255,255,0.82)",
+              backdropFilter: "blur(30px) saturate(1.6)",
+              WebkitBackdropFilter: "blur(30px) saturate(1.6)",
+            }}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -36,7 +42,7 @@ export function Sheet({
               if (info.offset.y > 90) onClose();
             }}
           >
-            <div className="mx-auto mb-3 h-1.5 w-11 rounded-full bg-hairline" />
+            <div className="mx-auto mb-1 h-1 w-9 rounded-full bg-[#d5d8d3]" />
             {children}
           </motion.div>
         </>

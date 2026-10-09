@@ -1,14 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  BarChart3,
-  Check,
-  ChevronDown,
-  ListIcon,
-  Plus,
-  SlidersHorizontal,
-  Sparkles,
-} from "lucide-react";
+import { BarChart3, ListIcon } from "lucide-react";
+import { Icon } from "./Icon";
 import { ChildAvatar } from "./ui";
 import { LevelBadge, LevelChooserRow } from "./level";
 import { CategoryIcon } from "./CategoryIcon";
@@ -58,7 +51,7 @@ export function ChildChip({
       <span className="text-[13.5px] font-[600] text-ink">
         {child ? child.name : "All Kids"}
       </span>
-      <ChevronDown size={15} className="text-ink-soft" />
+      <Icon name="keyboard_arrow_down" size={15} className="text-ink-soft" />
     </button>
   );
 }
@@ -118,7 +111,7 @@ export function ChildSheet({
             className="w-full flex items-center gap-3 p-2.5 rounded-2xl border border-dashed border-hairline bg-surface active:bg-canvas transition-colors"
           >
             <span className="grid place-items-center w-[38px] h-[38px] rounded-full bg-canvas border border-hairline text-ink-soft">
-              <Plus size={17} />
+              <Icon name="add" size={17} />
             </span>
             <span className="text-[15px] font-[600] text-ink-soft">Add a child</span>
           </button>
@@ -148,7 +141,7 @@ export function FilterButton({
         compact ? "w-8 h-8" : "w-9 h-9"
       } ${active ? "bg-teal text-white border-teal" : "bg-surface text-ink border-hairline"}`}
     >
-      <SlidersHorizontal size={compact ? 15 : 17} />
+      <Icon name="tune" size={compact ? 15 : 17} />
     </button>
   );
 }
@@ -297,7 +290,7 @@ export function RangeMenu({
       >
         <span className="whitespace-nowrap">{rangeLabel(value)}</span>
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }}>
-          <ChevronDown size={14} className="text-ink-soft" />
+          <Icon name="keyboard_arrow_down" size={14} className="text-ink-soft" />
         </motion.span>
       </button>
 
@@ -339,7 +332,7 @@ export function RangeMenu({
                       </span>
                       <span className="block text-[11.5px] text-ink-soft">{o.hint}</span>
                     </span>
-                    {active && <Check size={15} className="text-teal shrink-0" strokeWidth={3} />}
+                    {active && <Icon name="check" size={15} className="text-teal shrink-0" strokeWidth={3} />}
                   </button>
                 );
               })}
@@ -514,7 +507,7 @@ export function EmptyGantt({
   return (
     <div className="px-4 mt-8 flex flex-col items-center text-center">
       <span className="grid place-items-center w-14 h-14 rounded-2xl bg-mint text-teal-dark mb-4">
-        <Sparkles size={26} />
+        <Icon name="auto_awesome" size={26} />
       </span>
       <h3 className="font-display text-[19px] font-[700] text-ink leading-snug max-w-[260px]">
         {name}'s activity journey starts here
@@ -533,7 +526,7 @@ export function EmptyGantt({
           onClick={onAdd}
           className="flex-1 h-11 rounded-xl bg-teal text-white font-[600] text-[14px] active:scale-95 transition-transform flex items-center justify-center gap-1.5"
         >
-          <Plus size={16} /> Add activity
+          <Icon name="add" size={16} /> Add activity
         </button>
       </div>
     </div>

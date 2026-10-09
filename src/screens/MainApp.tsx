@@ -1,27 +1,7 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  BarChart3,
-  Bell,
-  Calendar,
-  Check,
-  ChevronRight,
-  FileText,
-  FolderOpen,
-  GraduationCap,
-  Home as HomeIcon,
-  Images,
-  Maximize2,
-  Pencil,
-  Plus,
-  RefreshCw,
-  Sparkles,
-  SlidersHorizontal,
-  Trash2,
-  Trophy,
-  User,
-  X,
-} from "lucide-react";
+import { BarChart3, Calendar, Check, FileText, FolderOpen, Home as HomeIcon, Maximize2, SlidersHorizontal, Trophy, User } from "lucide-react";
+import { Icon } from "../components/Icon";
 import { dec } from "../data";
 import { ChildAvatar } from "../components/ui";
 import { AppHeader, BackButton, PrimaryButton } from "../components/ui";
@@ -44,7 +24,10 @@ import {
   MilestoneStar,
 } from "../components/proudly";
 import { CategoryIcon } from "../components/CategoryIcon";
+import { NearbySection } from "../components/NearbySection";
 import { NoteButton } from "../components/NoteButton";
+import { HoursSheet, SupportSheet } from "../components/SupportSheet";
+import { fmtHours, hoursFor as hoursTotal, logHours } from "../lib/hours";
 import { ActivityListView } from "../components/ActivityViews";
 import { levelStateOf } from "../lib/activityLevels";
 import {
@@ -158,6 +141,10 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
   // Preview sheets
   const [askCtx, setAskCtx] = useState<AskContext | null>(null);
   const [previewActivity, setPreviewActivity] = useState<Activity | null>(null);
+  /* "Find support" and "Log hours" are sheets over the current tab, not
+     routes — the prototype keeps the list behind them visible. */
+  const [supportFor, setSupportFor] = useState<Activity | null>(null);
+  const [hoursFor, setHoursFor] = useState<Activity | null>(null);
   const [previewAchievement, setPreviewAchievement] = useState<Achievement | null>(null);
 
   const push = (o: Overlay) =>
@@ -341,7 +328,8 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
                 onOpenNotifications={() => push({ kind: "newToReview" })}
                 onAddActivity={() => push({ kind: "addActivity" })}
                 onAddAchievement={() => push({ kind: "addAchievement" })}
-                onFindCoach={(activityId) => push({ kind: "coachFinder", activityId })}
+                onFindSupport={setSupportFor}
+                onLogHours={setHoursFor}
               />
             )}
             {tab === "activities" && (
@@ -349,7 +337,8 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
                 childId={childId}
                 onSelectChild={setChildId}
                 onTapActivity={setPreviewActivity}
-                onFindCoach={(activityId) => push({ kind: "coachFinder", activityId })}
+                onFindSupport={setSupportFor}
+                onLogHours={setHoursFor}
               />
             )}
             {tab === "achievements" && (
@@ -380,6 +369,24 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
           push({ kind: "editActivity", id });
         }}
       />
+      <SupportSheet
+        activity={supportFor}
+        onClose={() => setSupportFor(null)}
+        onSeeAll={(activityId) => {
+          setSupportFor(null);
+          push({ kind: "coachFinder", activityId });
+        }}
+      />
+      <HoursSheet
+        activity={hoursFor}
+        onClose={() => setHoursFor(null)}
+        onSave={(activityId, h) => {
+          logHours(activityId, h);
+          setHoursFor(null);
+          showToast(`${fmtHours(h)} logged`);
+        }}
+      />
+
       <AchievementPreview
         achievement={previewAchievement}
         onClose={() => setPreviewAchievement(null)}
@@ -470,7 +477,8 @@ function Home({
   onOpenNotifications,
   onAddActivity,
   onAddAchievement,
-  onFindCoach,
+  onFindSupport,
+  onLogHours,
 }: {
   childId: ChildId;
   onSelectChild: (id: ChildId) => void;
@@ -480,7 +488,8 @@ function Home({
   onOpenNotifications: () => void;
   onAddActivity: () => void;
   onAddAchievement: () => void;
-  onFindCoach: (activityId: string) => void;
+  onFindSupport: (a: Activity) => void;
+  onLogHours: (a: Activity) => void;
 }) {
   const acts = activitiesFor(childId);
   const achs = achievementsFor(childId);
@@ -506,14 +515,14 @@ function Home({
       >
         <div className="flex-1" />
         {[
-          { icon: <RefreshCw size={22} />, label: "Sync calendars", onClick: onOpenDiscover },
+          { icon: <Icon name="sync" size={22} />, label: "Sync calendars", onClick: onOpenDiscover },
           {
-            icon: <Bell size={22} />,
+            icon: <Icon name="notifications" size={22} />,
             label: `Activities to review (${NEW_TO_REVIEW_COUNT})`,
             onClick: onOpenNotifications,
             badge: NEW_TO_REVIEW_COUNT,
           },
-          { icon: <Plus size={22} />, label: "Add activity", onClick: onAddActivity },
+          { icon: <Icon name="add" size={22} />, label: "Add activity", onClick: onAddActivity },
         ].map((b) => (
           <button
             key={b.label}
@@ -592,19 +601,23 @@ function Home({
                 <span className="block text-[12px] text-ink-soft truncate">{metaFor(a)}</span>
               </span>
             </button>
+            {a.category === "Volunteering" && (
+              <button
+                onClick={() => onLogHours(a)}
+                aria-label={`Log hours for ${a.name}`}
+                className="grid place-items-center w-9 h-9 shrink-0 rounded-full text-pine active:bg-pine-soft transition-colors"
+              >
+                <Icon name="more_time" size={21} />
+              </button>
+            )}
             <NoteButton id={a.id} title={a.name} seed={a.note} />
             {/* The prototype's shimmering "Find support" — the app's coach finder */}
             <button
-              onClick={() => onFindCoach(a.id)}
-              className="shrink-0 h-[38px] pl-[11px] pr-3.5 rounded-full text-white font-[600] text-[13px] flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition-transform"
-              style={{
-                background:
-                  "linear-gradient(110deg, var(--color-pine) 0%, #6d5b40 40%, var(--color-rust) 60%, var(--color-pine) 100%)",
-                backgroundSize: "250% 100%",
-                boxShadow: "0 8px 18px -8px rgba(36,100,79,0.6)",
-              }}
+              onClick={() => onFindSupport(a)}
+              className="brag-shine shrink-0 h-[38px] pl-[11px] pr-3.5 rounded-full text-white font-[600] text-[13px] flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition-transform"
+              style={{ boxShadow: "0 8px 18px -8px rgba(181,83,47,0.7)" }}
             >
-              <Sparkles size={18} /> Find support
+              <Icon name="auto_awesome" size={18} fill /> Find support
             </button>
           </div>
         ))}
@@ -630,6 +643,8 @@ function Home({
           </div>
         ))}
       </div>
+
+      <NearbySection childName={first} topActivity={acts[0]} />
     </div>
   );
 }
@@ -654,7 +669,7 @@ function SectionLabel({
         aria-label={addLabel}
         className="grid place-items-center w-9 h-9 -mr-2 rounded-full text-pine active:bg-pine-soft transition-colors"
       >
-        <Plus size={20} />
+        <Icon name="add" size={20} />
       </button>
     </div>
   );
@@ -724,7 +739,7 @@ function JourneyPreviewRow({
         aria-label={`Find a ${activity.name} coach`}
         className="absolute top-3 right-0 h-[26px] px-2.5 rounded-full bg-teal text-white text-[11px] font-[700] inline-flex items-center gap-1 active:scale-95 transition-transform"
       >
-        <GraduationCap size={12} />
+        <Icon name="school" size={12} />
         Find a coach
       </button>
 
@@ -778,21 +793,15 @@ function Activities({
   childId,
   onSelectChild,
   onTapActivity,
-  onFindCoach,
+  onFindSupport,
+  onLogHours,
 }: {
   childId: ChildId;
   onSelectChild: (id: ChildId) => void;
   onTapActivity: (a: Activity) => void;
-  onFindCoach: (activityId: string) => void;
+  onFindSupport: (a: Activity) => void;
+  onLogHours: (a: Activity) => void;
 }) {
-  // Deliberate loading treatment when switching whose journey we're viewing.
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    setLoading(true);
-    const t = setTimeout(() => setLoading(false), 650);
-    return () => clearTimeout(t);
-  }, [childId]);
-
   const acts = activitiesFor(childId);
   const allActs = acts;
   const achs = achievementsFor(childId);
@@ -820,11 +829,7 @@ function Activities({
         {CHILDREN.length > 1 && <KidChips childId={childId} onSelect={onSelectChild} />}
       </div>
 
-      {loading ? (
-        <div className="px-6 pt-2">
-          <GanttSkeleton height={380} />
-        </div>
-      ) : ranked.length === 0 ? (
+      {ranked.length === 0 ? (
         <div className="px-6 pt-2">
           <EmptyGantt name={name} onSync={() => {}} onAdd={() => {}} />
         </div>
@@ -851,18 +856,22 @@ function Activities({
                       {levelStateOf(a).current}
                     </span>
                   </button>
+                  {a.category === "Volunteering" && (
+                    <button
+                      onClick={() => onLogHours(a)}
+                      aria-label={`Log hours for ${a.name}`}
+                      className="grid place-items-center w-9 h-9 shrink-0 rounded-full text-pine active:bg-pine-soft transition-colors"
+                    >
+                      <Icon name="more_time" size={21} />
+                    </button>
+                  )}
                   <NoteButton id={a.id} title={a.name} seed={a.note} />
                   <button
-                    onClick={() => onFindCoach(a.id)}
-                    className="shrink-0 h-8 pl-[9px] pr-3 rounded-full text-white font-[600] text-[12px] flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition-transform"
-                    style={{
-                      background:
-                        "linear-gradient(110deg, var(--color-pine) 0%, #6d5b3f 40%, var(--color-rust) 60%, var(--color-pine) 100%)",
-                      backgroundSize: "250% 100%",
-                      boxShadow: "0 6px 14px -8px rgba(181,83,47,0.7)",
-                    }}
+                    onClick={() => onFindSupport(a)}
+                    className="brag-shine shrink-0 h-8 pl-[9px] pr-3 rounded-full text-white font-[600] text-[12px] flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition-transform"
+                    style={{ boxShadow: "0 6px 14px -8px rgba(181,83,47,0.7)" }}
                   >
-                    <Sparkles size={16} /> Find support
+                    <Icon name="auto_awesome" size={16} fill /> Find support
                   </button>
                 </div>
 
@@ -871,6 +880,11 @@ function Activities({
                     {a.start.y} – {a.end === "present" ? "Present" : a.end.y} ·{" "}
                     {durationText(a.start, a.end)}
                   </span>
+                  {a.category === "Volunteering" && (
+                    <span className="font-[600] text-pine-dark">
+                      · {fmtHours(hoursTotal(a.id))}
+                    </span>
+                  )}
                   {live && <span className="w-1.5 h-1.5 rounded-full bg-pine" />}
                   {wins > 0 && (
                     <span className="flex items-center gap-1 font-[600] text-amber-dark">
@@ -952,7 +966,7 @@ function GanttError({ name, onRetry }: { name: string; onRetry: () => void }) {
   return (
     <div className="rounded-[22px] bg-surface border border-hairline px-8 py-11 flex flex-col items-center text-center">
       <span className="grid place-items-center w-14 h-14 rounded-2xl bg-[#faeae6] text-[#b4432f] mb-4">
-        <RefreshCw size={24} />
+        <Icon name="sync" size={24} />
       </span>
       <h3 className="font-display text-[17px] font-[700] text-ink leading-snug max-w-[250px]">
         We couldn't load {name}'s activity history
@@ -1014,7 +1028,7 @@ function ExpandedGantt({
           onClick={onClose}
           className="grid place-items-center w-10 h-10 rounded-full bg-surface border border-hairline text-ink active:scale-95 transition-transform"
         >
-          <X size={19} strokeWidth={2.2} />
+          <Icon name="close" size={19} strokeWidth={2.2} />
         </button>
         <ChildChip childId={childId} onOpen={() => setChildSheet(true)} />
         <div className="ml-auto">
@@ -1092,7 +1106,7 @@ function ActivityDetail({
             onClick={() => onEdit(id)}
             className="grid place-items-center w-10 h-10 rounded-full bg-surface border border-hairline text-ink active:scale-95 transition-transform"
           >
-            <Pencil size={17} />
+            <Icon name="edit" size={17} />
           </button>
         }
       />
@@ -1183,7 +1197,7 @@ function ActivityDetail({
             onClick={() => onAddAchievement(id)}
             className="flex items-center gap-1 text-[13px] font-[600] text-teal active:opacity-60"
           >
-            <Plus size={15} /> Add
+            <Icon name="add" size={15} /> Add
           </button>
         </div>
         <div className="px-4 mt-3 space-y-2.5">
@@ -1205,7 +1219,7 @@ function ActivityDetail({
             onClick={onAddPhotos}
             className="flex items-center gap-1 text-[13px] font-[600] text-teal active:opacity-60"
           >
-            <Plus size={15} /> Add photos
+            <Icon name="add" size={15} /> Add photos
           </button>
         </div>
         {activity.memories.length > 0 ? (
@@ -1232,7 +1246,7 @@ function ActivityDetail({
               onClick={onAddPhotos}
               className="w-full rounded-2xl border border-dashed border-hairline bg-surface p-5 flex flex-col items-center gap-1.5 text-ink-soft active:scale-[0.99] transition-transform"
             >
-              <Images size={22} />
+              <Icon name="photo_library" size={22} />
               <span className="text-[13.5px] font-[600]">Add photos from Google Photos</span>
               <span className="text-[11.5px]">Bring this activity's moments to life</span>
             </button>
@@ -1401,7 +1415,7 @@ function AddActivity({
         </Field>
 
         <button className="w-full rounded-2xl border border-dashed border-hairline bg-surface p-5 flex flex-col items-center gap-1.5 text-ink-soft active:scale-[0.99] transition-transform">
-          <Images size={22} />
+          <Icon name="photo_library" size={22} />
           <span className="text-[13.5px] font-[600]">Add photos</span>
           <span className="text-[11.5px]">Optional</span>
         </button>
@@ -1552,7 +1566,7 @@ function EditActivity({ id, onBack }: { id: string; onBack: () => void }) {
                 </button>
                 <button className="w-full flex items-center gap-3 rounded-2xl bg-surface border border-[#e2b6b0] p-4 text-left">
                   <span className="grid place-items-center w-9 h-9 rounded-xl bg-[#fbeceb] text-[#c0504a]">
-                    <Trash2 size={17} />
+                    <Icon name="delete" size={17} />
                   </span>
                   <div>
                     <p className="text-[14.5px] font-[600] text-[#c0504a]">Delete activity</p>
@@ -1621,7 +1635,7 @@ function PickerRow({
       {avatar && <ChildAvatar src={avatar} name={value} size={26} />}
       {dot && <span className="w-2.5 h-2.5 rounded-full" style={{ background: dot }} />}
       <span className="flex-1 text-left">{value}</span>
-      <ChevronRight size={18} className="text-ink-soft" />
+      <Icon name="chevron_right" size={18} className="text-ink-soft" />
     </button>
   );
 }
@@ -1900,7 +1914,7 @@ function AchievementDetail({
                 See where this sits in {activity?.name}
               </p>
             </div>
-            <ChevronRight size={18} className="text-ink-soft" />
+            <Icon name="chevron_right" size={18} className="text-ink-soft" />
           </button>
         </div>
       </div>
@@ -1981,7 +1995,7 @@ function AddAchievement({
         </Field>
 
         <button className="w-full rounded-2xl border border-dashed border-hairline bg-surface p-5 flex flex-col items-center gap-1.5 text-ink-soft active:scale-[0.99] transition-transform">
-          <Images size={22} />
+          <Icon name="photo_library" size={22} />
           <span className="text-[13.5px] font-[600]">Add photo or certificate</span>
           <span className="text-[11.5px]">Optional</span>
         </button>
@@ -2205,7 +2219,7 @@ function DiscoveryReview({
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-2.5">
               <span className="grid place-items-center w-9 h-9 rounded-xl bg-mint text-teal-dark shrink-0">
-                <Images size={17} />
+                <Icon name="photo_library" size={17} />
               </span>
               <div>
                 <p className="text-[14px] font-[700] text-ink">Review Photos</p>
@@ -2350,7 +2364,7 @@ function DiscoveryReview({
                         onClick={() => startEdit(it)}
                         className="flex items-center gap-1 text-[12.5px] font-[600] text-ink-soft hover:text-teal transition-colors"
                       >
-                        <Pencil size={14} /> Edit activity
+                        <Icon name="edit" size={14} /> Edit activity
                       </button>
 
                       <div className="flex items-center gap-2">
@@ -2365,7 +2379,7 @@ function DiscoveryReview({
                             onClick={() => setAssignFor(it.id)}
                             className="pl-3.5 pr-2.5 py-1.5 rounded-full bg-teal text-white text-[12.5px] font-[600] flex items-center gap-0.5 active:scale-95 transition shadow-xs"
                           >
-                            Assign <ChevronRight size={14} />
+                            Assign <Icon name="chevron_right" size={14} />
                           </button>
                         ) : (
                           <button

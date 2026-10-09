@@ -1,17 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Camera,
-  Plus,
-  Check,
-  ChevronDown,
-  ImageUp,
-  Loader2,
-  Sparkles,
-  X,
-  ZoomIn,
-  ZoomOut,
-} from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
+import { Icon } from "../components/Icon";
 import { Screen, AppHeader, PrimaryButton } from "../components/ui";
 
 const GRADES = ["Pre-K", "K", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th", "11th", "12th"];
@@ -215,7 +205,7 @@ export function AddChild({
                     aria-label={`Remove ${k.first}`}
                     className="grid place-items-center w-11 h-11 rounded-full text-ink-soft active:bg-hairline/50 transition-colors shrink-0"
                   >
-                    <X size={20} />
+                    <Icon name="close" size={20} />
                   </button>
                 </div>
               );
@@ -249,17 +239,17 @@ export function AddChild({
                 }`}
               >
                 {reading ? (
-                  <Loader2 size={22} className="animate-spin text-pine" />
+                  <Icon name="progress_activity" size={22} className="animate-spin text-pine" />
                 ) : croppedUrl ? (
                   <img src={croppedUrl} alt="" className="size-full object-cover" />
                 ) : dragging ? (
-                  <ImageUp size={24} className="text-pine" />
+                  <Icon name="add_photo_alternate" size={24} className="text-pine" />
                 ) : (
                   /* Stands in for Material Symbols' add_a_photo until the icon
                      set is swapped: camera with a small plus badge. */
                   <span className="relative grid place-items-center text-pine">
-                    <Camera size={24} />
-                    <Plus
+                    <Icon name="photo_camera" size={24} />
+                    <Icon name="add"
                       size={11}
                       strokeWidth={3.5}
                       className="absolute -top-0.5 -right-1.5"
@@ -311,7 +301,7 @@ export function AddChild({
                       </option>
                     ))}
                   </select>
-                  <ChevronDown
+                  <Icon name="keyboard_arrow_down"
                     size={18}
                     className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft"
                   />
@@ -491,7 +481,7 @@ function CropModal({
           onClick={() => setScale((s) => Math.max(0.8, s - 0.1))}
           className="grid place-items-center w-10 h-10 rounded-full bg-white/15 text-white active:bg-white/30 transition-colors"
         >
-          <ZoomOut size={18} />
+          <Icon name="zoom_out" size={18} />
         </button>
         <input
           type="range"
@@ -507,7 +497,7 @@ function CropModal({
           onClick={() => setScale((s) => Math.min(3, s + 0.1))}
           className="grid place-items-center w-10 h-10 rounded-full bg-white/15 text-white active:bg-white/30 transition-colors"
         >
-          <ZoomIn size={18} />
+          <Icon name="zoom_in" size={18} />
         </button>
       </div>
     </motion.div>

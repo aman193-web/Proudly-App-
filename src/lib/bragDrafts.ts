@@ -45,6 +45,7 @@ export const CAPP_CATEGORY: Record<Category, string> = {
   "Arts & Crafts": "ART",
   "STEM & Robotics": "SCIENCE / MATH",
   Outdoors: "OUTDOOR / RECREATION",
+  Volunteering: "COMMUNITY SERVICE",
   Other: "OTHER CLUB / ACTIVITY",
 };
 
@@ -57,6 +58,7 @@ const HOURS_PER_SESSION: Record<Category, number> = {
   "Arts & Crafts": 1.5,
   "STEM & Robotics": 2,
   Outdoors: 2,
+  Volunteering: 2,
   Other: 1,
 };
 
@@ -257,6 +259,7 @@ const TRAITS: Record<Category, string[]> = {
   Academics: ["Curious", "Articulate", "Sharp"],
   "STEM & Robotics": ["Inventive", "Methodical", "Curious"],
   Outdoors: ["Adventurous", "Self-reliant", "Steady"],
+  Volunteering: ["Caring", "Dependable", "Kind"],
   Other: ["Steady", "Committed", "Loyal"],
 };
 

@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
-import { Check } from "lucide-react";
 import { LABEL_W } from "./Gantt";
+import { Icon } from "./Icon";
 
 /* ============================================================= EMPTY STATE
    One consistent empty state with exactly one clear next step. */
@@ -142,7 +142,7 @@ export function ToastHost() {
         >
           <div className="flex items-center gap-2.5 rounded-full bg-ink text-white pl-2 pr-4 py-2 shadow-[0_12px_30px_-8px_rgba(23,35,33,0.5)]">
             <span className="grid place-items-center w-6 h-6 rounded-full bg-teal">
-              <Check size={14} strokeWidth={3} />
+              <Icon name="check" size={14} strokeWidth={3} />
             </span>
             <span className="text-[13.5px] font-[600] whitespace-nowrap">{msg}</span>
           </div>

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Calendar, CalendarDays, Circle, CircleDot, Lock, PenLine, UserPlus } from "lucide-react";
+import { Calendar, CalendarDays, UserPlus } from "lucide-react";
+import { Icon } from "../components/Icon";
 import { Screen, AppHeader } from "../components/ui";
 import { PARENT } from "../data";
 
@@ -86,9 +87,9 @@ export function ConnectSources({
                   <span className="text-[13px] text-ink-soft">{o.sub}</span>
                 </span>
                 {on ? (
-                  <CircleDot size={24} className="text-pine shrink-0" />
+                  <Icon name="radio_button_checked" size={24} className="text-pine shrink-0" />
                 ) : (
-                  <Circle size={24} className="text-[#9aa09c] shrink-0" />
+                  <Icon name="radio_button_unchecked" size={24} className="text-[#9aa09c] shrink-0" />
                 )}
               </button>
             );
@@ -99,7 +100,7 @@ export function ConnectSources({
 
         <div className="pt-2 pb-5 flex flex-col gap-2.5">
           <p className="flex items-center justify-center gap-2 text-[12px] text-ink-soft">
-            <Lock size={16} /> Read-only. Disconnect anytime.
+            <Icon name="lock" size={16} /> Read-only. Disconnect anytime.
           </p>
           <button
             onClick={() => onContinue(choice)}
@@ -116,7 +117,7 @@ export function ConnectSources({
             onClick={onManual}
             className="h-14 w-full rounded-[28px] bg-surface border-[1.5px] border-pine text-pine font-[600] text-[16px] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
           >
-            <PenLine size={22} /> Skip and enter activities manually
+            <Icon name="edit_note" size={22} /> Skip and enter activities manually
           </button>
         </div>
       </div>

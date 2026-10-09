@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Check, CheckCircle2, Plus } from "lucide-react";
 import { Screen, AppHeader } from "../components/ui";
 import { CHILDREN } from "../data";
+import { Icon } from "../components/Icon";
 
 /* Review — Oct-1 redesign, two steps.
    ----------------------------------
@@ -109,7 +109,7 @@ export function ReviewMatched({
                         checked ? "bg-pine" : "border-2 border-[#9aa09c]"
                       }`}
                     >
-                      {checked && <Check size={16} strokeWidth={3} className="text-white" />}
+                      {checked && <Icon name="check" size={16} strokeWidth={3} className="text-white" />}
                     </span>
                     <span className="flex-1 min-w-0 flex flex-col gap-0.5">
                       <span className="text-[16px] font-[500] text-ink">{r.name}</span>
@@ -229,7 +229,7 @@ export function AllSet({
     <Screen>
       <div className="flex-1 overflow-y-auto scroll-area px-6 pt-12 pb-4 flex flex-col gap-5">
         <span className="grid place-items-center w-16 h-16 rounded-full bg-pine-soft text-pine">
-          <CheckCircle2 size={34} />
+          <Icon name="check_circle" size={34} />
         </span>
 
         <div className="flex flex-col gap-2">
@@ -269,7 +269,7 @@ export function AllSet({
           onClick={onAddActivities}
           className="h-14 w-full rounded-[28px] bg-surface border-[1.5px] border-pine text-pine font-[600] text-[16px] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
         >
-          <Plus size={22} /> Add other activities
+          <Icon name="add" size={22} /> Add other activities
         </button>
         <button
           onClick={onDone}

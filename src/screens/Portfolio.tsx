@@ -1,16 +1,6 @@
 import { useMemo, useState } from "react";
-import {
-  Bookmark,
-  ChevronRight,
-  Download,
-  FileText,
-  FolderOpen,
-  Heart,
-  LayoutGrid,
-  MoreHorizontal,
-  Rows3,
-  Share2,
-} from "lucide-react";
+import { LayoutGrid, Rows3 } from "lucide-react";
+import { Icon } from "../components/Icon";
 import { AppHeader, ChildAvatar, PrimaryButton } from "../components/ui";
 import { ChildChip, ChildSheet, MilestoneStar, type ChildId } from "../components/proudly";
 import { EmptyState, showToast } from "../components/states";
@@ -118,7 +108,7 @@ export function Portfolio({
           <ChildChip childId={childId} onOpen={() => setChildSheet(true)} />
         </div>
         <EmptyState
-          icon={<FolderOpen size={26} />}
+          icon={<Icon name="folder_open" size={26} />}
           title="Nothing to summarize yet"
           body="Once activities and achievements are tracked, BragOn builds the portfolio for you automatically."
           actionLabel="View activities"
@@ -226,7 +216,7 @@ export function Portfolio({
           className="w-full rounded-2xl bg-teal text-white p-4 flex items-center gap-3.5 text-left active:scale-[0.99] transition-transform"
         >
           <span className="grid place-items-center w-11 h-11 rounded-xl bg-white/15 shrink-0">
-            <FileText size={20} />
+            <Icon name="description" size={20} />
           </span>
           <div className="flex-1">
             <p className="text-[15px] font-[700]">Preview Brag Sheet</p>
@@ -234,7 +224,7 @@ export function Portfolio({
               A one-page summary for schools & applications
             </p>
           </div>
-          <ChevronRight size={20} />
+          <Icon name="chevron_right" size={20} />
         </button>
       </div>
 
@@ -324,7 +314,7 @@ function FeedPost({ item }: { item: FeedItem }) {
             <MilestoneStar size={10} /> Achievement
           </span>
         )}
-        <MoreHorizontal size={18} className="text-ink-soft shrink-0" />
+        <Icon name="more_horiz" size={18} className="text-ink-soft shrink-0" />
       </div>
 
       {/* Media — edge to edge */}
@@ -370,14 +360,14 @@ function FeedPost({ item }: { item: FeedItem }) {
           aria-pressed={proud}
           className="active:scale-90 transition-transform"
         >
-          <Heart size={22} className={proud ? "text-[#c0504a] fill-current" : "text-ink"} />
+          <Icon name="favorite" size={22} className={proud ? "text-[#c0504a] fill-current" : "text-ink"} />
         </button>
         <button
           onClick={() => showToast("Shared")}
           aria-label="Share"
           className="active:scale-90 transition-transform"
         >
-          <Share2 size={20} className="text-ink" />
+          <Icon name="ios_share" size={20} className="text-ink" />
         </button>
         <button
           onClick={() => setSaved((v) => !v)}
@@ -385,7 +375,7 @@ function FeedPost({ item }: { item: FeedItem }) {
           aria-pressed={saved}
           className="ml-auto active:scale-90 transition-transform"
         >
-          <Bookmark size={21} className={saved ? "text-teal fill-current" : "text-ink"} />
+          <Icon name="bookmark" size={21} className={saved ? "text-teal fill-current" : "text-ink"} />
         </button>
       </div>
 
@@ -489,7 +479,7 @@ export function BragSheet({
             onClick={() => showToast("Shared")}
             className="grid place-items-center w-10 h-10 rounded-full bg-surface border border-hairline text-ink active:scale-95 transition-transform"
           >
-            <Share2 size={17} />
+            <Icon name="ios_share" size={17} />
           </button>
         }
       />
@@ -569,13 +559,13 @@ export function BragSheet({
           onClick={() => showToast("Shared")}
           className="flex-1 h-[52px] rounded-2xl bg-surface border border-hairline text-ink font-[600] text-[15px] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
         >
-          <Share2 size={18} /> Share
+          <Icon name="ios_share" size={18} /> Share
         </button>
         <button
           onClick={() => showToast("Portfolio exported")}
           className="flex-[1.3] h-[52px] rounded-2xl bg-teal text-white font-[600] text-[15px] flex items-center justify-center gap-2 shadow-[0_10px_24px_-10px_rgba(33,124,114,0.7)] active:scale-[0.98] transition-transform"
         >
-          <Download size={18} /> Export PDF
+          <Icon name="download" size={18} /> Export PDF
         </button>
       </div>
     </div>

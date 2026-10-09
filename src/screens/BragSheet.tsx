@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { RefreshCw, Share2 } from "lucide-react";
 import { showToast } from "../components/states";
 import type { ChildId } from "../components/proudly";
 import {
@@ -27,6 +26,7 @@ import {
   ucEligibility,
   workload,
 } from "../lib/bragDrafts";
+import { Icon } from "../components/Icon";
 
 /* Brag sheet — Oct-1 redesign.
    ---------------------------
@@ -186,7 +186,7 @@ export function BragSheet({
           onClick={() => showToast("Brag sheet shared")}
           className="w-full h-12 rounded-3xl bg-pine text-white text-[15px] font-[600] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
         >
-          <Share2 size={20} /> Share PDF
+          <Icon name="ios_share" size={20} /> Share PDF
         </button>
       </div>
     </div>
@@ -258,7 +258,7 @@ function DraftField({
           onClick={field.rewrite}
           className="h-6 pl-[9px] pr-[9px] rounded-xl bg-surface border border-hairline flex items-center gap-1 active:scale-95 transition-transform"
         >
-          <RefreshCw size={14} className="text-pine" />
+          <Icon name="sync" size={14} className="text-pine" />
           <span className="text-[11px] font-[600] text-pine">
             {field.edited ? "Restore original" : "Rewrite"}
           </span>
@@ -437,7 +437,7 @@ function CommonAppFormat({
                 onClick={f.rewrite}
                 className="shrink-0 h-6 px-[9px] rounded-xl bg-surface border border-hairline flex items-center gap-1 active:scale-95 transition-transform"
               >
-                <RefreshCw size={14} className="text-pine" />
+                <Icon name="sync" size={14} className="text-pine" />
                 <span className="text-[11px] font-[600] text-pine">
                   {f.edited ? "Restore original" : "Rewrite"}
                 </span>

@@ -1,19 +1,10 @@
 import { useMemo, useState } from "react";
-import {
-  BadgeCheck,
-  CalendarDays,
-  Check,
-  ChevronRight,
-  HelpCircle,
-  Images,
-  MapPin,
-  Trophy,
-} from "lucide-react";
 import { Screen, AppHeader, PrimaryButton } from "../components/ui";
 import { Sheet } from "../components/Sheet";
 import { CategoryIcon } from "../components/CategoryIcon";
 import { CATEGORY_COLOR, CATEGORY_SHORT, type Category } from "../data";
 import { categorizeActivity } from "../lib/categorize";
+import { Icon } from "../components/Icon";
 
 /* Final onboarding step
    ---------------------
@@ -340,7 +331,7 @@ export function Review({
         <SectionHead
           label="Confirmed activities"
           count={CONFIRMED.length}
-          icon={<BadgeCheck size={12} className="text-teal" />}
+          icon={<Icon name="verified" size={12} className="text-teal" />}
           state={sectionState(CONFIRMED)}
           onToggle={(on) => setSection(CONFIRMED, on)}
         />
@@ -360,7 +351,7 @@ export function Review({
         <SectionHead
           label="Other activities"
           count={UNSURE.length}
-          icon={<HelpCircle size={12} className="text-gold" />}
+          icon={<Icon name="help" size={12} className="text-gold" />}
           state={sectionState(UNSURE)}
           onToggle={(on) => setSection(UNSURE, on)}
           className="mt-5"
@@ -384,7 +375,7 @@ export function Review({
         <SectionHead
           label="Achievements"
           count={FOUND_ACHIEVEMENTS.length}
-          icon={<Trophy size={12} />}
+          icon={<Icon name="trophy" size={12} />}
           className="mt-5"
         />
         <div className="rounded-2xl bg-surface border border-hairline divide-y divide-hairline overflow-hidden">
@@ -398,7 +389,7 @@ export function Review({
               <CheckBox state={achSel.has(a.id) ? "on" : "off"} />
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1.5 min-w-0">
-                  <Trophy size={13} className="text-gold shrink-0" />
+                  <Icon name="trophy" size={13} className="text-gold shrink-0" />
                   <span className="text-[14px] font-[600] text-ink truncate">{a.title}</span>
                 </span>
                 <span className="block text-[11.5px] text-ink-soft truncate mt-1">
@@ -409,7 +400,7 @@ export function Review({
                 className="shrink-0 inline-flex items-center gap-1 h-6 px-2 rounded-full bg-canvas text-[10.5px] font-[600] text-ink-soft"
                 title={`Found in Google ${a.source}`}
               >
-                {a.source === "Photos" ? <Images size={10} /> : <CalendarDays size={10} />}
+                {a.source === "Photos" ? <Icon name="photo_library" size={10} /> : <Icon name="event" size={10} />}
                 {a.source}
               </span>
             </button>
@@ -491,7 +482,7 @@ function SessionList({
               </span>
               {sn.location && (
                 <span className="flex items-center gap-1 text-[11px] text-ink-soft truncate mt-0.5">
-                  <MapPin size={10} className="shrink-0" />
+                  <Icon name="location_on" size={10} className="shrink-0" />
                   <span className="truncate">{sn.location}</span>
                 </span>
               )}
@@ -538,13 +529,13 @@ function ActivityRow({
               still carries its own location. Keeps both sections one height. */}
           {a.doubt ? (
             <span className="flex items-center gap-1 text-[11.5px] text-gold truncate mt-1">
-              <HelpCircle size={10} className="shrink-0" />
+              <Icon name="help" size={10} className="shrink-0" />
               <span className="truncate">{a.doubt}</span>
             </span>
           ) : (
             a.location && (
               <span className="flex items-center gap-1 text-[11.5px] text-ink-soft truncate mt-1">
-                <MapPin size={10} className="shrink-0" />
+                <Icon name="location_on" size={10} className="shrink-0" />
                 <span className="truncate">{a.location}</span>
               </span>
             )
@@ -556,7 +547,7 @@ function ActivityRow({
         className="shrink-0 inline-flex items-center gap-0.5 h-8 pl-2.5 pr-1.5 rounded-lg text-[12px] font-[600] text-teal active:bg-canvas transition-colors"
       >
         {kept === a.sessions.length ? a.sessions.length : `${kept}/${a.sessions.length}`} sessions
-        <ChevronRight size={14} />
+        <Icon name="chevron_right" size={14} />
       </button>
     </div>
   );
@@ -622,7 +613,7 @@ function CheckBox({ state }: { state: Tri }) {
         state === "off" ? "border-hairline bg-surface" : "border-teal bg-teal"
       }`}
     >
-      {state === "on" && <Check size={12} strokeWidth={3.5} className="text-white" />}
+      {state === "on" && <Icon name="check" size={12} strokeWidth={3.5} className="text-white" />}
       {state === "mixed" && <span className="w-[9px] h-[2px] rounded-full bg-white" />}
     </span>
   );

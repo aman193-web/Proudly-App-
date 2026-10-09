@@ -1,16 +1,5 @@
 import { useState } from "react";
-import {
-  ChevronDown,
-  Drama,
-  Music,
-  Palette,
-  Plus,
-  Settings2,
-  Shapes,
-  Trophy,
-  Users,
-  X,
-} from "lucide-react";
+import { Icon } from "../components/Icon";
 import { Screen } from "../components/ui";
 import { showToast } from "../components/states";
 import { CATEGORIES, CHILDREN, type Category, activitiesFor } from "../data";
@@ -29,13 +18,13 @@ import { CATEGORIES, CHILDREN, type Category, activitiesFor } from "../data";
 const CADENCES = ["Weekly", "2× a week", "Monthly"];
 
 /* The quick picks under the name field — the activities parents type most. */
-const POPULAR: { label: string; icon: typeof Music; category: Category }[] = [
-  { label: "Soccer", icon: Users, category: "Sports & Athletics" },
-  { label: "Piano lessons", icon: Music, category: "Music & Performance" },
-  { label: "Art classes", icon: Palette, category: "Arts & Crafts" },
-  { label: "Ballet", icon: Drama, category: "Dance & Theater" },
-  { label: "Robotics", icon: Settings2, category: "STEM & Robotics" },
-  { label: "Animal shelter volunteer", icon: Shapes, category: "Other" },
+const POPULAR: { label: string; icon: string; category: Category }[] = [
+  { label: "Soccer", icon: "sports_soccer", category: "Sports & Athletics" },
+  { label: "Piano lessons", icon: "music_note", category: "Music & Performance" },
+  { label: "Art classes", icon: "palette", category: "Arts & Crafts" },
+  { label: "Ballet", icon: "theater_comedy", category: "Dance & Theater" },
+  { label: "Robotics", icon: "precision_manufacturing", category: "STEM & Robotics" },
+  { label: "Animal shelter volunteer", icon: "volunteer_activism", category: "Other" },
 ];
 
 type Win = { id: number; title: string; when: string; activity: string; category: string };
@@ -85,7 +74,7 @@ export function ManualEntry({
             aria-label="Close"
             className="grid place-items-center w-12 h-12 rounded-full text-ink active:bg-hairline/50 transition-colors"
           >
-            <X size={24} />
+            <Icon name="close" size={24} />
           </button>
         </div>
       </div>
@@ -142,7 +131,7 @@ export function ManualEntry({
         )}
 
         <SectionHead
-          icon={<Shapes size={20} />}
+          icon={<Icon name="category" size={20} />}
           title="Activity"
           tint="bg-pine-soft text-pine"
         />
@@ -160,7 +149,6 @@ export function ManualEntry({
           <span className="text-[12px] font-[500] text-ink-soft">Popular</span>
           <div className="flex flex-wrap gap-2">
             {POPULAR.map((p) => {
-              const Icon = p.icon;
               return (
                 <button
                   key={p.label}
@@ -170,7 +158,7 @@ export function ManualEntry({
                   }}
                   className="flex items-center gap-1.5 h-[34px] pl-2 pr-3 rounded-[17px] bg-surface border border-hairline active:scale-95 transition-transform"
                 >
-                  <Icon size={16} className="text-pine" />
+                  <Icon name={p.icon} size={16} weight={500} className="text-pine" />
                   <span className="text-[13px] font-[500] text-[#3d413f]">{p.label}</span>
                 </button>
               );
@@ -219,7 +207,7 @@ export function ManualEntry({
 
         <div className="flex flex-col gap-3.5">
           <SectionHead
-            icon={<Trophy size={20} />}
+            icon={<Icon name="trophy" size={20} />}
             title="Accomplishments"
             tint="bg-amber-soft text-amber"
           />
@@ -272,7 +260,7 @@ export function ManualEntry({
             }
             className="self-start flex items-center gap-1.5 h-11 pl-3.5 pr-[18px] rounded-[22px] bg-surface border-[1.5px] border-amber text-amber-dark font-[600] text-[14px] active:scale-[0.98] transition-transform"
           >
-            <Plus size={20} /> Add another accomplishment
+            <Icon name="add" size={20} /> Add another accomplishment
           </button>
         </div>
       </div>
@@ -341,7 +329,7 @@ function Select({
           </option>
         ))}
       </select>
-      <ChevronDown
+      <Icon name="keyboard_arrow_down"
         size={18}
         className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft"
       />

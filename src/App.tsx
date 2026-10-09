@@ -24,7 +24,7 @@ type Route =
   | "app";
 
 export default function App() {
-  const [route, setRoute] = useState<Route>("app");
+  const [route, setRoute] = useState<Route>("welcome");
   const [childName, setChildName] = useState("Reet");
   const go = (r: Route) => setRoute(r);
 

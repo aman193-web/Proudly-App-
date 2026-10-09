@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef } from "react";
-import { GraduationCap } from "lucide-react";
 import { LevelPip } from "./level";
 import {
   type Achievement,
@@ -9,6 +8,7 @@ import {
   dec,
   TODAY,
 } from "../data";
+import { Icon } from "./Icon";
 
 /* Layout constants — tuned so labels stay narrow and the timeline gets the room. */
 export const LABEL_W = 106;
@@ -221,7 +221,7 @@ export function GanttChart({
                     aria-label={`Find a ${a.name} coach`}
                     className="mt-1.5 w-full h-[22px] rounded-full inline-flex items-center justify-center gap-1 bg-teal text-white text-[9.5px] font-[700] active:scale-95 transition-transform"
                   >
-                    <GraduationCap size={11} />
+                    <Icon name="school" size={11} />
                     Find a coach
                   </button>
                 )}

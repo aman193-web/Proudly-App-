@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Calendar, Check, Image, Loader2, Sparkles, Trophy } from "lucide-react";
+import { Calendar, Image, Sparkles, Trophy } from "lucide-react";
+import { Icon } from "../components/Icon";
 import { Screen } from "../components/ui";
 import { Mark } from "../components/Logo";
 
@@ -83,9 +84,9 @@ export function Processing({
                   style={{ background: done ? "#dcefeb" : "#f2f4f1", color: done ? "#175f58" : "#66716e" }}
                 >
                   {done ? (
-                    <Check size={18} strokeWidth={3} />
+                    <Icon name="check" size={18} strokeWidth={3} />
                   ) : active ? (
-                    <Loader2 size={17} className="animate-spin text-teal" />
+                    <Icon name="progress_activity" size={17} className="animate-spin text-teal" />
                   ) : (
                     <Icon size={17} />
                   )}

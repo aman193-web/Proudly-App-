@@ -1,15 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Bookmark,
-  ExternalLink,
-  Loader2,
-  LocateFixed,
-  MapPin,
-  Search,
-  SearchX,
-  Star,
-} from "lucide-react";
+import { Search } from "lucide-react";
+import { Icon } from "../components/Icon";
 import { AppHeader, PrimaryButton } from "../components/ui";
 import { EmptyState } from "../components/states";
 import type { Activity } from "../data";
@@ -127,7 +119,7 @@ export function CoachFinder({ activity, onBack }: { activity: Activity; onBack: 
         {/* Where we're searching, once we know */}
         {location && phase.kind !== "location" && (
           <div className="mt-4 flex items-center gap-2 rounded-2xl bg-surface border border-hairline px-3.5 h-11">
-            <MapPin size={15} className="text-teal shrink-0" />
+            <Icon name="location_on" size={15} className="text-teal shrink-0" />
             <span className="flex-1 text-[13.5px] text-ink truncate">{labelFor(location)}</span>
             <button
               onClick={() => setPhase({ kind: "location" })}
@@ -146,7 +138,7 @@ export function CoachFinder({ activity, onBack }: { activity: Activity; onBack: 
               disabled={locating}
               className="w-full h-[54px] rounded-2xl bg-teal text-white font-[600] text-[15px] flex items-center justify-center gap-2.5 active:scale-[0.985] transition-transform disabled:opacity-60"
             >
-              {locating ? <Loader2 size={18} className="animate-spin" /> : <LocateFixed size={18} />}
+              {locating ? <Icon name="progress_activity" size={18} className="animate-spin" /> : <Icon name="my_location" size={18} />}
               {locating ? "Getting your location…" : "Use my current location"}
             </button>
 
@@ -225,7 +217,7 @@ export function CoachFinder({ activity, onBack }: { activity: Activity; onBack: 
         {phase.kind === "empty" && (
           <div className="mt-4 rounded-[22px] bg-surface border border-hairline">
             <EmptyState
-              icon={<SearchX size={24} />}
+              icon={<Icon name="search_off" size={24} />}
               title={`No ${activity.name} coaches found`}
               body="Try a nearby city or a wider search area."
               actionLabel="Change location"
@@ -238,7 +230,7 @@ export function CoachFinder({ activity, onBack }: { activity: Activity; onBack: 
         {phase.kind === "error" && (
           <div className="mt-5 rounded-[22px] bg-surface border border-hairline px-7 py-9 flex flex-col items-center text-center">
             <span className="grid place-items-center w-14 h-14 rounded-2xl bg-[#faeae6] text-[#b4432f] mb-4">
-              <MapPin size={24} />
+              <Icon name="location_on" size={24} />
             </span>
             <h3 className="font-display text-[17px] font-[700] text-ink leading-snug max-w-[250px]">
               {phase.message}
@@ -271,7 +263,7 @@ function CoachCard({ coach, activityId }: { coach: Coach; activityId: string }) 
           </p>
         </span>
         <span className="flex items-center gap-1 shrink-0 bg-gold-soft text-gold rounded-full px-2 py-1">
-          <Star size={12} className="fill-current" />
+          <Icon name="star" size={12} className="fill-current" />
           <span className="text-[12px] font-[700] tabular-nums">{coach.rating.toFixed(1)}</span>
         </span>
         <button
@@ -283,7 +275,7 @@ function CoachCard({ coach, activityId }: { coach: Coach; activityId: string }) 
           aria-pressed={saved}
           className="shrink-0 grid place-items-center w-8 h-8 rounded-full active:scale-90 transition-transform"
         >
-          <Bookmark
+          <Icon name="bookmark"
             size={18}
             className={saved ? "text-teal fill-current" : "text-ink-soft"}
           />
@@ -296,7 +288,7 @@ function CoachCard({ coach, activityId }: { coach: Coach; activityId: string }) 
 
       {coach.location && (
         <p className="flex items-start gap-1.5 text-[12.5px] text-ink-soft mt-2 leading-snug">
-          <MapPin size={13} className="shrink-0 mt-[2px]" />
+          <Icon name="location_on" size={13} className="shrink-0 mt-[2px]" />
           <span className="min-w-0">{coach.location}</span>
         </p>
       )}
@@ -307,7 +299,7 @@ function CoachCard({ coach, activityId }: { coach: Coach; activityId: string }) 
         rel="noopener noreferrer"
         className="mt-3 h-10 w-full rounded-xl bg-canvas border border-hairline flex items-center justify-center gap-1.5 text-[13.5px] font-[600] text-ink active:scale-[0.99] transition-transform"
       >
-        View on Google <ExternalLink size={14} />
+        View on Google <Icon name="open_in_new" size={14} />
       </a>
     </div>
   );

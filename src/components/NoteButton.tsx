@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { StickyNote } from "lucide-react";
 import { Sheet } from "./Sheet";
 import { readNote, seedNote, setNote, useNote } from "../lib/notes";
+import { Icon } from "./Icon";
 
 /* Note button + sheet.
    --------------------
@@ -45,7 +45,7 @@ export function NoteButton({
           note ? "text-pine" : "text-[#a3a8a4]"
         }`}
       >
-        <StickyNote size={20} strokeWidth={note ? 2.4 : 1.9} />
+        <Icon name="sticky_note_2" size={20} strokeWidth={note ? 2.4 : 1.9} />
       </button>
 
       <Sheet open={open} onClose={() => setOpen(false)}>

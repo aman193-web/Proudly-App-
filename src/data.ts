@@ -87,6 +87,7 @@ export type Category =
   | "Arts & Crafts"
   | "STEM & Robotics"
   | "Outdoors"
+  | "Volunteering"
   | "Other";
 
 export const CATEGORIES: Category[] = [
@@ -97,6 +98,7 @@ export const CATEGORIES: Category[] = [
   "Arts & Crafts",
   "STEM & Robotics",
   "Outdoors",
+  "Volunteering",
   "Other",
 ];
 
@@ -110,6 +112,7 @@ export const CATEGORY_SHORT: Record<Category, string> = {
   "Arts & Crafts": "Arts",
   "STEM & Robotics": "STEM",
   Outdoors: "Outdoors",
+  Volunteering: "Volunteer",
   Other: "Other",
 };
 
@@ -122,6 +125,7 @@ export const CATEGORY_COLOR: Record<Category, string> = {
   "Arts & Crafts": "#c96b52",
   "STEM & Robotics": "#5a6bb5",
   Outdoors: "#5b924f",
+  Volunteering: "#b5532f",
   Other: "#7a857f",
 };
 
@@ -162,6 +166,8 @@ export type Activity = {
   note?: string;
   /** Typical sessions per week, where known. Feeds the level suggestion. */
   sessionsPerWeek?: number;
+  /** Hours logged to date. Volunteering is measured in hours, not sessions. */
+  hours?: number;
   /** What BragOn works out from the record. Never overwritten by the parent. */
   suggestedLevel: ActivityLevel;
   /** What the app shows and uses. Equals suggestedLevel until a parent changes it. */
@@ -288,6 +294,23 @@ export const ACTIVITIES: Activity[] = [
       "https://images.unsplash.com/photo-1512253080918-79cf0c2e0650?w=400&h=400&fit=crop&auto=format",
     ],
     history: [{ date: { y: 2021, m: 9 }, label: "Joined after-school art club" }],
+  },
+  {
+    id: "petshop",
+    childId: "reet",
+    name: "Pet shop volunteer",
+    category: "Volunteering",
+    start: { y: 2025, m: 2 },
+    end: "present",
+    sessionsPerWeek: 1,
+    hours: 24,
+    suggestedLevel: "Intermediate",
+    currentLevel: "Intermediate",
+    levelSource: "proudly",
+    memories: [],
+    history: [
+      { date: { y: 2025, m: 2 }, label: "Started weekend shifts at the local pet shop" },
+    ],
   },
   {
     id: "chess",
