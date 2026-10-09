@@ -1,78 +1,123 @@
 import { useState } from "react";
-import { ShieldCheck } from "lucide-react";
-import { Screen, AppHeader, PrimaryButton, TextLink } from "../components/ui";
-import { SourceCard, type SourceState } from "../components/SourceCard";
-import { DEFAULT_FETCH_RANGE } from "../components/FetchRange";
+import { Calendar, CalendarDays, Circle, CircleDot, Lock, PenLine, UserPlus } from "lucide-react";
+import { Screen, AppHeader } from "../components/ui";
+import { PARENT } from "../data";
+
+/* Connect — Oct-1 redesign.
+   ------------------------
+   The prototype turns this from "connect these two sources" into "which
+   account should we read?": one choice from three, then Continue. Google
+   Photos is gone from onboarding entirely — the client's note reads "Photos
+   removed for the test run" — and manual entry is promoted from a text link
+   to a second full-width button, because it is a real third way in.
+
+   The source still being read is the calendar; which account it belongs to is
+   what this screen now asks. */
+
+export type ConnectChoice = "this-google" | "other-google" | "apple" | "manual";
+
+const OPTIONS: {
+  id: Exclude<ConnectChoice, "manual">;
+  icon: typeof Calendar;
+  title: string;
+  sub: string;
+}[] = [
+  {
+    id: "this-google",
+    icon: Calendar,
+    title: `Use ${PARENT.email}`,
+    sub: "Your signed-in Google account",
+  },
+  {
+    id: "other-google",
+    icon: UserPlus,
+    title: "Connect another Google account",
+    sub: "Partner or shared family calendar",
+  },
+  {
+    id: "apple",
+    icon: CalendarDays,
+    title: "Connect Apple Calendar",
+    sub: "iCloud calendar on this phone",
+  },
+];
 
 export function ConnectSources({
-  childName,
   onBack,
   onContinue,
+  onManual,
 }: {
-  childName: string;
   onBack: () => void;
-  onContinue: () => void;
+  /** Runs the scan with the chosen account. */
+  onContinue: (choice: ConnectChoice) => void;
+  /** Skips the scan and goes straight to typing an activity in. */
+  onManual: () => void;
 }) {
-  const [cal, setCal] = useState<SourceState>("not_connected");
-  const [photos, setPhotos] = useState<SourceState>("not_connected");
-  /* Set before Processing runs, so the first sync is already scoped. */
-  const [calRange, setCalRange] = useState(DEFAULT_FETCH_RANGE);
-  const [photoRange, setPhotoRange] = useState(DEFAULT_FETCH_RANGE);
-
-  const connect = (set: (s: SourceState) => void, current: SourceState) => {
-    if (current === "connected") return;
-    set("connecting");
-    setTimeout(() => set("connected"), 1400);
-  };
-
-  const anyConnected = cal === "connected" || photos === "connected";
+  const [choice, setChoice] = useState<Exclude<ConnectChoice, "manual">>("this-google");
 
   return (
     <Screen>
-      <AppHeader title="Where should we look?" onBack={onBack} step="Step 2 of 3" />
-      <div className="flex-1 px-6 pt-1 flex flex-col overflow-y-auto scroll-area">
-        <p className="text-[15px] text-ink-soft pr-2">
-          Connect at least one source so we can start building {childName}'s history.
+      <AppHeader title="Where do their activities live?" onBack={onBack} step="Step 2 of 3" />
+      <div className="flex-1 overflow-y-auto scroll-area px-6 pb-4 flex flex-col">
+        <p className="text-[15px] leading-[1.45] text-ink-soft mb-3">
+          We look for events that mention your kids.
         </p>
 
-        <div className="mt-6 space-y-3.5">
-          <SourceCard
-            kind="calendar"
-            title="Google Calendar"
-            purpose="Find activity events, practices, and milestones."
-            state={cal}
-            onAction={() => connect(setCal, cal)}
-            range={calRange}
-            onRangeChange={setCalRange}
-          />
-          <SourceCard
-            kind="photos"
-            title="Google Photos"
-            purpose="Connect real memories to each activity."
-            state={photos}
-            onAction={() => connect(setPhotos, photos)}
-            range={photoRange}
-            onRangeChange={setPhotoRange}
-          />
+        <div className="flex flex-col">
+          {OPTIONS.map((o) => {
+            const on = o.id === choice;
+            const Icon = o.icon;
+            return (
+              <button
+                key={o.id}
+                onClick={() => setChoice(o.id)}
+                aria-pressed={on}
+                className="flex items-center gap-3.5 min-h-[72px] text-left"
+              >
+                <span
+                  className={`grid place-items-center w-11 h-11 rounded-[14px] shrink-0 transition-colors ${
+                    on ? "bg-pine-soft text-pine" : "bg-[#f3f4f1] text-ink-soft"
+                  }`}
+                >
+                  <Icon size={24} />
+                </span>
+                <span className="flex-1 min-w-0 flex flex-col gap-0.5">
+                  <span className="text-[16px] font-[600] text-ink">{o.title}</span>
+                  <span className="text-[13px] text-ink-soft">{o.sub}</span>
+                </span>
+                {on ? (
+                  <CircleDot size={24} className="text-pine shrink-0" />
+                ) : (
+                  <Circle size={24} className="text-[#9aa09c] shrink-0" />
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        <div className="mt-5 flex items-start gap-2.5 rounded-2xl bg-mint/50 px-4 py-3">
-          <ShieldCheck size={17} className="text-teal-dark shrink-0 mt-0.5" />
-          <p className="text-[12.5px] leading-snug text-teal-dark/90">
-            BragOn only reads what it needs to organize activities. You stay in control and
-            can disconnect anytime.
+        <div className="flex-1 min-h-2" />
+
+        <div className="pt-2 pb-5 flex flex-col gap-2.5">
+          <p className="flex items-center justify-center gap-2 text-[12px] text-ink-soft">
+            <Lock size={16} /> Read-only. Disconnect anytime.
           </p>
-        </div>
-
-        <div className="mt-auto pt-8 pb-6 space-y-3">
-          <PrimaryButton onClick={onContinue} disabled={!anyConnected}>
+          <button
+            onClick={() => onContinue(choice)}
+            className="h-14 w-full rounded-[28px] bg-pine text-white font-[600] text-[16px] active:scale-[0.98] transition-transform"
+          >
             Continue
-          </PrimaryButton>
-          {!anyConnected && (
-            <div className="text-center">
-              <TextLink onClick={onContinue}>I'll connect later</TextLink>
-            </div>
-          )}
+          </button>
+          <div className="flex items-center gap-3">
+            <span className="flex-1 h-px bg-[#e3e5e1]" />
+            <span className="text-[12px] font-[500] text-[#8a908c]">or</span>
+            <span className="flex-1 h-px bg-[#e3e5e1]" />
+          </div>
+          <button
+            onClick={onManual}
+            className="h-14 w-full rounded-[28px] bg-surface border-[1.5px] border-pine text-pine font-[600] text-[16px] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+          >
+            <PenLine size={22} /> Skip and enter activities manually
+          </button>
         </div>
       </div>
     </Screen>

@@ -57,7 +57,6 @@ export function AddChild({
 }) {
   const [kids, setKids] = useState<Kid[]>([]);
   const [draft, setDraft] = useState(EMPTY);
-  const [formOpen, setFormOpen] = useState(true);
   const [croppedUrl, setCroppedUrl] = useState<string | null>(null);
   const [rawSrc, setRawSrc] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -164,22 +163,18 @@ export function AddChild({
     ]);
     setDraft(EMPTY);
     setCroppedUrl(null);
-    setFormOpen(false);
   };
 
   const removeKid = (id: number) => {
     setKids((prev) => {
       const next = prev.filter((k) => k.id !== id);
-      if (next.length === 0) setFormOpen(true);
       return next;
     });
   };
 
-  /* Exactly the prototype's composition: the grade carries a " grade" suffix,
-     the birth date stays in the raw ISO form it was entered as. */
-  const metaFor = (k: Kid) =>
-    [k.grade && `${k.grade} grade`, k.dob && `Born ${k.dob}`].filter(Boolean).join(" · ") ||
-    "No grade set";
+  /* The prototype shows the grade alone — the birth date is collected but
+     not echoed back on the row. */
+  const metaFor = (k: Kid) => (k.grade ? `${k.grade} grade` : "No grade set");
 
   return (
     <Screen>
@@ -229,8 +224,7 @@ export function AddChild({
         )}
 
         {/* Inline form for the child being added */}
-        {formOpen ? (
-          <motion.div
+                  <motion.div
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
@@ -251,7 +245,7 @@ export function AddChild({
                 }}
                 aria-label={croppedUrl ? "Change photo" : "Add a photo"}
                 className={`grid place-items-center w-16 h-16 rounded-full border-[1.5px] border-dashed overflow-hidden shrink-0 transition-colors ${
-                  dragging ? "border-pine bg-pine-soft" : "border-pine/40 bg-surface"
+                  dragging ? "border-pine bg-pine-soft" : "border-[#a7c1b9] bg-surface"
                 }`}
               >
                 {reading ? (
@@ -289,7 +283,7 @@ export function AddChild({
                   value={draft.first}
                   onChange={(e) => setDraft({ ...draft, first: e.target.value })}
                   placeholder="Reet"
-                  className="h-[52px] w-full rounded-xl bg-surface border border-hairline px-3.5 text-[16px] text-ink outline-none focus:border-pine transition-colors"
+                  className="h-[54px] w-full rounded-xl bg-surface border border-hairline px-3.5 text-[16px] text-ink outline-none focus:border-pine transition-colors"
                 />
               </Field>
               <Field label="Last name">
@@ -297,7 +291,7 @@ export function AddChild({
                   value={draft.last}
                   onChange={(e) => setDraft({ ...draft, last: e.target.value })}
                   placeholder="Singh"
-                  className="h-[52px] w-full rounded-xl bg-surface border border-hairline px-3.5 text-[16px] text-ink outline-none focus:border-pine transition-colors"
+                  className="h-[54px] w-full rounded-xl bg-surface border border-hairline px-3.5 text-[16px] text-ink outline-none focus:border-pine transition-colors"
                 />
               </Field>
             </div>
@@ -328,7 +322,7 @@ export function AddChild({
                   type="date"
                   value={draft.dob}
                   onChange={(e) => setDraft({ ...draft, dob: e.target.value })}
-                  className="h-[52px] w-full rounded-xl bg-surface border border-hairline px-2.5 text-[15px] text-ink outline-none focus:border-pine transition-colors"
+                  className="h-[54px] w-full rounded-xl bg-surface border border-hairline px-2.5 text-[15px] text-ink outline-none focus:border-pine transition-colors"
                 />
               </Field>
             </div>
@@ -341,17 +335,7 @@ export function AddChild({
               Save child
             </button>
           </motion.div>
-        ) : (
-          <button
-            onClick={() => setFormOpen(true)}
-            className="flex items-center gap-3.5 min-h-[56px] text-pine font-[600] text-[16px] text-left"
-          >
-            <span className="grid place-items-center w-10 h-10 rounded-full border-[1.5px] border-dashed border-pine/40 shrink-0">
-              <Plus size={22} />
-            </span>
-            Add another child
-          </button>
-        )}
+
       </div>
 
       <div className="shrink-0 px-6 pt-3 pb-5">

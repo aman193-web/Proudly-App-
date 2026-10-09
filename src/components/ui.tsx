@@ -55,7 +55,7 @@ export function AppHeader({
   step?: string;
 }) {
   return (
-    <div className="shrink-0 pt-12">
+    <div className="shrink-0 pt-10">
       <div className="h-14 px-2 flex items-center">
         {onBack ? <BackButton onClick={onBack} /> : <span className="w-12" />}
         <div className="flex-1" />

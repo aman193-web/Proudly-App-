@@ -64,6 +64,7 @@ import {
   buildGeneralContext,
 } from "../lib/askProudly";
 import { Notifications, type NotifTarget } from "./Notifications";
+import { NEW_TO_REVIEW_COUNT, NewToReview } from "./NewToReview";
 import { PhotoImport } from "./PhotoImport";
 import { Portfolio } from "./Portfolio";
 import { BragSheet } from "./BragSheet";
@@ -124,6 +125,7 @@ type Overlay =
   | { kind: "expand" }
   | { kind: "notifications" }
   | { kind: "photoImport" }
+  | { kind: "newToReview" }
   | { kind: "allAchievements" }
   | { kind: "photoPortfolio" }
   | { kind: "connectedSources" }
@@ -265,6 +267,7 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
         <Notifications onBack={pop} onDeepLink={handleDeepLink} />
       )}
       {o.kind === "photoImport" && <PhotoImport onClose={pop} />}
+      {o.kind === "newToReview" && <NewToReview onBack={pop} />}
       {o.kind === "allAchievements" && (
         <AllAchievements
           childId={childId}
@@ -334,8 +337,8 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
                 onSelectChild={setChildId}
                 onGoTab={setTab}
                 onOpenAchievement={openAchievement}
-                onOpenDiscover={() => setDiscoverOpen(true)}
-                onOpenNotifications={() => push({ kind: "notifications" })}
+                onOpenDiscover={() => push({ kind: "newToReview" })}
+                onOpenNotifications={() => push({ kind: "newToReview" })}
                 onAddActivity={() => push({ kind: "addActivity" })}
                 onAddAchievement={() => push({ kind: "addAchievement" })}
                 onFindCoach={(activityId) => push({ kind: "coachFinder", activityId })}
@@ -506,9 +509,9 @@ function Home({
           { icon: <RefreshCw size={22} />, label: "Sync calendars", onClick: onOpenDiscover },
           {
             icon: <Bell size={22} />,
-            label: `Activities to review (${DISCOVERY_SEED.length})`,
+            label: `Activities to review (${NEW_TO_REVIEW_COUNT})`,
             onClick: onOpenNotifications,
-            badge: DISCOVERY_SEED.length,
+            badge: NEW_TO_REVIEW_COUNT,
           },
           { icon: <Plus size={22} />, label: "Add activity", onClick: onAddActivity },
         ].map((b) => (
@@ -549,8 +552,8 @@ function Home({
         <Calendar size={24} className="text-amber shrink-0" />
         <span className="flex-1 min-w-0">
           <span className="block text-[15px] font-[600] text-ink">
-            {DISCOVERY_SEED.length} new {DISCOVERY_SEED.length === 1 ? "activity" : "activities"} to
-            review
+            {NEW_TO_REVIEW_COUNT} new{" "}
+            {NEW_TO_REVIEW_COUNT === 1 ? "activity" : "activities"} to review
           </span>
           <span className="block text-[13px] text-ink-soft">Found in your calendars</span>
         </span>

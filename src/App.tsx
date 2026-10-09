@@ -6,7 +6,8 @@ import { SignIn, CreateAccount } from "./screens/Auth";
 import { AddChild } from "./screens/AddChild";
 import { ConnectSources } from "./screens/ConnectSources";
 import { Processing } from "./screens/Processing";
-import { Review } from "./screens/Review";
+import { AllSet, ReviewMatched, ReviewUnnamed } from "./screens/ReviewFlow";
+import { ManualEntry } from "./screens/ManualEntry";
 import { MainApp } from "./screens/MainApp";
 
 type Route =
@@ -15,12 +16,15 @@ type Route =
   | "create"
   | "addChild"
   | "connect"
+  | "manual"
   | "processing"
-  | "review"
+  | "review1"
+  | "review2"
+  | "allSet"
   | "app";
 
 export default function App() {
-  const [route, setRoute] = useState<Route>("welcome");
+  const [route, setRoute] = useState<Route>("app");
   const [childName, setChildName] = useState("Reet");
   const go = (r: Route) => setRoute(r);
 
@@ -59,21 +63,40 @@ export default function App() {
         {route === "connect" && (
           <ConnectSources
             key="connect"
-            childName={childName}
             onBack={() => go("addChild")}
             onContinue={() => go("processing")}
+            onManual={() => go("manual")}
+          />
+        )}
+        {route === "manual" && (
+          <ManualEntry
+            key="manual"
+            onClose={() => go("connect")}
+            onSaved={() => go("app")}
           />
         )}
         {route === "processing" && (
-          <Processing key="processing" childName={childName} onDone={() => go("review")} />
+          <Processing key="processing" childName={childName} onDone={() => go("review1")} />
         )}
-        {/* Review hands straight to the app — the "history is ready" screen is
-            hidden for now. Restore it by routing onDone to "aha" again. */}
-        {route === "review" && (
-          <Review
-            key="review"
-            childName={childName}
+        {/* Two-step review, then the "all set" hand-off, per the prototype. */}
+        {route === "review1" && (
+          <ReviewMatched
+            key="review1"
             onBack={() => go("connect")}
+            onAccept={() => go("review2")}
+          />
+        )}
+        {route === "review2" && (
+          <ReviewUnnamed
+            key="review2"
+            onBack={() => go("review1")}
+            onAccept={() => go("allSet")}
+          />
+        )}
+        {route === "allSet" && (
+          <AllSet
+            key="allSet"
+            onAddActivities={() => go("manual")}
             onDone={() => go("app")}
           />
         )}
