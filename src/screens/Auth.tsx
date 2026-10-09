@@ -45,7 +45,7 @@ function GhostButton({
   return (
     <button
       onClick={onClick}
-      className="h-[58px] w-full rounded-2xl bg-transparent border border-hairline text-ink font-sans font-[600] text-[15px] tracking-tight flex items-center justify-center gap-3 active:scale-[0.985] active:bg-surface transition-all duration-150"
+      className="h-14 w-full rounded-full bg-transparent border border-hairline text-ink font-sans font-[600] text-[15px] tracking-tight flex items-center justify-center gap-3 active:scale-[0.985] active:bg-surface transition-all duration-150"
     >
       {children}
     </button>

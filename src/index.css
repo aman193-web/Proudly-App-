@@ -1,34 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:wght@400;450;500;600;700&family=Figtree:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
 @theme {
-  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
-  --font-sans: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  /* Oct-1 redesign design system.
+     ---------------------------------------------------------------
+     The canonical names are the redesign ones (pine/amber/rust/cream).
+     The original names are kept as aliases pointing at them, so every
+     screen reskins without touching a single className — `bg-teal` now
+     renders pine. The alias names are a deliberate debt: renaming ~700
+     class usages buys nothing visually and can be done on its own later. */
 
-  --color-teal: #217c72;
-  --color-teal-dark: #175f58;
-  --color-mint: #dcefeb;
-  --color-canvas: #f7f8f6;
-  --color-surface: #ffffff;
-  --color-ink: #172321;
-  --color-ink-soft: #66716e;
-  --color-hairline: #dce3e0;
-  --color-gold: #b8893b;
-  --color-gold-soft: #f6edda;
-
-  /* Oct-1 redesign palette. Added alongside the originals rather than
-     replacing them: screens adopt these as they are ported, so the ones still
-     on the old design keep working and looking deliberate in the meantime.
-     Names map to the prototype's --p / --a / --v / --bg. */
-  --color-pine: #24644F;
-  --color-amber: #D98C12;
-  --color-rust: #B5532F;
-  --color-cream: #FBF8F2;
-
-  /* Figtree only — the prototype loads Fraunces and JetBrains Mono but every
-     font shorthand in its markup is Figtree. */
+  --font-display: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
   --font-figtree: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+
+  /* Canonical palette. Tints are the prototype's color-mix() values
+     resolved to hex: --ps is pine 13% on white, --pd pine 78% on black,
+     --as amber 16% on white, --vs rust 14% on white. */
+  --color-pine: #24644f;
+  --color-pine-dark: #1c4e3e;
+  --color-pine-soft: #e3ebe8;
+  --color-amber: #d98c12;
+  --color-amber-dark: #87570b;
+  --color-amber-soft: #f9ecd9;
+  --color-rust: #b5532f;
+  --color-rust-soft: #f5e7e2;
+  --color-cream: #fbf8f2;
+
+  /* Neutrals, taken from the prototype's literals. */
+  --color-surface: #ffffff;
+  --color-ink: #1b1d1c;
+  --color-ink-soft: #5f6461;
+  --color-hairline: #d9dbd6;
+
+  /* Aliases — the pre-redesign names, now resolving to the above. */
+  --color-teal: var(--color-pine);
+  --color-teal-dark: var(--color-pine-dark);
+  --color-mint: var(--color-pine-soft);
+  --color-canvas: var(--color-cream);
+  --color-gold: var(--color-amber);
+  --color-gold-soft: var(--color-amber-soft);
 }
+
 
 :root {
   color-scheme: light;

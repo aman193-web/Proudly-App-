@@ -73,7 +73,7 @@ export function PrimaryButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`h-[54px] w-full rounded-2xl bg-teal text-white font-sans font-[600] text-[16px] tracking-tight
+      className={`h-14 w-full rounded-full bg-teal text-white font-sans font-[600] text-[16px] tracking-tight
         shadow-[0_10px_24px_-10px_rgba(33,124,114,0.7)]
         active:scale-[0.985] transition-all duration-150
         disabled:opacity-40 disabled:shadow-none ${className}`}
@@ -95,7 +95,7 @@ export function SecondaryButton({
   return (
     <button
       onClick={onClick}
-      className={`h-[54px] w-full rounded-2xl bg-surface border border-hairline text-ink font-sans font-[600] text-[16px] tracking-tight active:scale-[0.985] transition-all duration-150 ${className}`}
+      className={`h-14 w-full rounded-full bg-surface border border-hairline text-ink font-sans font-[600] text-[16px] tracking-tight active:scale-[0.985] transition-all duration-150 ${className}`}
     >
       {children}
     </button>
@@ -207,7 +207,7 @@ export function GoogleButton({ onClick }: { onClick?: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="h-[58px] w-full rounded-2xl bg-surface border border-hairline shadow-[0_2px_10px_-4px_rgba(23,35,33,0.16)] flex items-center justify-center gap-3 font-sans font-[600] text-[15px] text-ink active:scale-[0.985] transition-transform"
+      className="h-14 w-full rounded-full bg-surface border border-hairline shadow-[0_2px_10px_-4px_rgba(27,29,28,0.16)] flex items-center justify-center gap-3 font-sans font-[600] text-[15px] text-ink active:scale-[0.985] transition-transform"
     >
       <GoogleGlyph />
       Continue with Google
@@ -219,7 +219,7 @@ export function AppleButton({ onClick }: { onClick?: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="h-[58px] w-full rounded-2xl bg-surface border border-hairline shadow-[0_2px_10px_-4px_rgba(23,35,33,0.16)] flex items-center justify-center gap-3 font-sans font-[600] text-[15px] text-ink active:scale-[0.985] transition-transform"
+      className="h-14 w-full rounded-full bg-surface border border-hairline shadow-[0_2px_10px_-4px_rgba(27,29,28,0.16)] flex items-center justify-center gap-3 font-sans font-[600] text-[15px] text-ink active:scale-[0.985] transition-transform"
     >
       <AppleGlyph />
       Continue with Apple
