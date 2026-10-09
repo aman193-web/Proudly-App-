@@ -180,7 +180,7 @@ export function CoachFinder({ activity, onBack }: { activity: Activity; onBack: 
             </label>
 
             <p className="text-[12px] text-ink-soft/80 mt-3 leading-relaxed">
-              PROUDLY only uses your location to find nearby coaches. It is not stored.
+              BragOn only uses your location to find nearby coaches. It is not stored.
             </p>
           </div>
         )}
@@ -216,7 +216,7 @@ export function CoachFinder({ activity, onBack }: { activity: Activity; onBack: 
               <CoachCard key={c.id} coach={c} activityId={activity.id} />
             ))}
             <p className="text-[11.5px] text-ink-soft/80 text-center pt-2 leading-relaxed">
-              Ratings and reviews from Google. PROUDLY doesn't endorse or vet coaches.
+              Ratings and reviews from Google. BragOn doesn't endorse or vet coaches.
             </p>
           </motion.div>
         )}

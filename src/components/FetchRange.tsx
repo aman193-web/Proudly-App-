@@ -27,7 +27,7 @@ export const FETCH_RANGES: FetchRange[] = [
 
 /* A child's record spans years — the app shows activities running six years
    and counts "years tracked" on the home screen — so a short default window
-   would hide most of what PROUDLY exists to surface. Two years is long enough
+   would hide most of what BragOn exists to surface. Two years is long enough
    to feel complete on the first sync without pulling a decade of calendar. */
 export const DEFAULT_FETCH_RANGE = "2y";
 
@@ -67,7 +67,7 @@ export function FetchRangeControl({
       <Sheet open={open} onClose={() => setOpen(false)}>
         <h3 className="font-display text-[18px] font-[700] text-ink px-1">How far back?</h3>
         <p className="text-[12.5px] text-ink-soft px-1 mt-1 mb-3 leading-snug">
-          PROUDLY scans {sourceName} back this far. Anything older is skipped — you can
+          BragOn scans {sourceName} back this far. Anything older is skipped — you can
           widen it later.
         </p>
         <div className="grid grid-cols-3 gap-2">

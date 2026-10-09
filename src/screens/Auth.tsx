@@ -118,7 +118,7 @@ export function SignIn({
 
         <div className="flex-1 min-h-6" />
         <p className="text-center text-[14.5px] text-ink-soft pb-8">
-          New to PROUDLY? <TextLink onClick={onCreate}>Create account</TextLink>
+          New to BragOn? <TextLink onClick={onCreate}>Create account</TextLink>
         </p>
       </div>
     </Screen>

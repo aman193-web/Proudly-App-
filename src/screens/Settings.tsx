@@ -132,7 +132,7 @@ export function LevelsHelp({ onBack }: { onBack: () => void }) {
       <AppHeader title="Learning levels" onBack={onBack} />
       <div className="flex-1 overflow-y-auto scroll-area px-4 pb-10">
         <p className="text-[14.5px] text-ink leading-relaxed mt-1">
-          Every activity sits at one of four levels. PROUDLY suggests one from what's recorded,
+          Every activity sits at one of four levels. BragOn suggests one from what's recorded,
           and you can change it whenever you disagree.
         </p>
 
@@ -299,7 +299,7 @@ export function LevelsHelp({ onBack }: { onBack: () => void }) {
         <div className="mt-6 rounded-2xl bg-mint/50 px-3.5 py-3">
           <p className="text-[13px] text-ink leading-relaxed">
             <strong className="font-[700]">You always have the final say.</strong> Changing a
-            level never erases PROUDLY's suggestion — both are kept, so you can go back to it.
+            level never erases BragOn's suggestion — both are kept, so you can go back to it.
             Tap the <Info size={12} className="inline align-[-1px]" /> beside any level to see
             what counted for that activity.
           </p>
@@ -404,7 +404,7 @@ export function ProfileTab({ onOpen }: { onOpen: (t: SettingsTarget) => void }) 
         />
       </Group>
 
-      <p className="text-center text-[11.5px] text-ink-soft/70 mt-8">PROUDLY · v1.0</p>
+      <p className="text-center text-[11.5px] text-ink-soft/70 mt-8">BragOn · v1.0</p>
     </div>
   );
 }
@@ -505,7 +505,7 @@ export function ConnectedSources({ onBack }: { onBack: () => void }) {
       <AppHeader title="Connected sources" onBack={onBack} />
       <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
         <p className="text-[13px] text-ink-soft mt-1 mb-4 leading-relaxed">
-          PROUDLY reads Google Calendar and Photos to build the activity journey. They stay
+          BragOn reads Google Calendar and Photos to build the activity journey. They stay
           together and nothing is posted or shared.
         </p>
 
@@ -835,7 +835,7 @@ export function DataPrivacy({
       <AppHeader title="Data & privacy" onBack={onBack} />
       <div className="flex-1 overflow-y-auto scroll-area px-4 pb-8">
         <p className="text-[13px] text-ink-soft mt-1 mb-4 leading-relaxed">
-          Your family's record stays yours. Manage what PROUDLY keeps.
+          Your family's record stays yours. Manage what BragOn keeps.
         </p>
         <div className="rounded-2xl bg-surface border border-hairline divide-y divide-hairline overflow-hidden">
           <Row icon={<Database size={18} />} label="Manage imported items" onClick={() => showToast("Opened imported items")} />

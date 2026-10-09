@@ -245,7 +245,7 @@ function ActivityListRow({
       <div className="flex items-center gap-2 px-3 pb-3">
         <RowAction
           icon={<MessageCircleQuestion size={14} />}
-          label="Ask PROUDLY"
+          label="Ask BragOn"
           onClick={onAskProudly}
         />
         <RowAction

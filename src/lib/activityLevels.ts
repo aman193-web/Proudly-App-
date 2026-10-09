@@ -60,7 +60,7 @@ export function setParentLevel(activity: Activity, level: ActivityLevel) {
   emit();
 }
 
-/** Hand the level back to PROUDLY's suggestion. */
+/** Hand the level back to BragOn's suggestion. */
 export function resetToSuggested(activity: Activity) {
   overrides.set(activity.id, { current: activity.suggestedLevel, source: "proudly" });
   emit();
@@ -71,7 +71,7 @@ export function nextLevel(level: ActivityLevel): ActivityLevel | null {
   return ACTIVITY_LEVELS[LEVEL_RANK[level] + 1] ?? null;
 }
 
-/** Why PROUDLY landed where it did — for the "Suggested by PROUDLY" line. */
+/** Why BragOn landed where it did — for the "Suggested by BragOn" line. */
 export function suggestionFor(activity: Activity): LevelSuggestion {
   return suggestLevelForActivity(activity);
 }

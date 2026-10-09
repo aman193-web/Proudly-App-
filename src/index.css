@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:wght@400;450;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:wght@400;450;500;600;700&family=Figtree:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 @theme {
@@ -15,6 +15,19 @@
   --color-hairline: #dce3e0;
   --color-gold: #b8893b;
   --color-gold-soft: #f6edda;
+
+  /* Oct-1 redesign palette. Added alongside the originals rather than
+     replacing them: screens adopt these as they are ported, so the ones still
+     on the old design keep working and looking deliberate in the meantime.
+     Names map to the prototype's --p / --a / --v / --bg. */
+  --color-pine: #24644F;
+  --color-amber: #D98C12;
+  --color-rust: #B5532F;
+  --color-cream: #FBF8F2;
+
+  /* Figtree only — the prototype loads Fraunces and JetBrains Mono but every
+     font shorthand in its markup is Figtree. */
+  --font-figtree: 'Figtree', ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {

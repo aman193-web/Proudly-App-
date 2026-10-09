@@ -376,7 +376,7 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
         onView={openAchievement}
       />
 
-      {/* Ask PROUDLY — bottom sheet, draggable to full height */}
+      {/* Ask BragOn — bottom sheet, draggable to full height */}
       <AskProudlySheet
         context={askCtx}
         onClose={() => setAskCtx(null)}
@@ -386,7 +386,7 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
         }}
       />
 
-      {/* Floating actions — Ask PROUDLY everywhere, Add stacked above it on
+      {/* Floating actions — Ask BragOn everywhere, Add stacked above it on
           the tabs that have an add action. */}
       {stack.length === 0 && (
         <FabStack
@@ -486,7 +486,7 @@ function Home({
         <div className="flex items-center gap-2">
           <Mark size={26} />
           <span className="font-display font-[700] text-[15px] tracking-[0.12em] text-ink">
-            PROUDLY
+            BragOn
           </span>
         </div>
         <div className="flex items-center gap-2">

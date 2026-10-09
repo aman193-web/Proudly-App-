@@ -126,9 +126,9 @@ export const CATEGORY_COLOR: Record<Category, string> = {
 };
 
 /* ---------- Activity level ----------
-   Four rungs a child can sit on within an activity. PROUDLY suggests one; the
+   Four rungs a child can sit on within an activity. BragOn suggests one; the
    parent may override it. The suggestion is kept either way, so an override
-   never destroys what PROUDLY worked out. */
+   never destroys what BragOn worked out. */
 export type ActivityLevel = "Learning" | "Beginner" | "Intermediate" | "Champion";
 
 export const ACTIVITY_LEVELS: ActivityLevel[] = [
@@ -162,7 +162,7 @@ export type Activity = {
   note?: string;
   /** Typical sessions per week, where known. Feeds the level suggestion. */
   sessionsPerWeek?: number;
-  /** What PROUDLY works out from the record. Never overwritten by the parent. */
+  /** What BragOn works out from the record. Never overwritten by the parent. */
   suggestedLevel: ActivityLevel;
   /** What the app shows and uses. Equals suggestedLevel until a parent changes it. */
   currentLevel: ActivityLevel;
@@ -538,7 +538,7 @@ export const NOTIFICATIONS: Notification[] = [
 ];
 
 /* ---------- Photo import candidates ---------- */
-// The post-connection flow: PROUDLY proposes a child + activity + date for each photo.
+// The post-connection flow: BragOn proposes a child + activity + date for each photo.
 export type PhotoCandidate = {
   id: string;
   url: string;

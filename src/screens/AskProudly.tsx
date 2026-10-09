@@ -11,7 +11,7 @@ import {
   suggestedPrompts,
 } from "../lib/askProudly";
 
-/* Ask PROUDLY sheet
+/* Ask BragOn sheet
    -----------------
    Opens as a bottom sheet and drags up into a full-height one, the way
    Gemini's assistant sheet behaves. Two snap points:
@@ -151,7 +151,7 @@ function Panel({
       {/* Drag handle — also toggles, so expanding never requires a drag */}
       <button
         onClick={() => setExpanded((e) => !e)}
-        aria-label={expanded ? "Collapse Ask PROUDLY" : "Expand Ask PROUDLY"}
+        aria-label={expanded ? "Collapse Ask BragOn" : "Expand Ask BragOn"}
         aria-expanded={expanded}
         className="shrink-0 pt-2.5 pb-1.5 grid place-items-center cursor-grab active:cursor-grabbing"
       >
@@ -169,7 +169,7 @@ function Panel({
           </span>
           <div className="flex-1 min-w-0">
             <h2 className="font-display text-[19px] font-[700] text-ink leading-tight">
-              Ask PROUDLY
+              Ask BragOn
             </h2>
             <p className="text-[12.5px] text-ink-soft leading-snug mt-0.5">
               Ask about your child's activities, progress, and next steps.
@@ -177,7 +177,7 @@ function Panel({
           </div>
           <button
             onClick={onClose}
-            aria-label="Close Ask PROUDLY"
+            aria-label="Close Ask BragOn"
             className="grid place-items-center w-9 h-9 rounded-full bg-surface border border-hairline text-ink shrink-0 active:scale-95 transition-transform"
           >
             <X size={17} />
@@ -280,7 +280,7 @@ function Panel({
                     style={{ animationDelay: `${i * 160}ms` }}
                   />
                 ))}
-                <span className="sr-only">PROUDLY is responding</span>
+                <span className="sr-only">BragOn is responding</span>
               </div>
             </div>
           )}
@@ -320,7 +320,7 @@ function Panel({
           </button>
         </div>
         <p className="text-[11px] text-ink-soft/70 text-center mt-2.5">
-          PROUDLY can make mistakes. Check anything important.
+          BragOn can make mistakes. Check anything important.
         </p>
       </div>
     </motion.div>

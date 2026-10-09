@@ -125,7 +125,7 @@ export function LevelPickerSheet({
               </span>
               {lvl === suggested && (
                 <span className="inline-flex items-center gap-1 text-[11px] font-[600] text-teal">
-                  <Sparkles size={11} /> PROUDLY suggests
+                  <Sparkles size={11} /> BragOn suggests
                 </span>
               )}
               <span className="flex-1" />
@@ -143,7 +143,7 @@ export function LevelPickerSheet({
           }}
           className="w-full mt-3 h-11 rounded-xl bg-surface border border-hairline text-[13.5px] font-[600] text-ink-soft active:scale-[0.99] transition-transform"
         >
-          Use PROUDLY's suggestion ({suggested})
+          Use BragOn's suggestion ({suggested})
         </button>
       )}
     </Sheet>
@@ -151,7 +151,7 @@ export function LevelPickerSheet({
 }
 
 /* ---------- Next level card ----------
-   Ties the current level, PROUDLY's reasoning and the two ways forward into
+   Ties the current level, BragOn's reasoning and the two ways forward into
    one block on Activity Detail. Deliberately a single card, not a dashboard. */
 export function NextLevelCard({
   activity,
@@ -196,7 +196,7 @@ export function NextLevelCard({
         {/* Where the level came from */}
         {source === "proudly" ? (
           <span className="flex items-center gap-1.5 mt-2 text-[12.5px] font-[600] text-teal">
-            <Sparkles size={12} className="shrink-0" /> Suggested by PROUDLY
+            <Sparkles size={12} className="shrink-0" /> Suggested by BragOn
           </span>
         ) : (
           <span className="flex items-center gap-1.5 mt-2 text-[12.5px] font-[600] text-ink-soft">
@@ -210,10 +210,10 @@ export function NextLevelCard({
           </span>
         )}
 
-        {/* Parent disagreed with PROUDLY — show the suggestion separately. */}
+        {/* Parent disagreed with BragOn — show the suggestion separately. */}
         {overridden && (
           <span className="inline-flex items-center gap-1.5 mt-2.5 text-[11.5px] font-[600] text-teal bg-mint rounded-full px-2 py-1">
-            <Sparkles size={11} /> PROUDLY suggests {suggested}
+            <Sparkles size={11} /> BragOn suggests {suggested}
           </span>
         )}
       </div>
@@ -243,7 +243,7 @@ export function NextLevelCard({
             onClick={onAskProudly}
             className="flex-1 h-11 rounded-xl bg-surface border border-hairline flex items-center justify-center gap-1.5 text-[13.5px] font-[600] text-ink active:scale-[0.99] transition-transform"
           >
-            <MessageCircleQuestion size={15} /> Ask PROUDLY
+            <MessageCircleQuestion size={15} /> Ask BragOn
           </button>
           <button
             onClick={onConnectCoach}
@@ -260,7 +260,7 @@ export function NextLevelCard({
 /* ---------- Inline level chooser ----------
    The level is editable wherever the parent already is — the activity preview
    sheet and the edit screen — so changing it never means hunting for a screen.
-   Four chips, current one marked, PROUDLY's suggestion flagged. */
+   Four chips, current one marked, BragOn's suggestion flagged. */
 export function LevelChooserRow({
   activity,
   label = "Learning level",
@@ -281,7 +281,7 @@ export function LevelChooserRow({
         </span>
         {source === "proudly" ? (
           <span className="inline-flex items-center gap-1 text-[11px] font-[600] text-teal">
-            <Sparkles size={11} /> Suggested by PROUDLY
+            <Sparkles size={11} /> Suggested by BragOn
           </span>
         ) : (
           <button
@@ -359,7 +359,7 @@ export function NewActivityLevelField({
   /** What the engine suggests for a brand-new activity. */
   suggested: ActivityLevel;
   onChange: (level: ActivityLevel) => void;
-  /** Hand the level back to PROUDLY. */
+  /** Hand the level back to BragOn. */
   onReset: () => void;
   label?: string;
 }) {
@@ -380,7 +380,7 @@ export function NewActivityLevelField({
           </button>
         ) : (
           <span className="inline-flex items-center gap-1 text-[11px] font-[600] text-teal">
-            <Sparkles size={11} /> Suggested by PROUDLY
+            <Sparkles size={11} /> Suggested by BragOn
           </span>
         )}
       </div>
@@ -392,7 +392,7 @@ export function NewActivityLevelField({
       />
 
       <p className="mt-2 text-[11.5px] text-ink-soft leading-snug">
-        New activities start low by design. PROUDLY raises the suggestion as
+        New activities start low by design. BragOn raises the suggestion as
         time and achievements build up — you can change it whenever you like.
       </p>
     </div>
@@ -443,13 +443,13 @@ export function LevelInfoSheet({
         Why {activity.name} is {suggested}
       </h3>
       <p className="text-[12.5px] text-ink-soft px-1 mt-0.5">
-        PROUDLY reads the record for this activity. Nothing here is fixed — you can set the
+        BragOn reads the record for this activity. Nothing here is fixed — you can set the
         level yourself at any time.
       </p>
 
       {source === "parent" && current !== suggested && (
         <p className="mt-3 text-[12.5px] font-[600] text-teal bg-mint rounded-xl px-3 py-2">
-          You have this set to {current}. PROUDLY's own read is {suggested}.
+          You have this set to {current}. BragOn's own read is {suggested}.
         </p>
       )}
 

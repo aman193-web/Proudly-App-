@@ -51,7 +51,7 @@ export function Aha({
           history is ready.
         </motion.h1>
         <p className="text-[15px] text-ink-soft mt-2">
-          Here's what PROUDLY organized from your Calendar and Photos.
+          Here's what BragOn organized from your Calendar and Photos.
         </p>
 
         {/* Summary stats */}

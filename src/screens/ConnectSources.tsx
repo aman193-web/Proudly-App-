@@ -65,7 +65,7 @@ export function ConnectSources({
         <div className="mt-5 flex items-start gap-2.5 rounded-2xl bg-mint/50 px-4 py-3">
           <ShieldCheck size={17} className="text-teal-dark shrink-0 mt-0.5" />
           <p className="text-[12.5px] leading-snug text-teal-dark/90">
-            PROUDLY only reads what it needs to organize activities. You stay in control and
+            BragOn only reads what it needs to organize activities. You stay in control and
             can disconnect anytime.
           </p>
         </div>

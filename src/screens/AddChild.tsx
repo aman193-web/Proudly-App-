@@ -255,7 +255,7 @@ export function AddChild({
                       size={13}
                       className="inline align-middle mr-1 -mt-px text-gold"
                     />
-                    A photo helps PROUDLY find your child in your memories.
+                    A photo helps BragOn find your child in your memories.
                   </p>
                   <p
                     className={`text-[11.5px] font-[500] tracking-[0.01em] mt-1.5 transition-colors ${

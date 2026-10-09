@@ -8,7 +8,7 @@ import { AiCoachMark } from "./AiCoachMark";
 
        Add (+)            optional, only where the screen has an add action
           ↑  14px
-     Ask PROUDLY          always present, in the original Add FAB position
+     Ask BragOn          always present, in the original Add FAB position
           ↑
      Bottom navigation
 
@@ -64,7 +64,7 @@ export function FabStack({
         />
         <button
           onClick={onAskProudly}
-          aria-label="Ask PROUDLY"
+          aria-label="Ask BragOn"
           className="absolute inset-0 rounded-full grid place-items-center text-white
             shadow-[0_14px_30px_-8px_rgba(23,60,56,0.55)]
             active:scale-95 transition-transform"

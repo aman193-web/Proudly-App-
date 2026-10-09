@@ -120,7 +120,7 @@ export function Portfolio({
         <EmptyState
           icon={<FolderOpen size={26} />}
           title="Nothing to summarize yet"
-          body="Once activities and achievements are tracked, PROUDLY builds the portfolio for you automatically."
+          body="Once activities and achievements are tracked, BragOn builds the portfolio for you automatically."
           actionLabel="View activities"
           onAction={onViewGantt}
         />
@@ -510,7 +510,7 @@ export function BragSheet({
             </div>
             <div className="text-right">
               <p className="font-display text-[11px] font-[700] tracking-[0.12em] text-teal">
-                PROUDLY
+                BragOn
               </p>
               <p className="text-[9.5px] text-ink-soft mt-0.5">Extracurricular record</p>
             </div>
