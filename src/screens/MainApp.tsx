@@ -28,6 +28,7 @@ import { NearbySection } from "../components/NearbySection";
 import { NoteButton } from "../components/NoteButton";
 import { HoursSheet, SupportSheet } from "../components/SupportSheet";
 import { fmtHours, hoursFor as hoursTotal, logHours } from "../lib/hours";
+import { runSync, useSync } from "../lib/sync";
 import { ActivityListView } from "../components/ActivityViews";
 import { levelStateOf } from "../lib/activityLevels";
 import {
@@ -40,13 +41,13 @@ import {
 import { suggestLevel } from "../lib/levelSuggestion";
 import { CoachFinder } from "./CoachFinder";
 import { AskProudlySheet } from "./AskProudly";
-import { FabStack } from "../components/FabStack";
 import {
   type AskContext,
   buildActivityContext,
   buildGeneralContext,
 } from "../lib/askProudly";
 import { Notifications, type NotifTarget } from "./Notifications";
+import { ManualEntry } from "./ManualEntry";
 import { NEW_TO_REVIEW_COUNT, NewToReview } from "./NewToReview";
 import { PhotoImport } from "./PhotoImport";
 import { Portfolio } from "./Portfolio";
@@ -108,6 +109,7 @@ type Overlay =
   | { kind: "expand" }
   | { kind: "notifications" }
   | { kind: "photoImport" }
+  | { kind: "manualEntry" }
   | { kind: "newToReview" }
   | { kind: "allAchievements" }
   | { kind: "photoPortfolio" }
@@ -254,6 +256,7 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
         <Notifications onBack={pop} onDeepLink={handleDeepLink} />
       )}
       {o.kind === "photoImport" && <PhotoImport onClose={pop} />}
+      {o.kind === "manualEntry" && <ManualEntry onClose={pop} onSaved={pop} />}
       {o.kind === "newToReview" && <NewToReview onBack={pop} />}
       {o.kind === "allAchievements" && (
         <AllAchievements
@@ -324,9 +327,8 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
                 onSelectChild={setChildId}
                 onGoTab={setTab}
                 onOpenAchievement={openAchievement}
-                onOpenDiscover={() => push({ kind: "newToReview" })}
                 onOpenNotifications={() => push({ kind: "newToReview" })}
-                onAddActivity={() => push({ kind: "addActivity" })}
+                onAddActivity={() => push({ kind: "manualEntry" })}
                 onAddAchievement={() => push({ kind: "addAchievement" })}
                 onFindSupport={setSupportFor}
                 onLogHours={setHoursFor}
@@ -369,14 +371,7 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
           push({ kind: "editActivity", id });
         }}
       />
-      <SupportSheet
-        activity={supportFor}
-        onClose={() => setSupportFor(null)}
-        onSeeAll={(activityId) => {
-          setSupportFor(null);
-          push({ kind: "coachFinder", activityId });
-        }}
-      />
+      <SupportSheet activity={supportFor} onClose={() => setSupportFor(null)} />
       <HoursSheet
         activity={hoursFor}
         onClose={() => setHoursFor(null)}
@@ -402,22 +397,6 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
           push({ kind: "coachFinder", activityId });
         }}
       />
-
-      {/* Floating actions — Ask BragOn everywhere, Add stacked above it on
-          the tabs that have an add action. */}
-      {stack.length === 0 && (
-        <FabStack
-          onAskProudly={() => openAsk()}
-          onAdd={
-            tab === "activities"
-              ? () => push({ kind: "addActivity" })
-              : tab === "achievements"
-                ? () => push({ kind: "addAchievement" })
-                : undefined
-          }
-          addLabel={tab === "activities" ? "Add activity" : "Add achievement"}
-        />
-      )}
 
       {/* Overlay screens */}
       {/* Overlay screens. The whole stack stays mounted, with only the top one
@@ -473,7 +452,6 @@ function Home({
   onSelectChild,
   onGoTab,
   onOpenAchievement,
-  onOpenDiscover,
   onOpenNotifications,
   onAddActivity,
   onAddAchievement,
@@ -484,7 +462,6 @@ function Home({
   onSelectChild: (id: ChildId) => void;
   onGoTab: (t: Tab) => void;
   onOpenAchievement: (id: string) => void;
-  onOpenDiscover: () => void;
   onOpenNotifications: () => void;
   onAddActivity: () => void;
   onAddAchievement: () => void;
@@ -495,6 +472,7 @@ function Home({
   const achs = achievementsFor(childId);
   const child = childById(childId);
   const first = child?.name ?? "Your child";
+  const { syncing, label: syncLabel } = useSync();
 
   return (
     <div className="flex-1 overflow-y-auto scroll-area flex flex-col pb-28">
@@ -509,14 +487,20 @@ function Home({
       >
         <div className="flex-1" />
         {[
-          { icon: <Icon name="sync" size={22} />, label: "Sync calendars", onClick: onOpenDiscover },
           {
-            icon: <Icon name="notifications" size={22} />,
+            icon: (
+              <Icon name="sync" size={24} className={syncing ? "animate-spin" : undefined} />
+            ),
+            label: "Sync calendars",
+            onClick: runSync,
+          },
+          {
+            icon: <Icon name="notifications" size={24} />,
             label: `Activities to review (${NEW_TO_REVIEW_COUNT})`,
             onClick: onOpenNotifications,
             badge: NEW_TO_REVIEW_COUNT,
           },
-          { icon: <Icon name="add" size={22} />, label: "Add activity", onClick: onAddActivity },
+          { icon: <Icon name="add" size={24} />, label: "Add activity", onClick: onAddActivity },
         ].map((b) => (
           <button
             key={b.label}
@@ -539,20 +523,20 @@ function Home({
         <h2 className="font-[700] text-[32px] leading-[1.1] tracking-[-0.03em] text-ink">
           {first}'s journey
         </h2>
-        <span className="text-[14px] text-ink-soft">Synced 2h ago</span>
+        <span className="text-[14px] text-ink-soft">{syncLabel}</span>
         {CHILDREN.length > 1 && <KidChips childId={childId} onSelect={onSelectChild} />}
       </div>
 
       {/* Pending review */}
       <button
-        onClick={onOpenDiscover}
+        onClick={onOpenNotifications}
         className="mt-4 flex items-center gap-3.5 min-h-16 pl-6 pr-5 text-left border-y transition-colors"
         style={{
           background: "#fbf5ea",
           borderColor: "rgba(217,140,18,0.15)",
         }}
       >
-        <Calendar size={24} className="text-amber shrink-0" />
+        <Icon name="event_upcoming" size={24} fill className="text-amber" />
         <span className="flex-1 min-w-0">
           <span className="block text-[15px] font-[600] text-ink">
             {NEW_TO_REVIEW_COUNT} new{" "}

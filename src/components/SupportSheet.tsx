@@ -77,12 +77,9 @@ const FALLBACK: [PickKind, string, string][] = [
 export function SupportSheet({
   activity,
   onClose,
-  onSeeAll,
 }: {
   activity: Activity | null;
   onClose: () => void;
-  /** Opens the full coach search for this activity. */
-  onSeeAll: (activityId: string) => void;
 }) {
   const [draft, setDraft] = useState("");
   const [chat, setChat] = useState<{ me: boolean; text: string }[]>([]);
@@ -91,28 +88,41 @@ export function SupportSheet({
     ? (SUGGESTIONS.find(([re]) => re.test(activity.name))?.[1] ?? FALLBACK)
     : FALLBACK;
   const child = activity ? childById(activity.childId) : undefined;
+  const who = child?.name ?? "them";
+
+  /* Each pick is a prompt. Tapping one asks it, which turns the sheet into a
+     conversation — the cards scroll away above the thread rather than sitting
+     there as navigation. */
+  const ask = (question: string, answer: string) =>
+    setChat((c) => [...c, { me: true, text: question }, { me: false, text: answer }]);
+
+  const askPick = ([kind, title, meta]: [PickKind, string, string]) =>
+    ask(
+      `Tell me about: ${title}`,
+      `${title} — ${meta}. It is a ${kind.toLowerCase()} option I found for ${who}'s ${
+        activity?.name.toLowerCase() ?? "activity"
+      }. Want me to pull together dates, cost and how to sign up?`,
+    );
 
   const send = () => {
     const q = draft.trim();
     if (!q) return;
     setDraft("");
-    setChat((c) => [
-      ...c,
-      { me: true, text: q },
-      {
-        me: false,
-        text: `I'll look into that for ${child?.name ?? "them"} — searching ${
-          activity?.name ?? "this activity"
-        } near you.`,
-      },
-    ]);
+    ask(
+      q,
+      `Looking into that for ${who} — I'll check what's available near you for ${
+        activity?.name.toLowerCase() ?? "this"
+      } and come back with options.`,
+    );
   };
+
+  const started = chat.length > 0;
 
   return (
     <Sheet open={!!activity} onClose={onClose}>
       {activity && (
         <div className="flex flex-col">
-          <div className="px-5 pt-2 pb-1 flex flex-col gap-1">
+          <div className="px-2 pt-2 pb-1 flex flex-col gap-1">
             <span className="flex items-center gap-2 text-[13px] font-[600] text-pine">
               <Icon name="auto_awesome" size={18} fill /> Top picks near you
             </span>
@@ -122,35 +132,37 @@ export function SupportSheet({
             </h3>
           </div>
 
-          <div className="mt-1 -mx-4 flex flex-col">
-            {picks.map(([kind, title, meta]) => (
+          {/* The prompts. They stay available after the first question so a
+              parent can ask about another pick without starting over. */}
+          <div className="mt-2 flex flex-col gap-2">
+            {picks.map((p) => (
               <button
-                key={title}
-                onClick={() => onSeeAll(activity.id)}
-                className="flex items-center gap-3.5 min-h-[68px] px-6 text-left active:bg-black/5 transition-colors"
+                key={p[1]}
+                onClick={() => askPick(p)}
+                className="flex items-center gap-3 px-3.5 py-3 rounded-[18px] bg-white/70 border border-white text-left active:scale-[0.99] transition-transform"
               >
-                <Icon name={KIND_ICON[kind]} size={24} className="text-pine" />
+                <Icon name={KIND_ICON[p[0]]} size={24} className="text-pine" />
                 <span className="flex-1 min-w-0 flex flex-col gap-0.5">
                   <span className="text-[11px] font-[600] tracking-[0.06em] text-ink-soft uppercase">
-                    {kind}
+                    {p[0]}
                   </span>
-                  <span className="text-[15px] font-[500] text-ink">{title}</span>
-                  <span className="text-[13px] text-ink-soft">{meta}</span>
+                  <span className="text-[15px] font-[500] text-ink">{p[1]}</span>
+                  <span className="text-[13px] text-ink-soft">{p[2]}</span>
                 </span>
                 <Icon name="chevron_right" size={20} className="text-[#9aa09c]" />
               </button>
             ))}
           </div>
 
-          {chat.length > 0 && (
-            <div className="px-2 pt-2 flex flex-col gap-2">
+          {started && (
+            <div className="mt-3 flex flex-col gap-2">
               {chat.map((m, i) => (
                 <span
                   key={i}
                   className={`max-w-[82%] px-3.5 py-2.5 rounded-[18px] text-[14px] leading-[1.4] ${
                     m.me
                       ? "self-end bg-pine text-white"
-                      : "self-start bg-surface text-ink"
+                      : "self-start bg-white/70 border border-white text-ink"
                   }`}
                 >
                   {m.text}
@@ -159,13 +171,13 @@ export function SupportSheet({
             </div>
           )}
 
-          <div className="mt-2.5 -mx-4 px-4 pt-2.5 flex gap-2 border-t border-[#eeefec]">
+          <div className="mt-3 flex gap-2">
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
-              placeholder="Ask a follow-up…"
-              className="flex-1 min-w-0 h-12 rounded-3xl px-6 bg-[#f1f2ef] text-[15px] text-ink outline-none"
+              placeholder={started ? "Ask a follow-up…" : "Ask about any of these…"}
+              className="flex-1 min-w-0 h-12 rounded-3xl px-5 bg-white/70 border border-white text-[15px] text-ink outline-none focus:border-pine transition-colors"
             />
             <button
               onClick={send}
