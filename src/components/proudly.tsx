@@ -2,6 +2,8 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { BarChart3, ListIcon } from "lucide-react";
 import { Icon } from "./Icon";
+import { NoteButton } from "./NoteButton";
+import { fmtHours, hoursFor } from "../lib/hours";
 import { ChildAvatar } from "./ui";
 import { LevelBadge, LevelChooserRow } from "./level";
 import { CategoryIcon } from "./CategoryIcon";
@@ -533,18 +535,20 @@ export function ActivityPreview({
   onClose,
   onView,
   onEdit,
+  onLogHours,
 }: {
   activity: Activity | null;
   onClose: () => void;
   onView: (id: string) => void;
   onEdit: (id: string) => void;
+  onLogHours: (a: Activity) => void;
 }) {
   const acts = activity ? achievementsForActivity(activity.id) : [];
   return (
     <Sheet open={!!activity} onClose={onClose}>
       {activity && (
-        <div>
-          <div className="flex items-center gap-2 px-1">
+        <div className="px-1">
+          <div className="flex items-center gap-2">
             <span
               className="w-2.5 h-2.5 rounded-full"
               style={{ background: CATEGORY_COLOR[activity.category] }}
@@ -554,23 +558,47 @@ export function ActivityPreview({
             </span>
             <LevelBadge activity={activity} />
             {activity.end === "present" && (
-              <span className="ml-auto text-[11.5px] font-[700] text-teal bg-mint px-2 py-0.5 rounded-full">
+              <span className="ml-auto text-[11.5px] font-[700] text-pine bg-pine-soft px-2 py-0.5 rounded-full">
                 Ongoing
               </span>
             )}
           </div>
-          <h3 className="font-display text-[24px] font-[700] text-ink px-1 mt-1.5">
+
+          <h3 className="font-[700] text-[24px] leading-[1.15] tracking-[-0.02em] text-ink mt-1.5">
             {activity.name}
           </h3>
-          <p className="text-[13.5px] text-ink-soft px-1 mt-0.5">
-            {activity.approxStart ? "~" : ""}
-            {fmtMonth(activity.start)} –{" "}
-            {activity.end === "present" ? "Present" : fmtMonth(activity.end)} ·{" "}
-            {durationText(activity.start, activity.end)}
+
+          {/* The span, the tally and the hours read as one line of fact
+              rather than a card — the count was dominating a sheet whose job
+              is to get you to the activity. */}
+          <p className="flex flex-wrap items-center gap-x-1.5 text-[13.5px] text-ink-soft mt-1">
+            <span>
+              {activity.approxStart ? "~" : ""}
+              {fmtMonth(activity.start)} –{" "}
+              {activity.end === "present" ? "Present" : fmtMonth(activity.end)} ·{" "}
+              {durationText(activity.start, activity.end)}
+            </span>
+            {acts.length > 0 && (
+              <span className="inline-flex items-center gap-1 font-[600] text-amber-dark">
+                <Icon name="trophy" size={15} fill className="text-amber" />
+                {acts.length}
+              </span>
+            )}
+            {hoursFor(activity.id) > 0 && (
+              <span className="font-[600] text-pine-dark">
+                · {fmtHours(hoursFor(activity.id))}
+              </span>
+            )}
           </p>
 
-          <div className="flex gap-2.5 px-1 mt-4">
-            <MiniStat value={String(acts.length)} label="achievements" accent />
+          <div className="flex gap-2 mt-4">
+            <NoteButton id={activity.id} title={activity.name} seed={activity.note} label />
+            <button
+              onClick={() => onLogHours(activity)}
+              className="flex items-center gap-1.5 h-10 pl-3 pr-4 rounded-full bg-surface border border-hairline text-[13.5px] font-[600] text-ink active:scale-95 transition-transform"
+            >
+              <Icon name="more_time" size={18} className="text-pine" /> Log hours
+            </button>
           </div>
 
           {/* Change the level right here — one tap from anywhere the sheet opens */}
@@ -581,13 +609,13 @@ export function ActivityPreview({
           <div className="flex gap-2.5 mt-5">
             <button
               onClick={() => onEdit(activity.id)}
-              className="flex-1 h-12 rounded-xl bg-surface border border-hairline text-ink font-[600] text-[15px] active:scale-95 transition-transform"
+              className="flex-1 h-12 rounded-full bg-surface border border-hairline text-ink font-[600] text-[15px] active:scale-95 transition-transform"
             >
               Edit
             </button>
             <button
               onClick={() => onView(activity.id)}
-              className="flex-[1.4] h-12 rounded-xl bg-teal text-white font-[600] text-[15px] active:scale-95 transition-transform"
+              className="flex-[1.4] h-12 rounded-full bg-pine text-white font-[600] text-[15px] active:scale-95 transition-transform"
             >
               View activity
             </button>

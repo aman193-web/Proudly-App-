@@ -15,11 +15,14 @@ export function NoteButton({
   id,
   title,
   seed,
+  label,
 }: {
   id: string;
   title: string;
   /** Whatever the record already carries, adopted the first time only. */
   seed?: string;
+  /** Renders as a labelled pill rather than a bare icon, where there is room. */
+  label?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
@@ -35,18 +38,36 @@ export function NoteButton({
 
   return (
     <>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen(true);
-        }}
-        aria-label={note ? `Edit note on ${title}` : `Add a note to ${title}`}
-        className={`grid place-items-center w-9 h-9 shrink-0 rounded-full transition-colors active:bg-black/5 ${
-          note ? "text-pine" : "text-[#a3a8a4]"
-        }`}
-      >
-        <Icon name="sticky_note_2" size={20} strokeWidth={note ? 2.4 : 1.9} />
-      </button>
+      {label ? (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen(true);
+          }}
+          className="flex items-center gap-1.5 h-10 pl-3 pr-4 rounded-full bg-surface border border-hairline text-[13.5px] font-[600] text-ink active:scale-95 transition-transform"
+        >
+          <Icon
+            name="sticky_note_2"
+            size={18}
+            fill={!!note}
+            className={note ? "text-pine" : "text-ink-soft"}
+          />
+          {note ? "Edit note" : "Add note"}
+        </button>
+      ) : (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen(true);
+          }}
+          aria-label={note ? `Edit note on ${title}` : `Add a note to ${title}`}
+          className={`grid place-items-center w-9 h-9 shrink-0 rounded-full transition-colors active:bg-black/5 ${
+            note ? "text-pine" : "text-[#a3a8a4]"
+          }`}
+        >
+          <Icon name="sticky_note_2" size={20} fill={!!note} />
+        </button>
+      )}
 
       <Sheet open={open} onClose={() => setOpen(false)}>
         <h3 className="px-1 text-[18px] font-[700] text-ink">Note</h3>

@@ -117,7 +117,7 @@ export function BragSheet({
       </div>
 
       {/* The page */}
-      <div className="mt-1 mx-3 px-4 pt-3 pb-2.5 bg-surface border border-[#e4e5e0] rounded-md shadow-[0_10px_30px_-18px_rgba(20,30,25,0.35)] flex flex-col">
+      <div className="mt-2 mx-3 px-4 pt-3.5 pb-4 bg-surface border border-[#e4e5e0] rounded-md shadow-[0_10px_30px_-18px_rgba(20,30,25,0.35)] flex flex-col">
         <div className="pb-1.5 border-b-2 border-ink">
           <span className="font-serif-doc text-[22px] leading-[1.1] font-[700] tracking-[-0.02em] text-ink">
             {child.name}
@@ -142,7 +142,7 @@ export function BragSheet({
         />
       </div>
 
-      <div className="pt-3 px-6">
+      <div className="pt-4 px-6">
         <button
           onClick={() => showToast("Brag sheet shared")}
           className="w-full h-12 rounded-3xl bg-pine text-white text-[15px] font-[600] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
@@ -198,16 +198,16 @@ function DraftField({
   const over = field.text.length > limit - 10;
   return (
     <>
-      <span className="mt-1.5 font-mono-doc text-[8px] font-[700] tracking-[0.08em] text-ink-soft uppercase">
+      <span className="mt-2.5 font-mono-doc text-[8px] font-[700] tracking-[0.08em] text-ink-soft uppercase">
         {label} · {limit} chars
       </span>
       <textarea
         value={field.text}
         onChange={(e) => field.set(e.target.value.slice(0, limit))}
         rows={Math.max(1, Math.ceil(field.text.length / 44))}
-        className="mt-px -mx-1.5 px-1.5 py-0.5 rounded-md bg-transparent border border-transparent text-[13px] leading-[1.45] text-ink resize-none outline-none overflow-hidden hover:border-hairline focus:border-pine focus:bg-[#fbfbf9] transition-colors"
+        className="mt-1 -mx-1.5 px-1.5 py-1 rounded-md bg-transparent border border-transparent text-[13px] leading-[1.5] text-ink resize-none outline-none overflow-hidden hover:border-hairline focus:border-pine focus:bg-[#fbfbf9] transition-colors"
       />
-      <div className="flex items-center gap-2">
+      <div className="mt-1.5 flex items-center gap-2">
         <span
           className="font-mono-doc text-[9.5px]"
           style={{ color: over ? "#87570b" : "#5f6461" }}
@@ -248,7 +248,7 @@ function CommonAppFormat({
         return (
           <div
             key={a.id}
-            className="pt-[9px] pb-2 flex flex-col gap-0.5 border-b border-[#e4e5e0]"
+            className="pt-3 pb-3.5 flex flex-col gap-1 border-b border-[#e4e5e0]"
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono-doc text-[8.5px] font-[700] tracking-[0.09em] text-pine">
@@ -278,7 +278,7 @@ function CommonAppFormat({
         );
       })}
 
-      <div className="pt-3">
+      <div className="pt-5">
         <span className="font-mono-doc text-[8.5px] font-[700] tracking-[0.1em] text-ink">
           COUNSELOR QUESTIONNAIRE — EXCERPT
         </span>
@@ -286,7 +286,7 @@ function CommonAppFormat({
       {COUNSELOR_QUESTIONS.map(([q, placeholder], i) => {
         const f = field(`q:${i}`, (v) => counselor(i, v));
         return (
-          <div key={q} className="pt-1.5 flex flex-col gap-px">
+          <div key={q} className="pt-3 flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <span className="flex-1 font-serif-doc text-[14px] leading-[1.3] font-[700] text-ink">
                 {q}

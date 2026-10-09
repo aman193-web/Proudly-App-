@@ -570,6 +570,12 @@ function Toggle({
   );
 }
 
+/** Grade vocabulary, shared with the onboarding child form. */
+const GRADES = [
+  "Pre-K", "K", "1st", "2nd", "3rd", "4th", "5th", "6th",
+  "7th", "8th", "9th", "10th", "11th", "12th",
+];
+
 /* ============================================================= CONNECTED SOURCES */
 export function ConnectedSources({ onBack }: { onBack: () => void }) {
   const [calState, setCalState] = useState<"connected" | "reconnect">("connected");
@@ -649,14 +655,6 @@ export function ChildManagement({
       <AppHeader
         title="Children"
         onBack={onBack}
-        trailing={
-          <button
-            onClick={onAddChild}
-            className="grid place-items-center w-10 h-10 rounded-full bg-surface border border-hairline text-teal active:scale-95 transition-transform"
-          >
-            <Icon name="add" size={19} />
-          </button>
-        }
       />
       <div className="flex-1 overflow-y-auto scroll-area px-6 pb-8">
         <div className="space-y-2.5 mt-1">
@@ -678,9 +676,9 @@ export function ChildManagement({
 
         <button
           onClick={onAddChild}
-          className="w-full mt-3 rounded-2xl border border-dashed border-teal/40 text-teal p-4 flex items-center justify-center gap-2 text-[14.5px] font-[600] active:scale-[0.99] transition-transform"
+          className="w-full mt-3 rounded-2xl border border-dashed border-pine/40 text-pine p-4 flex items-center justify-center gap-2 text-[14.5px] font-[600] active:scale-[0.99] transition-transform"
         >
-          <Icon name="add" size={18} /> Add child
+          <Icon name="add" size={18} /> Add a child
         </button>
       </div>
     </div>
@@ -718,7 +716,7 @@ export function EditChild({
               <Icon name="edit" size={14} />
             </span>
           </div>
-          <p className="text-[12.5px] text-ink-soft mt-2.5">Reference photo helps match memories</p>
+          <p className="text-[12.5px] text-ink-soft mt-2.5">Shown on their journey and brag sheet</p>
         </div>
 
         <FieldLabel label="Name">
@@ -746,12 +744,18 @@ export function EditChild({
         </FieldLabel>
 
         <FieldLabel label="Grade">
-          <input
+          <select
             value={grade}
             onChange={(e) => setGrade(e.target.value)}
-            placeholder="e.g. Grade 6"
-            className="h-[52px] w-full rounded-2xl bg-surface px-4 text-[16px] text-ink border border-hairline outline-none focus:border-teal focus:ring-4 focus:ring-teal/10 transition placeholder:text-ink-soft/60"
-          />
+            className="h-[52px] w-full appearance-none rounded-2xl bg-surface pl-4 pr-10 text-[16px] text-ink border border-hairline outline-none focus:border-pine transition"
+          >
+            <option value="">Select</option>
+            {GRADES.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
         </FieldLabel>
 
         {existing && (

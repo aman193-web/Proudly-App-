@@ -5,6 +5,7 @@ import { Icon } from "../components/Icon";
 import { dec } from "../data";
 import { ChildAvatar } from "../components/ui";
 import { AppHeader, BackButton, PrimaryButton } from "../components/ui";
+import { AddChild } from "./AddChild";
 import { Mark } from "../components/Logo";
 import { GanttChart, GanttLegend, type Range } from "../components/Gantt";
 import { Sheet } from "../components/Sheet";
@@ -120,7 +121,14 @@ type Overlay =
 /** An overlay on the stack, plus the identity its animation is keyed on. */
 type StackEntry = Overlay & { _id: number };
 
-export function MainApp({ onSignOut }: { onSignOut: () => void }) {
+export function MainApp({
+  onSignOut,
+  firstRun = false,
+}: {
+  onSignOut: () => void;
+  /** Set when the parent skipped the calendar scan during onboarding. */
+  firstRun?: boolean;
+}) {
   const [tab, setTab] = useState<Tab>("home");
   const [childId, setChildId] = useState<ChildId>("reet");
   const [stack, setStack] = useState<StackEntry[]>([]);
@@ -201,6 +209,7 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
           onAddAchievement={(activityId) => push({ kind: "addAchievement", activityId })}
           onConnectCoach={(activityId) => push({ kind: "coachFinder", activityId })}
           onAskProudly={(activityId: string) => openAsk(activityId)}
+          onLogHours={setHoursFor}
         />
       )}
       {o.kind === "coachFinder" && (
@@ -267,7 +276,22 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
           onAddChild={() => push({ kind: "editChild" })}
         />
       )}
-      {o.kind === "editChild" && <EditChild id={o.id} onBack={pop} />}
+      {o.kind === "editChild" &&
+        (o.id ? (
+          <EditChild id={o.id} onBack={pop} />
+        ) : (
+          /* Adding from Profile runs the onboarding flow, not a second form. */
+          <AddChild
+            onBack={pop}
+            onContinue={() => {
+              pop();
+              showToast("Child added");
+            }}
+            title="Add a child"
+            step=""
+            ctaLabel="Done"
+          />
+        ))}
       {o.kind === "account" && (
         <AccountSettings
           onBack={pop}
@@ -306,6 +330,8 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
                 childId={childId}
                 onSelectChild={setChildId}
                 onGoTab={setTab}
+                firstRun={firstRun}
+                onTapActivity={setPreviewActivity}
                 onOpenAchievement={openAchievement}
                 onOpenNotifications={() => push({ kind: "newToReview" })}
                 onAddActivity={() => push({ kind: "manualEntry" })}
@@ -345,6 +371,10 @@ export function MainApp({ onSignOut }: { onSignOut: () => void }) {
       <ActivityPreview
         activity={previewActivity}
         onClose={() => setPreviewActivity(null)}
+        onLogHours={(a) => {
+          setPreviewActivity(null);
+          setHoursFor(a);
+        }}
         onView={openActivity}
         onEdit={(id) => {
           setPreviewActivity(null);
@@ -424,6 +454,8 @@ function Home({
   childId,
   onSelectChild,
   onGoTab,
+  firstRun,
+  onTapActivity,
   onOpenAchievement,
   onOpenNotifications,
   onAddActivity,
@@ -434,6 +466,8 @@ function Home({
   childId: ChildId;
   onSelectChild: (id: ChildId) => void;
   onGoTab: (t: Tab) => void;
+  firstRun: boolean;
+  onTapActivity: (a: Activity) => void;
   onOpenAchievement: (id: string) => void;
   onOpenNotifications: () => void;
   onAddActivity: () => void;
@@ -500,7 +534,26 @@ function Home({
         {CHILDREN.length > 1 && <KidChips childId={childId} onSelect={onSelectChild} />}
       </div>
 
-      {/* Pending review */}
+      {firstRun ? (
+        /* Nothing was scanned, so there is no queue to review — the one
+           thing worth doing is adding the first activity by hand. */
+        <button
+          onClick={onAddActivity}
+          className="mt-4 flex items-center gap-3.5 min-h-16 pl-6 pr-5 text-left border-y transition-colors"
+          style={{ background: "#f0f4f2", borderColor: "rgba(36,100,79,0.15)" }}
+        >
+          <Icon name="add_circle" size={24} fill className="text-pine" />
+          <span className="flex-1 min-w-0">
+            <span className="block text-[15px] font-[600] text-ink">
+              Add your first activity
+            </span>
+            <span className="block text-[13px] text-ink-soft">
+              Nothing synced — start {first}'s journey by hand
+            </span>
+          </span>
+          <span className="text-[14px] font-[700] text-pine whitespace-nowrap">Add</span>
+        </button>
+      ) : (
       <button
         onClick={onOpenNotifications}
         className="mt-4 flex items-center gap-3.5 min-h-16 pl-6 pr-5 text-left border-y transition-colors"
@@ -519,6 +572,7 @@ function Home({
         </span>
         <span className="text-[14px] font-[700] text-amber whitespace-nowrap">Review</span>
       </button>
+      )}
 
       {/* Hero numbers */}
       <div className="mt-[18px] px-6 flex gap-10">
@@ -541,7 +595,7 @@ function Home({
         {acts.map((a) => (
           <div key={a.id} className="flex items-center gap-3 pl-6 pr-4">
             <button
-              onClick={() => onGoTab("activities")}
+              onClick={() => onTapActivity(a)}
               className="flex-1 flex items-center gap-3 min-h-[66px] min-w-0 text-left"
             >
               <span className="grid place-items-center w-[42px] h-[42px] rounded-full bg-pine-soft shrink-0">
@@ -552,15 +606,13 @@ function Home({
               </span>
             </button>
             <div className="w-9 shrink-0 flex flex-col items-center">
-              {a.category === "Volunteering" && (
-                <button
-                  onClick={() => onLogHours(a)}
-                  aria-label={`Log hours for ${a.name}`}
-                  className="grid place-items-center w-9 h-9 rounded-full text-pine active:bg-pine-soft transition-colors"
-                >
-                  <Icon name="more_time" size={21} />
-                </button>
-              )}
+              <button
+                onClick={() => onLogHours(a)}
+                aria-label={`Log hours for ${a.name}`}
+                className="grid place-items-center w-9 h-9 rounded-full text-pine active:bg-pine-soft transition-colors"
+              >
+                <Icon name="more_time" size={21} />
+              </button>
               <NoteButton id={a.id} title={a.name} seed={a.note} />
             </div>
             {/* The prototype's shimmering "Find support" — the app's coach finder */}
@@ -809,15 +861,13 @@ function Activities({
                     </span>
                   </button>
                   <div className="w-9 shrink-0 flex flex-col items-center">
-                    {a.category === "Volunteering" && (
-                      <button
-                        onClick={() => onLogHours(a)}
-                        aria-label={`Log hours for ${a.name}`}
-                        className="grid place-items-center w-9 h-9 rounded-full text-pine active:bg-pine-soft transition-colors"
-                      >
-                        <Icon name="more_time" size={21} />
-                      </button>
-                    )}
+                    <button
+                      onClick={() => onLogHours(a)}
+                      aria-label={`Log hours for ${a.name}`}
+                      className="grid place-items-center w-9 h-9 rounded-full text-pine active:bg-pine-soft transition-colors"
+                    >
+                      <Icon name="more_time" size={21} />
+                    </button>
                     <NoteButton id={a.id} title={a.name} seed={a.note} />
                   </div>
                   <button
@@ -834,7 +884,7 @@ function Activities({
                     {a.start.y} – {a.end === "present" ? "Present" : a.end.y} ·{" "}
                     {durationText(a.start, a.end)}
                   </span>
-                  {a.category === "Volunteering" && (
+                  {hoursTotal(a.id) > 0 && (
                     <span className="font-[600] text-pine-dark">
                       · {fmtHours(hoursTotal(a.id))}
                     </span>
@@ -1033,6 +1083,7 @@ function ActivityDetail({
   onAddAchievement,
   onConnectCoach,
   onAskProudly,
+  onLogHours,
 }: {
   id: string;
   onBack: () => void;
@@ -1041,6 +1092,7 @@ function ActivityDetail({
   onAddAchievement: (activityId: string) => void;
   onConnectCoach: (activityId: string) => void;
   onAskProudly: (activityId: string) => void;
+  onLogHours: (a: Activity) => void;
 }) {
   const activity = activityById(id)!;
   const acts = achievementsForActivity(id);
@@ -1063,7 +1115,7 @@ function ActivityDetail({
         }
       />
       <div className="flex-1 overflow-y-auto scroll-area pb-8">
-        <div className="px-4">
+        <div className="px-6">
           <div className="flex items-center gap-2">
             <span
               className="w-2.5 h-2.5 rounded-full"
@@ -1072,27 +1124,44 @@ function ActivityDetail({
             <span className="text-[13px] font-[600] text-ink-soft">{activity.category}</span>
             <LevelBadge activity={activity} />
             {ongoing && (
-              <span className="text-[11.5px] font-[700] text-teal bg-mint px-2 py-0.5 rounded-full">
+              <span className="text-[11.5px] font-[700] text-pine bg-pine-soft px-2 py-0.5 rounded-full">
                 Ongoing
               </span>
             )}
           </div>
-          <h1 className="font-display text-[30px] font-[700] text-ink mt-1.5">{activity.name}</h1>
-          <p className="text-[14px] text-ink-soft mt-1">
-            {activity.approxStart ? "~" : ""}
-            {fmtMonth(activity.start)} –{" "}
-            {activity.end === "present" ? "Present" : fmtMonth(activity.end)}
-          </p>
-          <p className="text-[13px] text-teal font-[600] mt-0.5">
-            {durationText(activity.start, activity.end)}
-          </p>
-        </div>
+          <h1 className="font-[700] text-[30px] leading-[1.1] tracking-[-0.025em] text-ink mt-1.5">
+            {activity.name}
+          </h1>
 
-        {/* stats */}
-        <div className="px-4 mt-4">
-          <div className="flex rounded-2xl bg-surface border border-hairline divide-x divide-hairline">
-            <Summary value={durationText(activity.start, activity.end).split(" ")[0]} label="years" />
-            <Summary value={String(acts.length)} label="achievements" accent />
+          {/* The span, the tally and the hours on one line. The counts used to
+              be two big cards, which made a number the loudest thing on a
+              screen that is about the activity. */}
+          <p className="flex flex-wrap items-center gap-x-2 text-[14px] text-ink-soft mt-1.5">
+            <span>
+              {activity.approxStart ? "~" : ""}
+              {fmtMonth(activity.start)} –{" "}
+              {activity.end === "present" ? "Present" : fmtMonth(activity.end)} ·{" "}
+              {durationText(activity.start, activity.end)}
+            </span>
+            {acts.length > 0 && (
+              <span className="inline-flex items-center gap-1 font-[600] text-amber-dark">
+                <Icon name="trophy" size={16} fill className="text-amber" />
+                {acts.length}
+              </span>
+            )}
+            {hoursTotal(id) > 0 && (
+              <span className="font-[600] text-pine-dark">· {fmtHours(hoursTotal(id))}</span>
+            )}
+          </p>
+
+          <div className="flex gap-2 mt-4">
+            <NoteButton id={activity.id} title={activity.name} seed={activity.note} label />
+            <button
+              onClick={() => onLogHours(activity)}
+              className="flex items-center gap-1.5 h-10 pl-3 pr-4 rounded-full bg-surface border border-hairline text-[13.5px] font-[600] text-ink active:scale-95 transition-transform"
+            >
+              <Icon name="more_time" size={18} className="text-pine" /> Log hours
+            </button>
           </div>
         </div>
 

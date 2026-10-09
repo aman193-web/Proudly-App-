@@ -2,6 +2,11 @@ import { useState } from "react";
 import { Icon } from "./Icon";
 import { Sheet } from "./Sheet";
 import { type Activity, childById } from "../data";
+import {
+  type Coach,
+  getCoachProvider,
+  rankCoaches,
+} from "../lib/coachSearch";
 
 /* Find support — Oct-1 redesign.
    -----------------------------
@@ -14,6 +19,9 @@ import { type Activity, childById } from "../data";
    fetched, so the sheet always has something to show offline. */
 
 type PickKind = "Coach" | "Competition" | "Camp" | "Gear";
+
+/** One turn in the sheet's thread. A reply may carry coach results. */
+type Turn = { me: boolean; text: string; coaches?: Coach[] };
 
 const KIND_ICON: Record<PickKind, string> = {
   Coach: "school",
@@ -82,7 +90,8 @@ export function SupportSheet({
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState("");
-  const [chat, setChat] = useState<{ me: boolean; text: string }[]>([]);
+  const [chat, setChat] = useState<Turn[]>([]);
+  const [searching, setSearching] = useState(false);
 
   const picks = activity
     ? (SUGGESTIONS.find(([re]) => re.test(activity.name))?.[1] ?? FALLBACK)
@@ -93,21 +102,67 @@ export function SupportSheet({
   /* Each pick is a prompt. Tapping one asks it, which turns the sheet into a
      conversation — the cards scroll away above the thread rather than sitting
      there as navigation. */
-  const ask = (question: string, answer: string) =>
-    setChat((c) => [...c, { me: true, text: question }, { me: false, text: answer }]);
+  const ask = (question: string, answer: string, coaches?: Coach[]) =>
+    setChat((c) => [
+      ...c,
+      { me: true, text: question },
+      { me: false, text: answer, coaches },
+    ]);
 
-  const askPick = ([kind, title, meta]: [PickKind, string, string]) =>
+  /* A coach prompt answers with real listings rather than a sentence — the
+     parent's next move is picking one, so the reply is the list. */
+  const findCoaches = async (question: string) => {
+    if (!activity) return;
+    setChat((c) => [...c, { me: true, text: question }]);
+    setSearching(true);
+    try {
+      const found = await getCoachProvider().search({
+        activityName: activity.name,
+        category: activity.category,
+        location: { kind: "text", value: "near you" },
+      });
+      const top = rankCoaches(found).slice(0, 3);
+      setChat((c) => [
+        ...c,
+        {
+          me: false,
+          text: top.length
+            ? `Here are the best-rated near you for ${who}'s ${activity.name.toLowerCase()}. Tap one to open it on Google.`
+            : `I couldn't find anyone nearby for ${activity.name.toLowerCase()} just now.`,
+          coaches: top,
+        },
+      ]);
+    } catch {
+      setChat((c) => [
+        ...c,
+        { me: false, text: "I couldn't reach the search just now — try again in a moment." },
+      ]);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const askPick = ([kind, title, meta]: [PickKind, string, string]) => {
+    if (kind === "Coach") {
+      void findCoaches(`Find coaches: ${title}`);
+      return;
+    }
     ask(
       `Tell me about: ${title}`,
       `${title} — ${meta}. It is a ${kind.toLowerCase()} option I found for ${who}'s ${
         activity?.name.toLowerCase() ?? "activity"
       }. Want me to pull together dates, cost and how to sign up?`,
     );
+  };
 
   const send = () => {
     const q = draft.trim();
     if (!q) return;
     setDraft("");
+    if (/coach|teacher|tutor|lesson|class|near/i.test(q)) {
+      void findCoaches(q);
+      return;
+    }
     ask(
       q,
       `Looking into that for ${who} — I'll check what's available near you for ${
@@ -157,17 +212,49 @@ export function SupportSheet({
           {started && (
             <div className="mt-3 flex flex-col gap-2">
               {chat.map((m, i) => (
-                <span
-                  key={i}
-                  className={`max-w-[82%] px-3.5 py-2.5 rounded-[18px] text-[14px] leading-[1.4] ${
-                    m.me
-                      ? "self-end bg-pine text-white"
-                      : "self-start bg-white/70 border border-white text-ink"
-                  }`}
-                >
-                  {m.text}
-                </span>
+                <div key={i} className="flex flex-col gap-2">
+                  <span
+                    className={`max-w-[82%] px-3.5 py-2.5 rounded-[18px] text-[14px] leading-[1.4] ${
+                      m.me
+                        ? "self-end bg-pine text-white"
+                        : "self-start bg-white/70 border border-white text-ink"
+                    }`}
+                  >
+                    {m.text}
+                  </span>
+                  {m.coaches?.map((c) => (
+                    <a
+                      key={c.id}
+                      href={c.googleUrl}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="flex items-center gap-3 px-3.5 py-3 rounded-[18px] bg-white/70 border border-white active:scale-[0.99] transition-transform"
+                    >
+                      <Icon name="school" size={24} className="text-pine" />
+                      <span className="flex-1 min-w-0 flex flex-col gap-0.5">
+                        <span className="text-[15px] font-[600] text-ink truncate">
+                          {c.name}
+                        </span>
+                        <span className="flex items-center gap-1 text-[13px] text-ink-soft">
+                          <span>{c.rating.toFixed(1)}</span>
+                          <span className="tracking-[-1px] text-[#e3a21a]">★★★★★</span>
+                          <span className="truncate">
+                            ({c.reviewCount})
+                            {c.distanceMi != null ? ` · ${c.distanceMi.toFixed(1)} mi` : ""}
+                          </span>
+                        </span>
+                        <span className="text-[13px] text-ink-soft truncate">{c.location}</span>
+                      </span>
+                      <Icon name="open_in_new" size={18} className="text-[#9aa09c]" />
+                    </a>
+                  ))}
+                </div>
               ))}
+              {searching && (
+                <span className="self-start px-3.5 py-2.5 rounded-[18px] bg-white/70 border border-white text-[14px] text-ink-soft">
+                  Searching near you…
+                </span>
+              )}
             </div>
           )}
 

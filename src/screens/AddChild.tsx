@@ -41,9 +41,18 @@ const TINTS = [
 export function AddChild({
   onBack,
   onContinue,
+  /* Onboarding by default. Profile reuses the same screen for "Add a child",
+     which is why the heading, the step label and the button are props —
+     a second, differently-shaped child form would only drift from this one. */
+  title = "Your kids",
+  step = "Step 1 of 3",
+  ctaLabel = "Continue",
 }: {
   onBack: () => void;
   onContinue: (name: string) => void;
+  title?: string;
+  step?: string;
+  ctaLabel?: string;
 }) {
   const [kids, setKids] = useState<Kid[]>([]);
   const [formOpen, setFormOpen] = useState(true);
@@ -173,7 +182,7 @@ export function AddChild({
     <Screen>
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
 
-      <AppHeader title="Your kids" onBack={onBack} step="Step 1 of 3" />
+      <AppHeader title={title} onBack={onBack} step={step} />
 
       <div className="flex-1 overflow-y-auto scroll-area px-6 pb-4 flex flex-col gap-5">
         {/* Saved kids — rows, no boxes */}
@@ -349,7 +358,7 @@ export function AddChild({
           onClick={() => onContinue(kids[0]?.first ?? draft.first.trim())}
           disabled={kids.length === 0}
         >
-          Continue
+          {ctaLabel}
         </PrimaryButton>
       </div>
 

@@ -26,6 +26,9 @@ type Route =
 export default function App() {
   const [route, setRoute] = useState<Route>("welcome");
   const [childName, setChildName] = useState("Reet");
+  /* True when the parent skipped the calendar scan: Home then leads with
+     "add your first activity" instead of a review queue they never got. */
+  const [skippedSync, setSkippedSync] = useState(false);
   const go = (r: Route) => setRoute(r);
 
   return (
@@ -65,7 +68,10 @@ export default function App() {
             key="connect"
             onBack={() => go("addChild")}
             onContinue={() => go("processing")}
-            onManual={() => go("manual")}
+            onManual={() => {
+              setSkippedSync(true);
+              go("app");
+            }}
           />
         )}
         {route === "manual" && (
@@ -100,7 +106,9 @@ export default function App() {
             onDone={() => go("app")}
           />
         )}
-        {route === "app" && <MainApp key="app" onSignOut={() => go("welcome")} />}
+        {route === "app" && (
+          <MainApp key="app" firstRun={skippedSync} onSignOut={() => go("welcome")} />
+        )}
       </AnimatePresence>
     </PhoneShell>
   );
